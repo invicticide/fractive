@@ -23,7 +23,7 @@ Verify node and npm:
 
 Install TypeScript:
 
-	node install typescript
+	npm install typescript
 
 Verify TypeScript:
 
