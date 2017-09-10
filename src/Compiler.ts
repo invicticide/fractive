@@ -30,16 +30,137 @@ let markdownWriter = new commonmark.HtmlRenderer({softbreak: "<br/>"});
 class Compiler
 {
 	/**
-	 * Compile a given .md file to a playable .html story.
-	 * @param filepath The path/filename of the .md to compile.
+	 * Compile all source files in the given path into a single playable html file
+	 * @param directory The path to search for source files to compile
 	 */
-	static Compile(filepath : string) : void
+	static Compile(directory : string) : void
+	{
+		if(!fs.existsSync(directory))
+		{
+			console.log(`Directory not found: "${directory}"`);
+			return;
+		}
+		if(!fs.lstatSync(directory).isDirectory())
+		{
+			console.log(`${directory} is not a directory`);
+			return;
+		}
+
+		// Find all the files that are eligible for compilation
+		let markdownFiles : Array<string> = [];
+		let javascriptFiles : Array<string> = [];
+		let files : Array<string> = fs.readdirSync(directory, "utf8");
+		for(let i = 0; i < files.length; i++)
+		{
+			if(!fs.lstatSync(`${directory}/${files[i]}`).isFile()) { continue; }
+			switch(path.extname(files[i]))
+			{
+				case ".md": { markdownFiles.push(files[i]); break; }
+				case ".js": { javascriptFiles.push(files[i]); break; }
+			}
+		}
+
+		// Compile all the Markdown files
+		console.log("\nProcessing story text...");
+		let html : string = "";
+		for(let i = 0; i < markdownFiles.length; i++)
+		{
+			console.log("\t" + markdownFiles[i]);
+			let filepath : string = `${directory}/${markdownFiles[i]}`;
+			html += `<!-- ${markdownFiles[i]} -->\n${Compiler.RenderFile(filepath)}\n`;
+		}
+
+		// Import all the Javascript files
+		console.log("\nProcessing scripts...");
+		let javascript = Compiler.ImportFile("lib/Core.js");
+		for(let i = 0; i < javascriptFiles.length; i++)
+		{
+			console.log("\t" + javascriptFiles[i]);
+			let filepath : string = `${directory}/${javascriptFiles[i]}`;
+			javascript += `// ${javascriptFiles[i]}\n${Compiler.ImportFile(filepath)}\n`;
+		}
+
+		// Wrap our compiled html with a page template
+		// TODO: Grab an external page template, possibly something provided on the command line?
+		html = `<html>\n<head>\n<script>\n${javascript}\n</script>\n</head>\n<body>\n${html}\n<div id="__history"></div><hr/><div id="__currentSection"></div></body><script>Core.GotoSection("Start");</script>\n</html>\n`;
+
+		// Write the final compiled file to disk
+		console.log("\nWriting output file...");
+		fs.writeFileSync(`${directory}/index.html`, html, "utf8");
+		
+		console.log(`\nBuild complete! Your story was published to ${directory}/index.html!\n`);
+	}
+
+	/**
+	 * Retrieves the text in between <a></a> tags for a CommonMark AST link node
+	 * @param node The AST link node whose label you want to retrieve
+	 * @return The link label (as rendered html), or null on error. If no error but the <a></a> tags are empty, returns an empty string instead of null.
+	 */
+	static GetLinkLabel(node) : string
+	{
+		if(node.type !== "link")
+		{
+			console.log(`GetLinkLabel received a node of type ${node.type}, which is illegal and will be skipped`);
+			return null;
+		}
+
+		// Render the link node and then strip the <a></a> tags from it, leaving just the contents.
+		// We do this to ensure that any formatting embedded inside the <a></a> tags is preserved.
+		let html : string = markdownWriter.render(node);
+		for(let i = 0; i < html.length; i++)
+		{
+			if(html[i] === ">")
+			{
+				html = html.substring(i + 1, html.length - 4);
+				break;
+			}
+		}
+		return html;
+	}
+
+	/**
+	 * Reads and returns the raw contents of a file
+	 * @param filepath The path and filename of the file to import
+	 * @return The text contents of the file, or null on error
+	 */
+	static ImportFile(filepath : string) : string
+	{
+		if(!fs.existsSync(filepath))
+		{
+			console.log(`File not found: "${filepath}"`);
+			return null;
+		}
+		if(!fs.lstatSync(filepath).isFile())
+		{
+			console.log(`"${filepath} is not a file`);
+			return null;
+		}
+		return fs.readFileSync(filepath, "utf8");
+	}
+
+	/**
+	 * Log a consistently-formatted parse error including the line/character number where the error occurred.
+	 * @param text The error message to display.
+	 * @param lineNumber The line where the error occurred.
+	 * @param characterNumber The character within the line where the error occurred.
+	 */
+	static LogParseError(text : string, lineNumber : number, characterNumber : number)
+	{
+		console.log(`(${lineNumber},${characterNumber}): ${text}`);
+	}
+
+	/**
+	 * Renders the given Markdown file to HTML
+	 * @param filepath The path and filename of the Markdown file to render
+	 * @return The rendered HTML, or null on error
+	 */
+	static RenderFile(filepath : string) : string
 	{
 		// Read the file contents
 		if(!fs.existsSync(filepath))
 		{
 			console.log("File not found: " + filepath);
-			return;
+			return null;
 		}
 		let text : string = fs.readFileSync(filepath, "utf8");
 
@@ -76,7 +197,7 @@ class Compiler
 				else if(braceCount > 0)
 				{
 					Compiler.LogParseError("Unexpected { in macro declaration", lineNumber, characterNumber);
-					break;
+					return null;
 				}
 				else
 				{
@@ -99,7 +220,7 @@ class Compiler
 				else if(braceCount === 0)
 				{
 					Compiler.LogParseError("Unmatched }", lineNumber, characterNumber);
-					break;
+					return null;
 				}
 			}
 			else if(text[i] === "\n" || text[i] === "\t" || text[i] === " ")
@@ -107,7 +228,7 @@ class Compiler
 				if(braceCount > 0)
 				{
 					Compiler.LogParseError("Illegal whitespace in macro declaration", lineNumber, characterNumber);
-					break;
+					return null;
 				}
 				else if(sectionName.length > 0) { sectionBody += text[i]; }
 			}
@@ -129,56 +250,12 @@ class Compiler
 		{
 			html += Compiler.RenderSection(sectionName, sectionBody);
 		}
-		
-		// Wrap our compiled html with a page template
-		// TODO: Grab an external page template, possibly something provided on the command line?
-		html = `<html><body>\n${html}</body></html>\n`;
 
-		// Write the final compiled file to disk
-		let folder = path.dirname(filepath);
-		fs.writeFileSync(`${folder}/index.html`, html, "utf8");
-	}
-
-	/**
-	 * Retrieves the text in between <a></a> tags for a CommonMark AST link node
-	 * @param node The AST link node whose label you want to retrieve
-	 * @return The link label (as rendered html), or null on error. If no error but the <a></a> tags are empty, returns an empty string instead of null.
-	 */
-	static GetLinkLabel(node) : string
-	{
-		if(node.type !== "link")
-		{
-			console.log(`GetLinkLabel received a node of type ${node.type}, which is illegal and will be skipped`);
-			return null;
-		}
-
-		// Render the link node and then strip the <a></a> tags from it, leaving just the contents.
-		// We do this to ensure that any formatting embedded inside the <a></a> tags is preserved.
-		let html : string = markdownWriter.render(node);
-		for(let i = 0; i < html.length; i++)
-		{
-			if(html[i] === ">")
-			{
-				html = html.substring(i + 1, html.length - 4);
-				break;
-			}
-		}
 		return html;
 	}
 
 	/**
-	 * Log a consistently-formatted parse error including the line/character number where the error occurred.
-	 * @param text The error message to display.
-	 * @param lineNumber The line where the error occurred.
-	 * @param characterNumber The character within the line where the error occurred.
-	 */
-	static LogParseError(text : string, lineNumber : number, characterNumber : number)
-	{
-		console.log(`(${lineNumber},${characterNumber}): ${text}`);
-	}
-
-	/**
-	 * Renders the given Markdown text into HTML
+	 * Renders the given Markdown text section into HTML
 	 * @param name The section name as defined by a {{SectionName}} macro
 	 * @param body The Markdown-formatted section body
 	 * @return The rendered HTML, or null on error
@@ -240,7 +317,7 @@ class Compiler
 
 		// Render the final section html and wrap it in a section <div>
 		let result = markdownWriter.render(ast);
-		return `<div id="${name}" class="section">${result}</div>\n`;
+		return `<div id="${name}" class="section" hidden="true">${result}</div>\n`;
 	}
 
 	/**
