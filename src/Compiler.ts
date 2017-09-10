@@ -140,6 +140,33 @@ class Compiler
 	}
 
 	/**
+	 * Retrieves the text in between <a></a> tags for a CommonMark AST link node
+	 * @param node The AST link node whose label you want to retrieve
+	 * @return The link label (as rendered html), or null on error. If no error but the <a></a> tags are empty, returns an empty string instead of null.
+	 */
+	static GetLinkLabel(node) : string
+	{
+		if(node.type !== "link")
+		{
+			console.log(`GetLinkLabel received a node of type ${node.type}, which is illegal and will be skipped`);
+			return null;
+		}
+
+		// Render the link node and then strip the <a></a> tags from it, leaving just the contents.
+		// We do this to ensure that any formatting embedded inside the <a></a> tags is preserved.
+		let html : string = markdownWriter.render(node);
+		for(let i = 0; i < html.length; i++)
+		{
+			if(html[i] === ">")
+			{
+				html = html.substring(i + 1, html.length - 4);
+				break;
+			}
+		}
+		return html;
+	}
+
+	/**
 	 * Log a consistently-formatted parse error including the line/character number where the error occurred.
 	 * @param text The error message to display.
 	 * @param lineNumber The line where the error occurred.
@@ -154,17 +181,89 @@ class Compiler
 	 * Renders the given Markdown text into HTML
 	 * @param name The section name as defined by a {{SectionName}} macro
 	 * @param body The Markdown-formatted section body
-	 * @return The rendered HTML
+	 * @return The rendered HTML, or null on error
 	 */
 	static RenderSection(name : string, body : string) : string
 	{
 		let ast = markdownReader.parse(body); // Returns an Abstract Syntax Tree (AST)
 
-		// TODO: Custom AST manipulation before rendering. Rewrite <a> tags to call into js onclick to
-		// transition to a new passage for {@Passage} macros, or call a function for {#Function} macros.
+		// Custom AST manipulation before rendering. Rewrite <a> tags to call into js onclick to transition
+		// to a new passage for {@Passage} macros, or call a function for {#Function} macros.
+		let walker = ast.walker();
+		var event, node;
+		while((event = walker.next()))
+		{
+			node = event.node;
 
+			if(node.type !== "link") { continue; }
+			if(event.entering) { continue; }
+
+			let url : string = node.destination;
+			url = url.replace("%7B", "{").replace("%7D", "}");
+			
+			if(url[0] !== "{") { continue; }
+
+			if(url[url.length - 1] !== "}")
+			{
+				console.log(`Link destination ${url} is missing its closing brace`);
+				return null;
+			}
+
+			switch(url[1])
+			{
+				case "@": // Section link: navigate to the section
+				{
+					let sectionName : string = url.substring(2, url.length - 1);
+					let onClick = `Core.GotoSection('${sectionName}')`;
+					Compiler.RewriteLinkNode(node, onClick, Compiler.GetLinkLabel(node));
+					break;
+				}
+				case "#": // Function link: call the function
+				{
+					let functionName : string = url.substring(2, url.length - 1);
+					let onClick = `${functionName}()`;
+					Compiler.RewriteLinkNode(node, onClick, Compiler.GetLinkLabel(node));
+					break;
+				}
+				case "$": // Variable link: behavior undefined
+				{
+					console.log(`Link destination ${url} is a variable macro, which is not supported`);
+					return null;
+				}
+				default: // Unknown macro
+				{
+					console.log(`Link destination ${url} is an unrecognized macro`);
+					return null;
+				}
+			}
+		}
+
+		// Render the final section html and wrap it in a section <div>
 		let result = markdownWriter.render(ast);
-		return `<div id="${name}" class="passage">${result}</div>\n`;
+		return `<div id="${name}" class="section">${result}</div>\n`;
+	}
+
+	/**
+	 * Rewrites a link node (from a CommonMark AST) to be <a onclick="${onClick}">${linkLabel}</a>
+	 * This function modifies the AST in-place by replacing the link node with an html_inline node
+	 * that explicitly formats the rewritten <a> tag.
+	 * @param node The AST link node to replace
+	 * @param onClick The desired contents of the onclick attribute, e.g. "MyFunction(myParams)"
+	 * @param linkLabel The text to place inside the <a></a> tags
+	 */
+	static RewriteLinkNode(node, onClick : string, linkLabel : string) : void
+	{
+		if(node.type != "link")
+		{
+			console.log(`RewriteLinkNode received a node of type ${node.type}, which is illegal and will be skipped`);
+			return;
+		}
+
+		// Replace the link node with a new text node to hold the rewritten <a> tag
+		var newNode = new commonmark.Node("html_inline", node.sourcepos);
+		newNode.literal = `<a onclick="${onClick}">${linkLabel}</a>`;
+		node.insertBefore(newNode);
+		node.unlink();
 	}
 }
 
