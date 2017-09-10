@@ -115,4 +115,14 @@ class Core
 		// Expand the destination section
 		currentSection.innerHTML = Core.ExpandSection(id);
 	}
+
+	/**
+	 * Show or hide the history section
+	 * @param tf If true, show history. If false, hide history.
+	 */
+	static ShowHistory(tf : boolean)
+	{
+		let history = document.getElementById("__history");
+		history.hidden = !tf;
+	}
 }
