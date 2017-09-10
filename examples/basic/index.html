@@ -1,0 +1,132 @@
+<html>
+<head>
+<script>
+var Core = (function () {
+    function Core() {
+    }
+    Core.ExpandMacro = function (macro) {
+        switch (macro[0]) {
+            case '@':
+                {
+                    return Core.ExpandSection(macro.substring(1));
+                }
+            case '#':
+                {
+                    var functionName = macro.substring(1);
+                    var fn = window[functionName];
+                    if (typeof fn === "function") {
+                        return fn();
+                    }
+                    else {
+                        console.log(functionName + " is not a function");
+                        break;
+                    }
+                }
+            case '$':
+                {
+                    return window[macro.substring(1)];
+                }
+        }
+        console.log("Unknown metacharacter in macro: " + macro);
+        return "";
+    };
+    Core.ExpandSection = function (id) {
+        var section = document.getElementById(id);
+        if (section) {
+            var finalHTML = '';
+            var macro = '';
+            var bParsingMacro = false;
+            for (var i = 0; i < section.innerHTML.length; i++) {
+                if (section.innerHTML[i] === '{') {
+                    if (!bParsingMacro) {
+                        bParsingMacro = true;
+                        macro = '';
+                    }
+                    else {
+                        console.log("Error: Nested { in " + id + " at character " + i.toString());
+                        break;
+                    }
+                }
+                else if (section.innerHTML[i] === '}') {
+                    if (bParsingMacro) {
+                        bParsingMacro = false;
+                        finalHTML += Core.ExpandMacro(macro);
+                    }
+                    else {
+                        console.log("Error: Got } without a corresponding { in " + id + " at character " + i.toString());
+                        break;
+                    }
+                }
+                else if (bParsingMacro) {
+                    macro += section.innerHTML[i];
+                }
+                else {
+                    finalHTML += section.innerHTML[i];
+                }
+            }
+            return finalHTML;
+        }
+        else {
+            console.log("Section " + id + " doesn't exist");
+            return '';
+        }
+    };
+    Core.GotoSection = function (id) {
+        var history = document.getElementById("__history");
+        var currentSection = document.getElementById("__currentSection");
+        history.innerHTML += currentSection.innerHTML;
+        currentSection.innerHTML = Core.ExpandSection(id);
+    };
+    Core.ShowHistory = function (tf) {
+        var history = document.getElementById("__history");
+        history.hidden = !tf;
+    };
+    return Core;
+}());
+// script.js
+function RaiseAlert()
+{
+	alert("Raised an alert!");
+}
+
+function InlineText()
+{
+	return "This is some inline text that comes from a function call!";
+}
+
+function ToggleHistory()
+{
+	Core.ShowHistory(false);
+}
+
+
+</script>
+</head>
+<body>
+<!-- text.md -->
+<div id="Start" class="section" hidden="true"><p>This is the first section. It's called &quot;Start&quot; which is a special section name that indicates where the story begins.</p>
+<p><a href="#" onclick="Core.GotoSection('AnotherSection')">Go to the next section</a></p>
+</div>
+<div id="AnotherSection" class="section" hidden="true"><p>This is the second passage. It is even better and more purer, because now we're gonna insert some text from a function call, and we're gonna wrap it in some Markdown blockquote formatting:</p>
+<blockquote>
+<p>{#InlineText}</p>
+</blockquote>
+<p>Notice that the first section is still displayed above. That's because we keep track of your play history in a scrollback. <a href="#" onclick="ToggleHistory()">Hide history</a></p>
+<p><a href="#" onclick="Core.GotoSection('AboutFormatting')">Learn about formatting</a></p>
+</div>
+<div id="AboutFormatting" class="section" hidden="true"><p>Story text is written in Markdown, which means we have access to <em>all kinds</em> of <strong>formatting</strong>, including:</p>
+<ul>
+<li>Unordered lists (like this one)</li>
+<li>Ordered lists (1, 2, 3, 4...)</li>
+<li><a href="#" onclick="RaiseAlert()">Links that call Javascript functions</a>, as well as <a href="https://google.com">vanilla hyperlinks to other websites</a></li>
+<li>Links can also <a href="#" onclick="RaiseAlert()"><em>contain</em> <strong>formatting</strong></a></li>
+</ul>
+<h1>Headers</h1>
+<h2>Sub-headers</h2>
+<p>Basically, anything Markdown can do, you can do in your story text! You can even inline <span color="#ff0000">raw HTML</span> which means you could do video embeds, HTML5 canvas, and all kinds of other fancy stuff.</p>
+<p>(This is the end of this example.)</p>
+</div>
+
+
+<div id="__history"></div><hr/><div id="__currentSection"></div></body><script>Core.GotoSection("Start");</script>
+</html>

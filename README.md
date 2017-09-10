@@ -63,6 +63,16 @@ Now that you have a basic story and a basic script, you need to build it so othe
 
 The compiler will spit out an `index.html` which is a self-contained distribution of your story. Just open it in a browser and start clicking!
 
+## Examples
+
+There's an example story in the `examples/basic` folder which demonstrates some very basic concepts. Open the `index.html` to play the example, then check out the `text.md` and `script.js` to see how it was implemented.
+
+If you want to try out some changes to it, open a command line to the `fractive` repository root and do:
+
+	node lib/Compiler.js examples/basic/
+
+This will build all the source files (.md and .js) in that folder and spit out a new `index.html` with the changes.
+
 ## Modifying fractive
 
 Fractive is written in TypeScript. If you make modifications in `src`, open a command line into the repository root and do:
