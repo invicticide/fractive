@@ -17,13 +17,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 /**
- * Core functionality including passage navigation and macro expansion.
+ * Core functionality including section navigation and macro expansion.
  */
 class Core
 {
 	/**
-	 * Expand a macro (e.g. "{@somePassage}", "{#someFunction}", "{$someVariable}") into human-readable text.
-	 * {@passage} macros expand the entire referenced passage, including its own macros.
+	 * Expand a macro (e.g. "{@someSection}", "{#someFunction}", "{$someVariable}") into human-readable text.
+	 * {@section} macros expand the entire referenced section, including its own macros.
 	 * {#function} macros execute the function and replace the macro with the return value.
 	 * {$variable} macros replace the macro with the value of the variable.
 	 * @param macro The macro string, omitting the enclosing {}. Should start with a metacharacter (e.g. '$' for variables).
@@ -35,8 +35,8 @@ class Core
 		{
 			case '@':
 			{
-				// Return the contents of the named passage, with its macros expanded
-				return Core.ExpandPassage(macro.substring(1));
+				// Return the contents of the named section, with its macros expanded
+				return Core.ExpandSection(macro.substring(1));
 			}
 			case '#':
 			{
@@ -58,61 +58,61 @@ class Core
 	}
 
 	/**
-	 * Expand all macros within the given passage, and return the resulting human-readable text.
-	 * @param id The string identifier of the passage to expand.
-	 * @return The entire passage text with all macros expanded.
+	 * Expand all macros within the given section, and return the resulting human-readable text.
+	 * @param id The string identifier of the section to expand.
+	 * @return The entire section text with all macros expanded.
 	 */
-	static ExpandPassage(id : string) : string
+	static ExpandSection(id : string) : string
 	{
-		let passage = document.getElementById(id);
-		if(passage)
+		let section = document.getElementById(id);
+		if(section)
 		{
 			let finalHTML = '';
 			let macro = '';
 			let bParsingMacro = false;
-			for(let i = 0; i < passage.innerHTML.length; i++)
+			for(let i = 0; i < section.innerHTML.length; i++)
 			{
-				if(passage.innerHTML[i] == '{')
+				if(section.innerHTML[i] === '{')
 				{
 					if(!bParsingMacro) { bParsingMacro = true; macro = ''; }
 					else { console.log("Error: Nested { in " + id + " at character " + i.toString()); break; }
 				}
-				else if(passage.innerHTML[i] == '}')
+				else if(section.innerHTML[i] === '}')
 				{
 					if(bParsingMacro) { bParsingMacro = false; finalHTML += Core.ExpandMacro(macro); }
 					else { console.log("Error: Got } without a corresponding { in " + id + " at character " + i.toString()); break; }
 				}
 				else if(bParsingMacro)
 				{
-					macro += passage.innerHTML[i];
+					macro += section.innerHTML[i];
 				}
 				else
 				{
-					finalHTML += passage.innerHTML[i];
+					finalHTML += section.innerHTML[i];
 				}
 			}
 			return finalHTML;
 		}
 		else
 		{
-			console.log("Passage " + id + " doesn't exist");
+			console.log("Section " + id + " doesn't exist");
 			return '';
 		}
 	}
 
 	/**
-	 * Navigate to the given passage.
-	 * @param id The string identifier of the passage to navigate to.
+	 * Navigate to the given section.
+	 * @param id The string identifier of the section to navigate to.
 	 */
-	static GotoPassage(id : string) : void
+	static GotoSection(id : string) : void
 	{
-		// Move the current passage into the history
+		// Move the current section into the history
 		// TODO: Disable hyperlinks, so we can't click stuff in the history and screw up our flow!
 		let history = document.getElementById("__history");
-		let currentPassage = document.getElementById("__currentPassage");
-		history.innerHTML += currentPassage.innerHTML;
+		let currentSection = document.getElementById("__currentSection");
+		history.innerHTML += currentSection.innerHTML;
 
-		// Expand the destination passage
-		currentPassage.innerHTML = Core.ExpandPassage(id);
+		// Expand the destination section
+		currentSection.innerHTML = Core.ExpandSection(id);
 	}
 }
