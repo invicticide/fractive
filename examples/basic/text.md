@@ -27,6 +27,6 @@ Story text is written in Markdown, which means we have access to *all kinds* of 
 
 ## Sub-headers
 
-Basically, anything Markdown can do, you can do in your story text! You can even inline <span color="#ff0000">raw HTML</span> which means you could do video embeds, HTML5 canvas, and all kinds of other fancy stuff.
+Basically, anything Markdown can do, you can do in your story text! You can even inline <span style="color:#ff0000">raw HTML</span> which means you could do video embeds, HTML5 canvas, and all kinds of other fancy stuff.
 
 (This is the end of this example.)
