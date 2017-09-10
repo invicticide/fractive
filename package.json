@@ -1,0 +1,24 @@
+{
+  "name": "fractive",
+  "version": "1.0.0",
+  "description": "Fractive is a hypertext authoring tool, primarily intended for the creation of interactive fiction.",
+  "main": "lib/index",
+  "types": "lib/index",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/invicticide/fractive.git"
+  },
+  "keywords": [ "game development", "gamedev", "interactive fiction", "if", "hypertext" ],
+  "author": "invicticide",
+  "license": "AGPL-3.0+",
+  "bugs": {
+    "url": "https://github.com/invicticide/fractive/issues"
+  },
+  "homepage": "https://github.com/invicticide/fractive#readme",
+  "devDependencies": {
+    "@types/node": "^8.0.28"
+  }
+}
