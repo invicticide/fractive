@@ -56,9 +56,9 @@ class Compiler
 		// Parse the file contents
 		for(let i = 0; i < text.length; i++)
 		{
-			if(text[i] == "{")
+			if(text[i] === "{")
 			{
-				if(braceCount == 0 && text[i + 1] == "{")
+				if(braceCount === 0 && text[i + 1] === "{")
 				{
 					i++;
 					braceCount += 2;
@@ -84,25 +84,25 @@ class Compiler
 					braceCount++;					
 				}
 			}
-			else if(text[i] == "}")
+			else if(text[i] === "}")
 			{
-				if(braceCount == 2 && text[i + 1] == "}")
+				if(braceCount === 2 && text[i + 1] === "}")
 				{
 					i++;
 					braceCount -= 2;
 				}
-				else if(braceCount == 1)
+				else if(braceCount === 1)
 				{
 					if(sectionName.length > 0) { sectionBody += text[i]; }
 					braceCount--;
 				}
-				else if(braceCount == 0)
+				else if(braceCount === 0)
 				{
 					Compiler.LogParseError("Unmatched }", lineNumber, characterNumber);
 					break;
 				}
 			}
-			else if(text[i] == "\n" || text[i] == "\t" || text[i] == " ")
+			else if(text[i] === "\n" || text[i] === "\t" || text[i] === " ")
 			{
 				if(braceCount > 0)
 				{
@@ -111,11 +111,11 @@ class Compiler
 				}
 				else if(sectionName.length > 0) { sectionBody += text[i]; }
 			}
-			else if(braceCount == 2) { sectionName += text[i]; }
+			else if(braceCount === 2) { sectionName += text[i]; }
 			else if(sectionName.length > 0) { sectionBody += text[i]; }
 
 			// Handle line breaks
-			if(text[i] == "\n")
+			if(text[i] === "\n")
 			{
 				lineNumber++;
 				characterNumber = 1;
