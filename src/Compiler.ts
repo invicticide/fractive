@@ -261,7 +261,7 @@ class Compiler
 
 		// Replace the link node with a new text node to hold the rewritten <a> tag
 		var newNode = new commonmark.Node("html_inline", node.sourcepos);
-		newNode.literal = `<a onclick="${onClick}">${linkLabel}</a>`;
+		newNode.literal = `<a href="#" onclick="${onClick}">${linkLabel}</a>`;
 		node.insertBefore(newNode);
 		node.unlink();
 	}
