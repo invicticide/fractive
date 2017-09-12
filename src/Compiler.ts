@@ -38,12 +38,12 @@ class Compiler
 		if(!fs.existsSync(directory))
 		{
 			console.log(`Directory not found: "${directory}"`);
-			return;
+			process.exit(1);
 		}
 		if(!fs.lstatSync(directory).isDirectory())
 		{
 			console.log(`${directory} is not a directory`);
-			return;
+			process.exit(1);
 		}
 
 		// Find all the files that are eligible for compilation
@@ -128,12 +128,12 @@ class Compiler
 		if(!fs.existsSync(filepath))
 		{
 			console.log(`File not found: "${filepath}"`);
-			return null;
+			process.exit(1);
 		}
 		if(!fs.lstatSync(filepath).isFile())
 		{
 			console.log(`"${filepath} is not a file`);
-			return null;
+			process.exit(1);
 		}
 		return fs.readFileSync(filepath, "utf8");
 	}
@@ -160,7 +160,7 @@ class Compiler
 		if(!fs.existsSync(filepath))
 		{
 			console.log("File not found: " + filepath);
-			return null;
+			process.exit(1);
 		}
 		let text : string = fs.readFileSync(filepath, "utf8");
 
