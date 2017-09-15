@@ -106,10 +106,22 @@ class Core
 	 */
 	static GotoSection(id : string) : void
 	{
-		// Move the current section into the history
-		// TODO: Disable hyperlinks, so we can't click stuff in the history and screw up our flow!
 		let history = document.getElementById("__history");
 		let currentSection = document.getElementById("__currentSection");
+
+		// Disable hyperlinks in the current section before moving it to history
+		// Stripping each link modifies the collection as we iterate, so we don't need i++
+		let links = currentSection.getElementsByTagName("a");
+		for(let i = 0; i < links.length; /*NOP*/)
+		{
+			let contents : string = links[i].outerHTML.substring(
+				links[i].outerHTML.indexOf(">") + 1,
+				links[i].outerHTML.indexOf("</a>")
+			);
+			links[i].outerHTML = `<span class="__disabledLink">${contents}</span>`;
+		}
+
+		// Move the current section into the history
 		history.innerHTML += currentSection.innerHTML;
 
 		// Expand the destination section
