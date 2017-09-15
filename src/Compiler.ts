@@ -32,27 +32,25 @@ class Compiler
 	/**
 	 * Inserts the given story text (html) and scripts (javascript) into an html template, and
 	 * returns the complete resulting html file contents
-	 * @param templateName The name of the template file to use. Assumed to be relative to the
-	 * "templates" folder. Does NOT include the file extension.
+	 * @param templateFile The file path of the template file to use
 	 * @param html The html-formatted story text to insert into the template
 	 * @param javascript The javascript story scripts to insert into the template
 	 * @return The complete resulting html file contents
 	 */
-	static ApplyTemplate(templateName : string, html : string, javascript : string) : string
+	static ApplyTemplate(templateFile : string, html : string, javascript : string) : string
 	{
-		let templateFilePath : string = `templates/${templateName}.html`;
-		if(!fs.existsSync(templateFilePath))
+		if(!fs.existsSync(templateFile))
 		{
-			console.log(`Template file not found: "${templateFilePath}"`);
+			console.log(`Template file not found: "${templateFile}"`);
 			process.exit(1);
 		}
-		if(!fs.lstatSync(templateFilePath).isFile())
+		if(!fs.lstatSync(templateFile).isFile())
 		{
-			console.log(`Template "${templateFilePath}" is not a file`);
+			console.log(`Template "${templateFile}" is not a file`);
 			process.exit(1);
 		}
 
-		let template : string = fs.readFileSync(templateFilePath, "utf8");
+		let template : string = fs.readFileSync(templateFile, "utf8");
 		template = template.split("<!--{script}-->").join(`<script>${javascript}</script>`);
 		template = template.split("<!--{story}-->").join(html);
 		return template + "<script>Core.GotoSection(\"Start\");</script>";
@@ -62,7 +60,7 @@ class Compiler
 	 * Compile all source files in the given path into a single playable html file
 	 * @param directory The path to search for source files to compile
 	 */
-	static Compile(directory : string, templateName : string) : void
+	static Compile(directory : string, templateFile : string) : void
 	{
 		if(!fs.existsSync(directory))
 		{
@@ -110,8 +108,8 @@ class Compiler
 		}
 
 		// Wrap our compiled html with a page template
-		console.log(`Applying ${templateName} template...`);
-		html = Compiler.ApplyTemplate(templateName, html, javascript);
+		console.log(`Applying ${templateFile} template...`);
+		html = Compiler.ApplyTemplate(templateFile, html, javascript);
 
 		// Write the final compiled file to disk
 		console.log("Writing output file...");
@@ -388,7 +386,7 @@ class Compiler
 		console.log("  template name of just 'basic'.");
 		console.log("");
 		console.log("Example:");
-		console.log("  node lib/Compiler.js /Users/Desktop/MyStory basic");
+		console.log("  node lib/Compiler.js /Users/Desktop/MyStory templates/basic.html");
 		process.exit(0);
 	}
 }
