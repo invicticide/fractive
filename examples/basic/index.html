@@ -1,7 +1,6 @@
 <html>
-<head>
-<script>
-var Core = (function () {
+	<head>
+		<script>var Core = (function () {
     function Core() {
     }
     Core.ExpandMacro = function (macro) {
@@ -99,11 +98,10 @@ function ToggleHistory()
 	Core.ShowHistory(false);
 }
 
-
 </script>
-</head>
-<body>
-<!-- text.md -->
+	</head>
+	<body>
+		<!-- text.md -->
 <div id="Start" class="section" hidden="true"><p>This is the first section. It's called &quot;Start&quot; which is a special section name that indicates where the story begins.</p>
 <p><a href="#" onclick="Core.GotoSection('AnotherSection')">Go to the next section</a></p>
 </div>
@@ -128,5 +126,9 @@ function ToggleHistory()
 </div>
 
 
-<div id="__history"></div><hr/><div id="__currentSection"></div></body><script>Core.GotoSection("Start");</script>
+		<div id="__history"></div>
+		<hr/>
+		<div id="__currentSection"></div>
+	</body>
 </html>
+<script>Core.GotoSection("Start");</script>

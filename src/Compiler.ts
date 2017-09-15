@@ -30,10 +30,39 @@ let markdownWriter = new commonmark.HtmlRenderer({softbreak: "<br/>"});
 class Compiler
 {
 	/**
+	 * Inserts the given story text (html) and scripts (javascript) into an html template, and
+	 * returns the complete resulting html file contents
+	 * @param templateName The name of the template file to use. Assumed to be relative to the
+	 * "templates" folder. Does NOT include the file extension.
+	 * @param html The html-formatted story text to insert into the template
+	 * @param javascript The javascript story scripts to insert into the template
+	 * @return The complete resulting html file contents
+	 */
+	static ApplyTemplate(templateName : string, html : string, javascript : string) : string
+	{
+		let templateFilePath : string = `templates/${templateName}.html`;
+		if(!fs.existsSync(templateFilePath))
+		{
+			console.log(`Template file not found: "${templateFilePath}"`);
+			process.exit(1);
+		}
+		if(!fs.lstatSync(templateFilePath).isFile())
+		{
+			console.log(`Template "${templateFilePath}" is not a file`);
+			process.exit(1);
+		}
+
+		let template : string = fs.readFileSync(templateFilePath, "utf8");
+		template = template.split("<!--{script}-->").join(`<script>${javascript}</script>`);
+		template = template.split("<!--{story}-->").join(html);
+		return template + "<script>Core.GotoSection(\"Start\");</script>";
+	}
+
+	/**
 	 * Compile all source files in the given path into a single playable html file
 	 * @param directory The path to search for source files to compile
 	 */
-	static Compile(directory : string) : void
+	static Compile(directory : string, templateName : string) : void
 	{
 		if(!fs.existsSync(directory))
 		{
@@ -61,34 +90,34 @@ class Compiler
 		}
 
 		// Compile all the Markdown files
-		console.log("\nProcessing story text...");
+		console.log("Processing story text...");
 		let html : string = "";
 		for(let i = 0; i < markdownFiles.length; i++)
 		{
-			console.log("\t" + markdownFiles[i]);
+			console.log(`  ${markdownFiles[i]}`);
 			let filepath : string = `${directory}/${markdownFiles[i]}`;
 			html += `<!-- ${markdownFiles[i]} -->\n${Compiler.RenderFile(filepath)}\n`;
 		}
 
 		// Import all the Javascript files
-		console.log("\nProcessing scripts...");
+		console.log("Processing scripts...");
 		let javascript = Compiler.ImportFile("lib/Core.js");
 		for(let i = 0; i < javascriptFiles.length; i++)
 		{
-			console.log("\t" + javascriptFiles[i]);
+			console.log(`  ${javascriptFiles[i]}`);
 			let filepath : string = `${directory}/${javascriptFiles[i]}`;
 			javascript += `// ${javascriptFiles[i]}\n${Compiler.ImportFile(filepath)}\n`;
 		}
 
 		// Wrap our compiled html with a page template
-		// TODO: Grab an external page template, possibly something provided on the command line?
-		html = `<html>\n<head>\n<script>\n${javascript}\n</script>\n</head>\n<body>\n${html}\n<div id="__history"></div><hr/><div id="__currentSection"></div></body><script>Core.GotoSection("Start");</script>\n</html>\n`;
+		console.log(`Applying ${templateName} template...`);
+		html = Compiler.ApplyTemplate(templateName, html, javascript);
 
 		// Write the final compiled file to disk
-		console.log("\nWriting output file...");
+		console.log("Writing output file...");
 		fs.writeFileSync(`${directory}/index.html`, html, "utf8");
 		
-		console.log(`\nBuild complete! Your story was published to ${directory}/index.html!\n`);
+		console.log(`Build complete! Your story was published to ${directory}/index.html!\n`);
 	}
 
 	/**
@@ -342,12 +371,28 @@ class Compiler
 		node.insertBefore(newNode);
 		node.unlink();
 	}
+
+	/**
+	 * Output the command-line usage and options of the compiler
+	 */
+	static ShowUsage()
+	{
+		console.log("Usage:");
+		console.log("  node lib/Compiler.js storyPath templateName");
+		console.log("");
+		console.log("  - storyPath: The folder path where the story source files are located");
+		console.log("  - templateName: The name of the HTML template to use");
+		console.log("");
+		console.log("  Templates are looked up in the 'templates' folder. The template name");
+		console.log("  is just the name of the file, sans extension. So 'basic.html' has a");
+		console.log("  template name of just 'basic'.");
+		console.log("");
+		console.log("Example:");
+		console.log("  node lib/Compiler.js /Users/Desktop/MyStory basic");
+		process.exit(0);
+	}
 }
 
 // Run the compiler automatically when invoked from the command line, e.g. "node lib/Compiler.js <filename>"
-if(process.argv.length < 3)
-{
-	console.log("Missing input file argument");
-	process.exit(1);
-}
-Compiler.Compile(process.argv[2]);
+if(process.argv.length < 4) { Compiler.ShowUsage(); }
+Compiler.Compile(process.argv[2], process.argv[3]);
