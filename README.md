@@ -59,9 +59,31 @@ Create a new Javascript (.js) file for story scripting. Let's say it's `script.j
 
 Now that you have a basic story and a basic script, you need to build it so others can play it. Open a command line to the `MyStory` folder and do:
 
-	node lib/Compiler.js path/to/MyStory/
+	node lib/Compiler.js path/to/MyStory/ templates/basic.html
 
 The compiler will spit out an `index.html` which is a self-contained distribution of your story. Just open it in a browser and start clicking!
+
+## Templates
+
+You can control the visual layout and style of your story by providing a custom HTML template. A simple default can be found in `templates/basic.html`.
+
+A template is a regular HTML file with a couple of special macros.
+
+`<!--{script}-->` indicates where story scripts should be inserted. Generally you should put this inside your `<head>`. You don't need to include `<script>` tags; they'll be added automatically by the compiler.
+
+`<!--{story}-->` indicates where story text should be inserted. Generally you should put this inside your `<body>`. It doesn't really matter where, because this will all be hidden at startup anyway.
+
+You also need to define:
+
+	<div id="__currentSection"></div>
+	
+...which should be empty. This is where the active section's story text will be displayed on the page.
+
+Optionally, you can also include:
+
+	<div id="__history"></div>
+
+...which should also be empty. This is where past sections will be displayed when history is enabled.
 
 ## Examples
 
@@ -69,7 +91,7 @@ There's an example story in the `examples/basic` folder which demonstrates some 
 
 If you want to try out some changes to it, open a command line to the `fractive` repository root and do:
 
-	node lib/Compiler.js examples/basic/
+	node lib/Compiler.js examples/basic/ templates/basic.html
 
 This will build all the source files (.md and .js) in that folder and spit out a new `index.html` with the changes.
 
