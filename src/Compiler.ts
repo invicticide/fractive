@@ -88,37 +88,24 @@ class Compiler
 		}
 
 		// Find all the files that are eligible for compilation
-		let markdownFiles : Array<string> = [];
-		let javascriptFiles : Array<string> = [];
-		let files : Array<string> = fs.readdirSync(directory, "utf8");
-		for(let i = 0; i < files.length; i++)
-		{
-			if(!fs.lstatSync(`${directory}/${files[i]}`).isFile()) { continue; }
-			switch(path.extname(files[i]))
-			{
-				case ".md": { markdownFiles.push(files[i]); break; }
-				case ".js": { javascriptFiles.push(files[i]); break; }
-			}
-		}
+		let targets = Compiler.GatherTargetFiles(directory);
 
 		// Compile all the Markdown files
 		console.log("Processing story text...");
 		let html : string = "";
-		for(let i = 0; i < markdownFiles.length; i++)
+		for(let i = 0; i < targets.markdownFiles.length; i++)
 		{
-			console.log(`  ${markdownFiles[i]}`);
-			let filepath : string = `${directory}/${markdownFiles[i]}`;
-			html += `<!-- ${markdownFiles[i]} -->\n${Compiler.RenderFile(filepath)}\n`;
+			console.log(`  ${targets.markdownFiles[i].replace(directory, "")}`); // Strip root directory for display brevity
+			html += `<!-- ${targets.markdownFiles[i]} -->\n${Compiler.RenderFile(targets.markdownFiles[i])}\n`;
 		}
 
 		// Import all the Javascript files
 		console.log("Processing scripts...");
 		let javascript = Compiler.ImportFile("lib/Core.js");
-		for(let i = 0; i < javascriptFiles.length; i++)
+		for(let i = 0; i < targets.javascriptFiles.length; i++)
 		{
-			console.log(`  ${javascriptFiles[i]}`);
-			let filepath : string = `${directory}/${javascriptFiles[i]}`;
-			javascript += `// ${javascriptFiles[i]}\n${Compiler.ImportFile(filepath)}\n`;
+			console.log(`  ${targets.javascriptFiles[i].replace(directory, "")}`); // Strip root directory for display brevity
+			javascript += `// ${targets.javascriptFiles[i]}\n${Compiler.ImportFile(targets.javascriptFiles[i])}\n`;
 		}
 
 		// Wrap our compiled html with a page template
@@ -130,6 +117,42 @@ class Compiler
 		fs.writeFileSync(`${directory}/index.html`, html, "utf8");
 		
 		console.log(`Build complete! Your story was published to ${directory}/index.html!\n`);
+	}
+
+	/**
+	 * Returns a list of all target files (md/js) in the given directory and its subdirectories
+	 * @param directory The directory to search
+	 * @return An object { markdownFiles : Array<string>, javascriptFiles : Array<string> }
+	 */
+	static GatherTargetFiles(directory : string)
+	{
+		console.log("Scanning " + directory); // temp?
+
+		let markdownFiles : Array<string> = [];
+		let javascriptFiles : Array<string> = [];
+
+		let files : Array<string> = fs.readdirSync(directory, "utf8");
+		for(let i = 0; i < files.length; i++)
+		{
+			var filePath : string = `${directory}/${files[i]}`;
+			var stat = fs.lstatSync(filePath);
+			if(stat.isFile())
+			{
+				switch(path.extname(files[i]))
+				{
+					case ".md": { markdownFiles.push(filePath); break; }
+					case ".js": { javascriptFiles.push(filePath); break; }
+				}
+			}
+			else if(stat.isDirectory())
+			{
+				let childFiles = Compiler.GatherTargetFiles(filePath);
+				markdownFiles = markdownFiles.concat(childFiles.markdownFiles);
+				javascriptFiles = javascriptFiles.concat(childFiles.javascriptFiles);
+			}
+		}
+		
+		return { markdownFiles : markdownFiles, javascriptFiles : javascriptFiles };
 	}
 
 	/**
