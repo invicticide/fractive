@@ -24,6 +24,9 @@ const commonmark = require("commonmark.js");
 let markdownReader = new commonmark.Parser({smart: false});
 let markdownWriter = new commonmark.HtmlRenderer({softbreak: "<br/>"});
 
+// Minifiers
+const uglifyjs = require("uglify-js");
+
 /**
  * Compiles fractive source projects into a playable distribution.
  */
@@ -50,10 +53,25 @@ class Compiler
 			process.exit(1);
 		}
 
+		// Read template
 		let template : string = fs.readFileSync(templateFile, "utf8");
-		template = template.split("<!--{script}-->").join(`<script>${javascript}</script>`);
+
+		// Insert story scripts
+		let result = uglifyjs.minify(javascript);
+		if(result.error)
+		{
+			console.log(result.error);
+			process.exit(1);
+		}
+		else
+		{
+			template = template.split("<!--{script}-->").join(`<script>${result.code}</script>`);
+		}
+
+		// Insert story text
 		template = template.split("<!--{story}-->").join(html);
-		return template + "<script>Core.GotoSection(\"Start\");</script>";
+
+		return template + "<script>Core.GotoSection(\"Start\");</script>"; // Auto-start at the "Start" section
 	}
 
 	/**
