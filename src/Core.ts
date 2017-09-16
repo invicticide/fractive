@@ -152,10 +152,17 @@ class Core
 
 		// Move the current section into the history
 		history.innerHTML += currentSection.innerHTML;
+		history.scrollTop = history.scrollHeight;
 
 		// Expand the destination section
-		currentSection.innerHTML = Core.ExpandSection(id);
-		Core.EnableInlineMacros(currentSection, true);
+		let clone = document.createElement("div");
+		clone.id = "__currentSection";
+		clone.innerHTML = Core.ExpandSection(id);
+		Core.EnableInlineMacros(clone, true);
+		clone.scrollTop = 0;
+		
+		// Replace the div so as to restart CSS animations
+		currentSection.parentElement.replaceChild(clone, currentSection);
 	}
 
 	/**
@@ -184,6 +191,7 @@ class Core
 			if(bIsActive)
 			{
 				let replacement = document.createElement("span");
+				replacement.className = "__inlineMacro";
 				replacement.innerHTML = html;
 				element.parentNode.replaceChild(replacement, element);
 				break;
