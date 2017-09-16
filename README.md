@@ -36,35 +36,64 @@ Install dependencies for fractive:
 
 ## Story basics
 
-Create a folder somewhere (*outside* of the fractive repository) to hold your story files. Let's say you called it `MyStory`.
+Story text is written in Markdown (.md) files, and game logic is written in Javascript (.js) files. You'll need to create a folder somewhere to put these files in; this will be your **project folder**.
 
-Within `MyStory`, create a new Markdown (.md) file for story text. Let's say it's `text.md`. In that file, do:
+In Markdown, you'll write your story text in **sections**, each preceded by a special macro that looks like this: `{{SectionName}}`. Each section name (the part inside the double curly braces) must be unique within the story, and section names may not contain whitespace or punctuation: only letters and numbers. A simple section would look like this:
 
-	{{Section1}}
+	{{MazeEntrance}}
 
-	This is the first section. It's just regular Markdown, so you can do things like *add emphasis* or [create a link](https://google.com).
+	You are in a maze of twisty little passages, all alike.
 
-	[Link to another section]({@Section2})
+Your story must contain one section called `{{Start}}` which is where the story begins.
 
-	{{Section2}}
+You can create a link that takes the player to another section by creating a regular Markdown link and setting the URL to a macro that looks like this: `{@DestinationName}`:
 
-	This is the second section. We can link back to the first section [this way]({@Section1}).
+	{{MazeEntrance}}
 
-	We can also make a link to [call a Javascript function]({#MyFunction}), and we can display the value of a Javascript variable like this: {$MyVariable}
+	You are in a maze of twisty little passages, all alike.
 
-Create a new Javascript (.js) file for story scripting. Let's say it's `script.js`. In that file, do:
+	[Look around]({@LookAround})
+	[Proceed into the maze]({@MazeInterior})
 
-	var MyVariable = 0;
+Macros are always enclosed in `{}`. There are three types available, each denoted by a leading **metacharacter**, and each doing different things depending on whether they're specified as a link URL or just placed directly into the story text:
 
-	function MyFunction()
-	{
-		alert("You called a Javascript function!");
-		MyVariable++;
-	}
+| Macro | As link URL | In story text |
+| ----- | ----------- | ------------- |
+| `{@SectionName}` | When clicked, takes the player to the named section. | Replaces the macro with the contents of the named section when this story text is shown. |
+| `{#FunctionName}` | When clicked, calls the named Javascript function. | Replaces the macro with the return value of the function (which should be a string) when this story text is shown. |
+| `{$VariableName}` | Invalid | Replaces the macro with the value of the variable (which should be a string) when this story text is shown. |
 
-Now that you have a basic story and a basic script, you need to build it so others can play it. Open a command line to the `MyStory` folder and do:
+(Javascript functions and variables are defined in .js files in your project folder.)
 
-	node lib/Compiler.js path/to/MyStory/ templates/basic.html
+In addition to the link types above, you can also create links that expand to some other text in-place when clicked, which can be used to great artistic effect. To do that, make a link with a macro URL and add `:inline` to the end of the macro:
+
+	{{MazeEntrance}}
+
+	You are in [a maze]({$ExamineMaze:inline}) of twisty little passages, all alike.
+
+Then define the variable in a .js file:
+
+	var ExamineMaze = "the Maze of Doom, where few adventurers dare tread. It consists";
+
+Now when the player clicks on the `a maze` link, the link will be replaced with the value of the `ExamineMaze` variable, so they'll see instead:
+
+	You are in the Maze of Doom, where few adventurers dare tread. It consist of twisty little passages, all alike.
+
+You can inline any of the three macro types:
+
+| Macro | Result |
+| ----- | ------ |
+| `{@SectionName:inline}` | Replace the link with the contents of the named section. Macros within the section are expanded automatically. Sections are block-level elements and will include paragraph breaks. |
+| `{#FunctionName:inline}` | Call the function and replace the link with its return value (which should be a string). |
+| `{$VariableName:inline}` | Replace the link with the contents of the variable (which should be a string). |
+
+Once you have a story (and, optionally, any game scripts) you're ready to share, you need to build it so others can play it. Open a command line to your project folder and do:
+
+	// For Mac/Linux users:
+	./publish.sh path/to/MyStory templates/basic.html
+
+	// For Windows users:
+	publish.bat path/to/MyStory templates/basic.html
 
 The compiler will spit out an `index.html` which is a self-contained distribution of your story. Just open it in a browser and start clicking!
 
@@ -90,15 +119,18 @@ Optionally, you can also include:
 
 ...which should also be empty. This is where past sections will be displayed when history is enabled.
 
+You can also style your game with custom CSS; just embed it in `<style></style>` tags at the top of your HTML template.
+
+| CSS selector | Where it appears |
+| ------------ | ---------------- |
+| `#__currentSection` | The entire current section div, where active gameplay takes place. |
+| `#__history` | The entire history div, where previous sections are displayed for reference. |
+| `.__inlineMacro` | When the player clicks an `:inline` macro, the resulting expanded text is wrapped in a span with this class. |
+| `.__disabledLink` | When a section is moved to the history, its `<a>` tags are replaced with `<span>` with this class assigned. |
+
 ## Examples
 
 There's an example story in the `examples/basic` folder which demonstrates some very basic concepts. Open the `index.html` to play the example, then check out the `text.md` and `script.js` to see how it was implemented.
-
-If you want to try out some changes to it, open a command line to the `fractive` repository root and do:
-
-	node lib/Compiler.js examples/basic/ templates/basic.html
-
-This will build all the source files (.md and .js) in that folder and spit out a new `index.html` with the changes.
 
 ## Modifying fractive
 
