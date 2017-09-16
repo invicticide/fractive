@@ -20,7 +20,7 @@ const fs = require("fs");
 const path = require("path");
 
 // Set up the Markdown parser and renderer
-const commonmark = require("commonmark.js");
+const commonmark = require("commonmark/dist/commonmark.js");
 let markdownReader = new commonmark.Parser({smart: false});
 let markdownWriter = new commonmark.HtmlRenderer({softbreak: "<br/>"});
 

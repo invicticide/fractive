@@ -23,11 +23,16 @@ Verify node and npm:
 
 Install TypeScript:
 
-	npm install typescript
+	npm install -g typescript
 
 Verify TypeScript:
 
 	tsc -v
+
+Install dependencies for fractive:
+
+	cd path/to/fractive
+	npm install
 
 ## Story basics
 

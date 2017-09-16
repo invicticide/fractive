@@ -19,6 +19,8 @@
   },
   "homepage": "https://github.com/invicticide/fractive#readme",
   "devDependencies": {
-    "@types/node": "^8.0.28"
+    "@types/node": "^8.0.28",
+    "commonmark": ">=0.28.1",
+    "html-minifier": ">=3.5.5"
   }
 }
