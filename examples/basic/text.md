@@ -34,17 +34,23 @@ Macros aren't only for links; you can also use them to add dynamic text to your 
 
 The above paragraph was the result of inlining a function call, which expects the function to return a string. You can also inline the value of a variable. Here's one: {$InlineVariable}
 
-And finally, you can inline an entire section:
+You can even inline an entire section:
 
 >{@InlineSection}
 
 The inlined function and section above are indented, but that's only because I prefaced them with the Markdown blockquote indicator for clarity. Inlines don't inherently get any special styling, so you can inline things totally seamlessly and your players will never know the difference.
 
-[So I can use Markdown styling, too?]({@AboutFormatting})
+Finally, you can create links which expand to text in-place, which is commonly used in e.g. [Twine](https://twinery.org/2/) games for artistic effect. You can link to a [variable]({$InlineExpansionVariable:inline}), to a [function]({#InlineExpansionFunction:inline}), and even to an entire [section]({@InlineExpansionSection:inline}).
+
+[Can I use Markdown styling?]({@AboutFormatting})
 
 {{InlineSection}}
 
 This paragraph was written in an entirely different section, but it appears as part of the section you're already reading. This might be useful if you have some boilerplate text that needs to follow the player around from place to place; you could put it in a section and inline it, instead of copy-pasting the same sentences (or paragraphs) all over your story text.
+
+{{InlineExpansionSection}}
+
+section (the whole section will replace the link, and any macros in the section will be expanded as well, [like this]({#RaiseAlert}))
 
 {{AboutFormatting}}
 
@@ -77,4 +83,4 @@ Anything you'd like to review?
 [What does it look like when a link calls a Javascript function?]({#FunctionLink})
 [What happens if I set the link URL to a variable macro?]({#VariableLink})
 [What else can I use macros for?]({@InlineMacros})
-[So I can use Markdown styling, too?]({@AboutFormatting})
+[Can I use Markdown styling?]({@AboutFormatting})

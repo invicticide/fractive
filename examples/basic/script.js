@@ -28,3 +28,10 @@ function RaiseAlert()
 {
 	alert("fractive is super cool!");
 }
+
+function InlineExpansionFunction()
+{
+	return "function (functions should return the string that will replace the link)";
+}
+
+var InlineExpansionVariable = "variable (a string which will replace the link)";

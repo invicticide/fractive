@@ -32,6 +32,8 @@ const minifier = require("html-minifier");
  */
 class Compiler
 {
+	static nextInlineID : number = 0;
+
 	/**
 	 * Inserts the given story text (html) and scripts (javascript) into an html template, and
 	 * returns the complete resulting html file contents
@@ -350,31 +352,51 @@ class Compiler
 				return null;
 			}
 
-			switch(url[1])
+			// Tokenize the url, stripping the braces in the process. Result should look like
+			// "{@SectionName:inline}" => [ "@SectionName", "inline" ]
+			let tokens : Array<string> = url.substring(1, url.length - 1).split(":");
+			url = tokens[0];
+			let modifier : string = (tokens.length > 1 ? tokens[1] : "");
+			switch(modifier)
 			{
-				case "@": // Section link: navigate to the section
+				case "inline":
 				{
-					let sectionName : string = url.substring(2, url.length - 1);
-					let onClick = `Core.GotoSection('${sectionName}')`;
-					Compiler.RewriteLinkNode(node, onClick, Compiler.GetLinkLabel(node));
+					let onClick = `Core.ReplaceActiveElement('inline-${Compiler.nextInlineID}', Core.ExpandMacro('${url}', true));`; // bInline
+
+					// Prepending _ to the id makes this :inline macro disabled by default. It gets enabled when it's moved
+					// into the __currentSection div.
+					Compiler.RewriteLinkNode(node, onClick, Compiler.GetLinkLabel(node), `_inline-${Compiler.nextInlineID++}`);
+
 					break;
 				}
-				case "#": // Function link: call the function
+				default:
 				{
-					let functionName : string = url.substring(2, url.length - 1);
-					let onClick = `${functionName}()`;
-					Compiler.RewriteLinkNode(node, onClick, Compiler.GetLinkLabel(node));
+					switch(url[0])
+					{
+						case "@": // Section link: navigate to the section
+						{
+							let onClick = `Core.GotoSection('${url.substring(1)}')`;
+							Compiler.RewriteLinkNode(node, onClick, Compiler.GetLinkLabel(node));
+							break;
+						}
+						case "#": // Function link: call the function
+						{
+							let onClick = `${url.substring(1)}()`;
+							Compiler.RewriteLinkNode(node, onClick, Compiler.GetLinkLabel(node));
+							break;
+						}
+						case "$": // Variable link: behavior undefined
+						{
+							console.log(`Link destination ${url} is a variable macro, which is not supported`);
+							return null;
+						}
+						default: // Unknown macro
+						{
+							console.log(`Link destination ${url} is an unrecognized macro`);
+							return null;
+						}
+					}
 					break;
-				}
-				case "$": // Variable link: behavior undefined
-				{
-					console.log(`Link destination ${url} is a variable macro, which is not supported`);
-					return null;
-				}
-				default: // Unknown macro
-				{
-					console.log(`Link destination ${url} is an unrecognized macro`);
-					return null;
 				}
 			}
 		}
@@ -392,7 +414,7 @@ class Compiler
 	 * @param onClick The desired contents of the onclick attribute, e.g. "MyFunction(myParams)"
 	 * @param linkLabel The text to place inside the <a></a> tags
 	 */
-	static RewriteLinkNode(node, onClick : string, linkLabel : string) : void
+	static RewriteLinkNode(node, onClick : string, linkLabel : string, id : string = undefined) : void
 	{
 		if(node.type != "link")
 		{
@@ -402,7 +424,8 @@ class Compiler
 
 		// Replace the link node with a new text node to hold the rewritten <a> tag
 		var newNode = new commonmark.Node("html_inline", node.sourcepos);
-		newNode.literal = `<a href="#" onclick="${onClick}">${linkLabel}</a>`;
+		if(id !== undefined) { newNode.literal = `<a href="#" id="${id}" onclick="${onClick}">${linkLabel}</a>`; }
+		else { newNode.literal = `<a href="#" onclick="${onClick}">${linkLabel}</a>`; }
 		node.insertBefore(newNode);
 		node.unlink();
 	}

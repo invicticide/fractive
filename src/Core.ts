@@ -22,39 +22,69 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class Core
 {
 	/**
+	 * Enable or disable :inline macros within the document subtree starting at the given root element.
+	 * Nothing is returned, as the elements are modified in place. Disabled :inline macros simply have
+	 * a _ prepended to their id attribute.
+	 * @param root The root of the subtree to scan
+	 * @param tf True to enable, false to disable
+	 */
+	static EnableInlineMacros(root : Element, tf : boolean = true)
+	{
+		// Disabled ids have a _ in front of them. We want the active instance in the __currentSection div to be the
+		// only one that doesn't have that prefix.
+		if(tf && root.id.search("_inline\-") > -1) { root.id = root.id.substring(1); }
+		else if(!tf && root.id.search("inline\-") > -1) { root.id = `_${root.id}`; }
+
+		// Recursively check all children
+		for(let i = 0; i < root.children.length; i++)
+		{
+			Core.EnableInlineMacros(root.children[i], tf);
+		}
+	}
+
+	/**
 	 * Expand a macro (e.g. "{@someSection}", "{#someFunction}", "{$someVariable}") into human-readable text.
 	 * {@section} macros expand the entire referenced section, including its own macros.
 	 * {#function} macros execute the function and replace the macro with the return value.
 	 * {$variable} macros replace the macro with the value of the variable.
 	 * @param macro The macro string, omitting the enclosing {}. Should start with a metacharacter (e.g. '$' for variables).
+	 * @param bInline If true, strip surrounding block-level tags (e.g. p, div) from the expanded macro output
 	 * @return The resulting human-readable text.
 	 */
-	static ExpandMacro(macro : string) : string
+	static ExpandMacro(macro : string, bInline : boolean = false) : string
 	{
+		let result : string = "";
 		switch(macro[0])
 		{
 			case '@':
 			{
 				// Return the contents of the named section, with its macros expanded
-				return Core.ExpandSection(macro.substring(1));
+				result = Core.ExpandSection(macro.substring(1));
+				break;
 			}
 			case '#':
 			{
 				// Return the result of the named function call
 				let functionName = macro.substring(1);
 				let fn = window[functionName];
-				if(typeof fn === "function") { return fn(); }
-				else { console.log(functionName + " is not a function"); break; }
+				if(typeof fn === "function") { result = fn(); }
+				else { console.log(functionName + " is not a function"); }
+				break;
 			}
 			case '$':
 			{
 				// Return the value of the named variable
-				return window[macro.substring(1)];
+				result = window[macro.substring(1)];
+				break;
+			}
+			default:
+			{
+				console.log("Unknown metacharacter in macro: " + macro);
+				return "";
 			}
 		}
-		
-		console.log("Unknown metacharacter in macro: " + macro);
-		return "";
+		if(bInline) { return Core.MakeInline(result); }
+		else { return result; }
 	}
 
 	/**
@@ -90,7 +120,8 @@ class Core
 				{
 					finalHTML += section.innerHTML[i];
 				}
-			}
+			}			
+
 			return finalHTML;
 		}
 		else
@@ -126,6 +157,70 @@ class Core
 
 		// Expand the destination section
 		currentSection.innerHTML = Core.ExpandSection(id);
+		Core.EnableInlineMacros(currentSection, true);
+	}
+
+	/**
+	 * Returns the given html in "inline-friendly" form, removing outer block tags and leading/trailing whitespace
+	 * @param html The html to process
+	 * @return The html with outer block tags and leading/trailing whitespace removed
+	 */
+	static MakeInline(html : string) : string
+	{
+		// TODO: This will fail if these tags contain any attributes. We also may not want to remove inner block
+		// elements, just outer ones...?
+		let result = html;
+		result = result.replace("<p>", "");
+		result = result.replace("</p>", "");
+		result = result.replace("<div>", "");
+		result = result.replace("</div", "");
+
+		// Strip leading whitespace
+		while(result[0] === " " || result[0] === "\t" || result[0] === "\n")
+		{
+			result = result.substring(1);
+		}
+
+		// Strip trailing whitespace
+		while(result[result.length - 1] === " " || result[result.length - 1] === "\t" || result[result.length - 1] === "\n")
+		{
+			result = result.substring(0, result.length - 1);
+		}
+
+		return result;
+	}
+
+	/**
+	 * Replaces the element having the given id, with the given html (used mainly for :inline macros).
+	 * Only replaces the element that's in the __currentSection div; doesn't affect the hidden story text.
+	 * @param id The id of the element to be replaced
+	 * @param html The html to replace the element with
+	 */
+	static ReplaceActiveElement(id : string, html : string)
+	{
+		for(let element = document.getElementById(id); element; element = document.getElementById(id))
+		{
+			if(!element) { continue; }
+
+			// Nodes with this id will exist in both the hidden story text and in the current section,
+			// but we only want to do the replacement in the current section
+			let bIsActive : boolean = false;
+			for(let parent = element.parentElement; parent; parent = parent.parentElement)
+			{
+				if(parent.id === "__currentSection")
+				{
+					bIsActive = true;
+					break;
+				}
+			}
+			if(bIsActive)
+			{
+				let replacement = document.createElement("span");
+				replacement.innerHTML = html;
+				element.parentNode.replaceChild(replacement, element);
+				break;
+			}
+		}
 	}
 
 	/**
