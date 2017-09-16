@@ -40,7 +40,9 @@ You can even inline an entire section:
 
 The inlined function and section above are indented, but that's only because I prefaced them with the Markdown blockquote indicator for clarity. Inlines don't inherently get any special styling, so you can inline things totally seamlessly and your players will never know the difference.
 
-Finally, you can create links which expand to text in-place, which is commonly used in e.g. [Twine](https://twinery.org/2/) games for artistic effect. You can link to a [variable]({$InlineExpansionVariable:inline}), to a [function]({#InlineExpansionFunction:inline}), and even to an entire [section]({@InlineExpansionSection:inline}).
+Finally, you can create links which expand to text in-place, which is commonly used in e.g. [Twine](https://twinery.org/2/) games for artistic effect. You can link to a [variable]({$InlineExpansionVariable:inline}), or to the return value of a [function]({#InlineExpansionFunction:inline}), and they'll expand in-place.
+
+[You can also do this with a section]({@InlineExpansionSection:inline})
 
 [Can I use Markdown styling?]({@AboutFormatting})
 
@@ -50,7 +52,7 @@ This paragraph was written in an entirely different section, but it appears as p
 
 {{InlineExpansionSection}}
 
-section (the whole section will replace the link, and any macros in the section will be expanded as well, [like this]({#RaiseAlert}))
+Sections are kind of special though, in that they don't actually appear inline _per se_, because they're block-level elements (i.e. their own paragraphs) which means they'll put a paragraph break where they appear. They still replace their :inline macro link though, just like with variables and functions. When inline-expanding a section, you can still have paragraph breaks, *additional* **formatting**, and so on. And you can even inline sections which themselves contain [macros]({#RaiseAlert})!
 
 {{AboutFormatting}}
 

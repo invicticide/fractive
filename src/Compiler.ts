@@ -361,7 +361,7 @@ class Compiler
 			{
 				case "inline":
 				{
-					let onClick = `Core.ReplaceActiveElement('inline-${Compiler.nextInlineID}', Core.ExpandMacro('${url}', true));`; // bInline
+					let onClick = `Core.ReplaceActiveElement('inline-${Compiler.nextInlineID}', Core.ExpandMacro('${url}'));`;
 
 					// Prepending _ to the id makes this :inline macro disabled by default. It gets enabled when it's moved
 					// into the __currentSection div.

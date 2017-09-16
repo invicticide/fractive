@@ -48,10 +48,9 @@ class Core
 	 * {#function} macros execute the function and replace the macro with the return value.
 	 * {$variable} macros replace the macro with the value of the variable.
 	 * @param macro The macro string, omitting the enclosing {}. Should start with a metacharacter (e.g. '$' for variables).
-	 * @param bInline If true, strip surrounding block-level tags (e.g. p, div) from the expanded macro output
 	 * @return The resulting human-readable text.
 	 */
-	static ExpandMacro(macro : string, bInline : boolean = false) : string
+	static ExpandMacro(macro : string) : string
 	{
 		let result : string = "";
 		switch(macro[0])
@@ -83,8 +82,7 @@ class Core
 				return "";
 			}
 		}
-		if(bInline) { return Core.MakeInline(result); }
-		else { return result; }
+		return result;
 	}
 
 	/**
@@ -158,36 +156,6 @@ class Core
 		// Expand the destination section
 		currentSection.innerHTML = Core.ExpandSection(id);
 		Core.EnableInlineMacros(currentSection, true);
-	}
-
-	/**
-	 * Returns the given html in "inline-friendly" form, removing outer block tags and leading/trailing whitespace
-	 * @param html The html to process
-	 * @return The html with outer block tags and leading/trailing whitespace removed
-	 */
-	static MakeInline(html : string) : string
-	{
-		// TODO: This will fail if these tags contain any attributes. We also may not want to remove inner block
-		// elements, just outer ones...?
-		let result = html;
-		result = result.replace("<p>", "");
-		result = result.replace("</p>", "");
-		result = result.replace("<div>", "");
-		result = result.replace("</div", "");
-
-		// Strip leading whitespace
-		while(result[0] === " " || result[0] === "\t" || result[0] === "\n")
-		{
-			result = result.substring(1);
-		}
-
-		// Strip trailing whitespace
-		while(result[result.length - 1] === " " || result[result.length - 1] === "\t" || result[result.length - 1] === "\n")
-		{
-			result = result.substring(0, result.length - 1);
-		}
-
-		return result;
 	}
 
 	/**
