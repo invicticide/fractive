@@ -139,3 +139,7 @@ Fractive is written in TypeScript. If you make modifications in `src`, open a co
 	tsc
 
 to compile your changes.
+
+Please be sure to read the [contribution guidelines](https://github.com/invicticide/fractive/blob/dev/contributing.md) and the [code of conduct](https://github.com/invicticide/fractive/blob/dev/code_of_conduct.md) before submitting any pull requests.
+
+Fractive is licensed under [AGPL-3.0+](https://github.com/invicticide/fractive/blob/dev/license.md).
