@@ -29,6 +29,10 @@ Verify TypeScript:
 
 	tsc -v
 
+Install http-server so Fractive can deploy your stories in a local server for
+testing:
+  npm install -g http-server
+
 Install dependencies for fractive:
 
 	cd path/to/fractive

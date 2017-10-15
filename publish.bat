@@ -4,6 +4,7 @@ if "%2"=="" goto MissingArgument
 
 :Compile
 node lib/Compiler.js %1 %2
+if %errorlevel%==0 http-server %1
 exit /b %errorlevel%
 
 :MissingArgument
