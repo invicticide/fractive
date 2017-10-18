@@ -30,6 +30,5 @@
     "html-minifier": ">=3.5.5"
   },
   "dependencies": {
-    "http-server": "^0.10.0"
   }
 }
