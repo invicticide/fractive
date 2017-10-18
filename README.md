@@ -16,18 +16,23 @@ Fractive has three core goals:
 
 Install [node.js](https://nodejs.org) by downloading it and running the installer.
 
-Verify node and npm:
+**Verify node and npm:**
 
 	node -v
 	npm -v
 
-Install TypeScript:
+**Install TypeScript:**
 
 	npm install -g typescript
 
-Verify TypeScript:
+**Verify TypeScript:**
 
 	tsc -v
+	
+This needs to output 2.0 or higher in order to compile any changes you make to the Fractive library.
+If it does not, you may have an outdated version of TypeScript installed at some location in your global PATH.
+On *nix, you can use `which tsc` to find the location and remove it, or on Windows, open the Node.js command
+prompt and type `where tsc`.
 
 Install dependencies for fractive:
 
