@@ -60,9 +60,10 @@ class Compiler
         // String together all the <script> tags we need
         let scriptSection : string = "";
 
-        // Insert any unbundled scripts
+        // Sort unbundled scripts alphabetically to allow managing dependencies
+        unbundledScripts.sort();
         for(let i = 0; i < unbundledScripts.length; i++) { 
-        scriptSection += `<script src="${unbundledScripts[i]}"></script>`;
+          scriptSection += `<script src="${unbundledScripts[i]}"></script>`;
         }
 
         // Insert all bundled scripts, including Core.js
@@ -110,8 +111,8 @@ class Compiler
 		let html : string = "";
 		for(let i = 0; i < targets.markdownFiles.length; i++)
 		{
-			console.log(`  ${targets.markdownFiles[i].replace(directory, "")}`); // Strip root directory for display brevity
-			html += `<!-- ${targets.markdownFiles[i]} -->\n${Compiler.RenderFile(targets.markdownFiles[i])}\n`;
+        console.log(`  ${targets.markdownFiles[i].replace(directory, "")}`); // Strip root directory for display brevity
+        html += `<!-- ${targets.markdownFiles[i]} -->\n${Compiler.RenderFile(targets.markdownFiles[i])}\n`;
 		}
 
 		// Import all the Javascript files
@@ -134,7 +135,7 @@ class Compiler
             unbundledScripts = targets.javascriptFiles;
             for(let i = 0; i < unbundledScripts.length; i++)
             {
-            unbundledScripts[i] = targets.javascriptFiles[i].replace(directory + "/", "");
+                unbundledScripts[i] = targets.javascriptFiles[i].replace(directory + "/", "");
             }
         }
 
