@@ -60,14 +60,14 @@ class Compiler
         // String together all the <script> tags we need
         let scriptSection : string = "";
 
+        // Insert all bundled scripts, including Core.js
+        scriptSection += `<script>${javascript}</script>`;
+
         // Sort unbundled scripts alphabetically to allow managing dependencies
         unbundledScripts.sort();
         for(let i = 0; i < unbundledScripts.length; i++) { 
           scriptSection += `<script src="${unbundledScripts[i]}"></script>`;
         }
-
-        // Insert all bundled scripts, including Core.js
-		scriptSection += `<script>${javascript}</script>`;
 
         template = template.split("<!--{script}-->").join(scriptSection);
 
