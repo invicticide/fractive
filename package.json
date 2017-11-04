@@ -11,7 +11,13 @@
     "type": "git",
     "url": "git+https://github.com/invicticide/fractive.git"
   },
-  "keywords": [ "game development", "gamedev", "interactive fiction", "if", "hypertext" ],
+  "keywords": [
+    "game development",
+    "gamedev",
+    "interactive fiction",
+    "if",
+    "hypertext"
+  ],
   "author": "invicticide",
   "license": "AGPL-3.0+",
   "bugs": {
@@ -22,5 +28,7 @@
     "@types/node": "^8.0.28",
     "commonmark": ">=0.28.1",
     "html-minifier": ">=3.5.5"
+  },
+  "dependencies": {
   }
 }
