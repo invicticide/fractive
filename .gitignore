@@ -1,4 +1,5 @@
 .vscode/
+lib/**
 node_modules/**
 *.swp
 *.swo
