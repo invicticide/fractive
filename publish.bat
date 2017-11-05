@@ -4,7 +4,7 @@ if "%2"=="" goto MissingArgument
 if "%3"=="" goto MissingArgument
 
 :Compile
-node lib/Compiler.js %1 %2 %3
+node lib/CLI.js compile %1 %2 %3
 exit /b %errorlevel%
 
 :MissingArgument

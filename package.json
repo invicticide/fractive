@@ -2,15 +2,6 @@
   "name": "fractive",
   "version": "1.0.0",
   "description": "Fractive is a hypertext authoring tool, primarily intended for the creation of interactive fiction.",
-  "main": "lib/index",
-  "types": "lib/index",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/invicticide/fractive.git"
-  },
   "keywords": [
     "game development",
     "gamedev",
@@ -18,17 +9,29 @@
     "if",
     "hypertext"
   ],
-  "author": "invicticide",
   "license": "AGPL-3.0+",
+  "author": "Josh Sutphin <josh@kickbomb.us> (http://kickbomb.us)",
+  "homepage": "https://github.com/invicticide/fractive#readme",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/invicticide/fractive.git"
+    },
   "bugs": {
     "url": "https://github.com/invicticide/fractive/issues"
   },
-  "homepage": "https://github.com/invicticide/fractive#readme",
+  "main": "lib/Main.js",
+  "types": "lib/Main.d.ts",
   "devDependencies": {
-    "@types/node": "^8.0.28",
+    "typescript": ">=2.6.0",
+    "@types/node": "^8.0.28"
+  },
+  "dependencies": {
     "commonmark": ">=0.28.1",
     "html-minifier": ">=3.5.5"
   },
-  "dependencies": {
+  "scripts": {
+    "build": "./node_modules/typescript/bin/tsc",
+    "prepare": "npm run build",
+    "test": "echo \"Error: no test specified\" && exit 1"
   }
 }
