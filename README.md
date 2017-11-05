@@ -23,15 +23,6 @@ Verify node and npm:
 	node -v
 	npm -v
 
-Install dependencies for Fractive:
-
-	cd path/to/fractive
-	npm install
-
-## Examples
-
-There's an example story in the `examples/basic` folder which demonstrates some very basic concepts. Open the `index.html` to play the example, then check out the `text.md` and `script.js` to see how it was implemented.
-
 ## Story basics
 
 Story text is written in Markdown (.md) files, and game logic is written in Javascript (.js) files. You'll need to create a folder somewhere to put these files in; this will be your **project folder**.
@@ -85,15 +76,52 @@ You can inline any of the three macro types:
 | `{#FunctionName:inline}` | Call the function and replace the link with its return value (which should be a string). |
 | `{$VariableName:inline}` | Replace the link with the contents of the variable (which should be a string). |
 
-Once you have a story (and, optionally, any game scripts) you're ready to share, you need to build it so others can play it. Open a command line to your project folder and do:
+## Project setup and publishing
+
+Create a folder for your story project and install Fractive into it:
+
+	mkdir my_story
+	cd my_story
+	npm install fractive
+
+Create a subfolder for your actual story files, and init some:
+
+	mkdir src
+	cd src
+
+Create some initial story files (you could also do this in your favorite text editor):
+
+	touch story.md
+	touch script.js
+
+You should now have a directory structure that looks like this:
+
+	my_story
+	|
+	|- package.json
+	|
+	|- node_modules
+	|	|
+	|	|- fractive
+	|
+	|- story
+		|
+		|- story.md
+		|- script.js
+
+Edit your story files. Write something amazing!
+
+Once you're ready to publish, you need to build it so others can play it (or so you can test it).
 
 	// For Mac/Linux users:
-	./publish.sh path/to/MyStory templates/basic.html true
+	cd my_story
+	./publish.sh src node_modules/fractive/templates/basic.html true
 
 	// For Windows users:
-	publish.bat path/to/MyStory templates/basic.html true
+	cd my_story
+	publish.bat src node_modules/fractive/templates/basic.html true
 
-The compiler will spit out an `index.html` which is a self-contained distribution of your story. Just open it in a browser and start clicking!
+The compiler will spit out an `index.html` alongside your story files in `src` which is a self-contained distribution of your story. Just open it in a browser and start clicking!
 
 ## Templates
 
@@ -142,6 +170,10 @@ This is the same thing that happens when a player clicks a link to an inline mac
 
 This call enables or disables the history display. This might be useful if e.g. you created a custom template with a title bar that includes some kind of "toggle history" button.
 
+## Examples
+
+There's an example story in `node_modules/fractive/examples/basic` which demonstrates some very basic concepts. Open the `index.html` to play the example, then check out the `text.md` and `script.js` to see how it was implemented.
+
 ## Extending Fractive
 
 Since Fractive games allow unrestricted Javascript, you have the ability to extend your game beyond the "normal" hypertext fiction structure in potentially surprising ways. For example, you might choose to integrate your own or third-party libraries to add things like interactive graphical gameplay sequences or network multiplayer.
@@ -170,12 +202,37 @@ And invoke exported API functions like so:
 
 Please be sure to read the [contribution guidelines](https://github.com/invicticide/fractive/blob/dev/contributing.md) and the [code of conduct](https://github.com/invicticide/fractive/blob/dev/code_of_conduct.md) before submitting any pull requests.
 
-Fractive is written in TypeScript. If you make modifications in `src`, open a command line into the repository root and do:
+Clone the Fractive repo:
+
+	mkdir fractive
+	git clone git@github.com:invicticide/fractive.git fractive
+
+Install dependencies:
+
+	cd fractive
+	npm install
+
+Build changes:
 
 	npm run build
 
-to compile your changes.
+Fractive requires TypeScript 2.6, which is installed as a default dependency when you do `npm install` and invoked when you do `npm run build`.
 
-Fractive requires TypeScript 2.6, which is installed as a default dependency when you do `npm install` in the Fractive repo. That's the version that gets invoked when you do `npm run build`.
+If you have a separate global install of TypeScript (e.g. at one point you did `npm install -g typescript`) you could also compile your changes by just doing `tsc` provided your global install is at least version 2.6. On Mac and *nix, you can use `which tsc` to find your global install, or on Windows, open the Node.js command prompt and do `where tsc`.
 
-If you have a separate global install of TypeScript (e.g. at one point you did `npm install -g typescript`) you can also compile your changes by just doing `tsc` provided your global install is at least version 2.6. On Mac and *nix, you can use `which tsc` to find your global install, or on Windows, open the Node.js command prompt and do `where tsc`.
+That said, it's strongly recommended to just use `npm run build` instead. ;)
+
+To test changes against a story project, first build the Fractive source into a local package:
+
+	npm pack
+
+Then install it locally into your story project:
+
+	cd path/to/story
+	npm install path/to/fractive/fractive-x.x.x.tgz
+
+Then rebuild your story project:
+
+	node node_modules/fractive/lib/CLI.js compile src node_modules/fractive/templates/basic.html true
+
+And finally, launch the resulting `index.html` and perform your tests.
