@@ -152,7 +152,7 @@ The publish script will compile all Markdown and Javascript files in the given s
 
 ## Examples
 
-There's an example story in `node_modules/fractive/examples/basic` which demonstrates some very basic concepts. Open the `index.html` to play the example, then check out the `text.md` and `script.js` to see how it was implemented.
+There's an example story in `examples/basic` which demonstrates some very basic concepts. Open the `index.html` to play the example, then check out the `text.md` and `script.js` to see how it was implemented.
 
 ## Extending Fractive
 
@@ -174,11 +174,11 @@ On Mac/*nix:
 
 ## Importing Fractive
 
-You can also import Fractive as an npm dependency into another project, e.g. if you wanted to embed Fractive into a larger game or application. To do that, simply add `fractive` to the `dependencies` in your `package.json`, then import it in your script file(s) like so:
+You can also import Fractive as an npm dependency into another project, e.g. if you wanted to embed Fractive into a larger game or application. To do that, simply add `fractive` to the `dependencies` in your `package.json`, then import it in your script file(s):
 
 ```import * as fractive from "fractive";```
 
-And invoke exported API functions like so:
+And invoke exported API functions like this:
 
 ```fractive.Core.GotoSection("SomeSectionName");```
 
