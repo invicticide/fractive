@@ -185,13 +185,12 @@ Since Fractive games allow unrestricted Javascript, you have the ability to exte
 
 These kinds of extensions may add lots of additional Javascript -- much more than you'd be using for your "normal" game logic -- and that Javascript may need to be deployed in certain directory structures, utilize lazy loading, etc. These are all things that would likely break if all those scripts were embedded directly into your story's output html.
 
-In these situations you may benefit from bypassing the script embed and instead deploying all your scripts "loose" alongside your final html. To do that, just pass `false` as the final argument to the publish script:
+In these situations you may benefit from bypassing the script embed and instead deploying all your scripts "loose" alongside your final html. To do that, just pass `false` as the final argument to the build script in your `package.json`:
 
-	// For Mac/Linux users:
-	./publish.sh path/to/MyStory templates/basic.html false
-
-	// For Windows users:
-	publish.bat path/to/MyStory templates/basic.html false
+	"scripts": {
+	  "build": "node node_modules/fractive/lib/CLI.js compile ./src node_modules/fractive/templates/basic.html false",
+	  "test": "echo \"Error: no test specified\" && exit 1"
+	},
 
 ## Importing Fractive
 
