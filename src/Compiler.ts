@@ -90,7 +90,7 @@ export namespace Compiler
 	/**
 	 * Compile all source files in the given path into a single playable html file
 	 * @param directory The path to search for source files to compile
-	 * @param templateFile The name (no path, no extension) of the html template file to use
+ 	 * @param templateFile The file path of the template file to use
 	 * @param bundleJavascript If true, embed story scripts in the output html; otherwise, deploy them separately alongside it
 	 */
 	export function Compile(directory : string, templateFile : string, bundleJavascript : boolean) : void
