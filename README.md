@@ -143,7 +143,7 @@ On Windows:
 	cd fractive
 	publish.bat path/to/story templates/basic.html true
 
-On Mac/*nicx:
+On Mac/*nix:
 
 	cd fractive
 	./publish.sh path/to/story templates/basic.html true
@@ -167,7 +167,7 @@ On Windows:
 	cd fractive
 	publish.bat path/to/story templates/basic.html false
 
-On Mac/*nicx:
+On Mac/*nix:
 
 	cd fractive
 	./publish.sh path/to/story templates/basic.html false
@@ -273,7 +273,7 @@ On Windows:
 	cd fractive
 	publish.bat path/to/story templates/basic.html false
 
-On Mac/*nicx:
+On Mac/*nix:
 
 	cd fractive
 	./publish.sh path/to/story templates/basic.html false
