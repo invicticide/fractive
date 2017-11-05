@@ -42,7 +42,7 @@ class Compiler
 	 * @param javascript The javascript story scripts to insert into the template
 	 * @return The complete resulting html file contents
 	 */
-     static ApplyTemplate(templateFile : string, html : string, javascript : string, unbundledScripts : Array<string>) : string
+	static ApplyTemplate(templateFile : string, html : string, javascript : string, unbundledScripts : Array<string>) : string
 	{
 		if(!fs.existsSync(templateFile))
 		{
@@ -57,19 +57,19 @@ class Compiler
 
 		let template : string = fs.readFileSync(templateFile, "utf8"); // Base template
 
-        // String together all the <script> tags we need
-        let scriptSection : string = "";
+		// String together all the <script> tags we need
+		let scriptSection : string = "";
 
-        // Insert all bundled scripts, including Core.js
-        scriptSection += `<script>${javascript}</script>`;
+		// Insert all bundled scripts, including Core.js
+		scriptSection += `<script>${javascript}</script>`;
 
-        // Sort unbundled scripts alphabetically to allow managing dependencies
-        unbundledScripts.sort();
-        for(let i = 0; i < unbundledScripts.length; i++) { 
-          scriptSection += `<script src="${unbundledScripts[i]}"></script>`;
-        }
+		// Sort unbundled scripts alphabetically to allow managing dependencies
+		unbundledScripts.sort();
+		for(let i = 0; i < unbundledScripts.length; i++) { 
+		  scriptSection += `<script src="${unbundledScripts[i]}"></script>`;
+		}
 
-        template = template.split("<!--{script}-->").join(scriptSection);
+		template = template.split("<!--{script}-->").join(scriptSection);
 
 		template = template.split("<!--{story}-->").join(html); // Insert html-formatted story text
 		template += "<script>Core.GotoSection(\"Start\");</script>"; // Auto-start at the "Start" section
@@ -111,33 +111,34 @@ class Compiler
 		let html : string = "";
 		for(let i = 0; i < targets.markdownFiles.length; i++)
 		{
-        console.log(`  ${targets.markdownFiles[i].replace(directory, "")}`); // Strip root directory for display brevity
-        html += `<!-- ${targets.markdownFiles[i]} -->\n${Compiler.RenderFile(targets.markdownFiles[i])}\n`;
+			console.log(`  ${targets.markdownFiles[i].replace(directory, "")}`); // Strip root directory for display brevity
+			html += `<!-- ${targets.markdownFiles[i]} -->\n${Compiler.RenderFile(targets.markdownFiles[i])}\n`;
 		}
 
 		// Import all the Javascript files
 		console.log("Processing scripts...");
 		let javascript = Compiler.ImportFile("lib/Core.js");
 
-        let unbundledScripts : Array<string> = [];
+		let unbundledScripts : Array<string> = [];
 
-        // If bundling the javascript files, extract them
-        if (bundleJavascript) {
-            for(let i = 0; i < targets.javascriptFiles.length; i++)
-            {
-                console.log(`  ${targets.javascriptFiles[i].replace(directory, "")}`); // Strip root directory for display brevity
-
-                javascript += `// ${targets.javascriptFiles[i]}\n${Compiler.ImportFile(targets.javascriptFiles[i])}\n`;
-            }
-        }
-        // Otherwise, strip them of the directory, and pass their paths onward
-        else {
-            unbundledScripts = targets.javascriptFiles;
-            for(let i = 0; i < unbundledScripts.length; i++)
-            {
-                unbundledScripts[i] = targets.javascriptFiles[i].replace(directory + "/", "");
-            }
-        }
+		if(bundleJavascript)
+		{
+			// If bundling the Javascript files, import them
+			for(let i = 0; i < targets.javascriptFiles.length; i++)
+			{
+				console.log(`  ${targets.javascriptFiles[i].replace(directory, "")}`); // Strip root directory for display brevity
+				javascript += `// ${targets.javascriptFiles[i]}\n${Compiler.ImportFile(targets.javascriptFiles[i])}\n`;
+			}
+		}
+		else
+		{
+			// If NOT bundling the Javascript files, strip them of the directory, and pass their paths onward
+			unbundledScripts = targets.javascriptFiles;
+			for(let i = 0; i < unbundledScripts.length; i++)
+			{
+				unbundledScripts[i] = targets.javascriptFiles[i].replace(directory + "/", "");
+			}
+		}
 
 		// Wrap our compiled html with a page template
 		console.log(`Applying ${templateFile} template...`);
@@ -175,9 +176,9 @@ class Compiler
 					case ".js": { javascriptFiles.push(filePath); break; }
 				}
 			}
-            // Search recursively for scripts
 			else if(stat.isDirectory())
 			{
+				// Search recursively for scripts
 				let childFiles = Compiler.GatherTargetFiles(filePath);
 				markdownFiles = markdownFiles.concat(childFiles.markdownFiles);
 				javascriptFiles = javascriptFiles.concat(childFiles.javascriptFiles);
