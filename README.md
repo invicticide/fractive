@@ -16,7 +16,7 @@ Fractive is licensed under [AGPL-3.0+](https://github.com/invicticide/fractive/b
 
 ## Dependencies
 
-Install [node.js](https://nodejs.org) by downloading it and running the installer.
+Install [node.js](https://nodejs.org) by downloading it and running the installer. (Fractive is currently developed on version 8.9.0 LTS.)
 
 Verify node and npm:
 
@@ -82,15 +82,19 @@ Create a folder for your story project and install Fractive into it:
 
 	mkdir my_story
 	cd my_story
+
+Generate a default npm `package.json` (this will become useful shortly):
+
+	npm init
+
+Install Fractive for this story project:
+
 	npm install fractive
 
 Create a subfolder for your actual story files, and init some:
 
 	mkdir src
 	cd src
-
-Create some initial story files (you could also do this in your favorite text editor):
-
 	touch story.md
 	touch script.js
 
@@ -111,15 +115,16 @@ You should now have a directory structure that looks like this:
 
 Edit your story files. Write something amazing!
 
-Once you're ready to publish, you need to build it so others can play it (or so you can test it).
+Once you're ready to publish, you need to build it so others can play it (or so you can test it). The build command is currently a bit ugly, so it's strongly recommended to create an npm build script to make it nicer. Open your `package.json` and edit the `scripts` section to look like this:
 
-	// For Mac/Linux users:
-	cd my_story
-	./publish.sh src node_modules/fractive/templates/basic.html true
+	"scripts": {
+	  "build": "node node_modules/fractive/lib/CLI.js compile ./src node_modules/fractive/templates/basic.html true",
+	  "test": "echo \"Error: no test specified\" && exit 1"
+	},
 
-	// For Windows users:
-	cd my_story
-	publish.bat src node_modules/fractive/templates/basic.html true
+From now on, all you need to do to build your story is:
+
+	npm run build
 
 The compiler will spit out an `index.html` alongside your story files in `src` which is a self-contained distribution of your story. Just open it in a browser and start clicking!
 
