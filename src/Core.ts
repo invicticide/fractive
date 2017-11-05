@@ -51,7 +51,7 @@ export namespace Core
 	 * @param macro The macro string, omitting the enclosing {}. Should start with a metacharacter (e.g. '$' for variables).
 	 * @return The resulting human-readable text.
 	 */
-	function ExpandMacro(macro : string) : string
+	export function ExpandMacro(macro : string) : string
 	{
 		let result : string = "";
 		switch(macro[0])
