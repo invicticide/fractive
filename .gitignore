@@ -3,4 +3,5 @@ node_modules/**
 *.swp
 *.swo
 *.log
+*.tgz
 package-lock.json
