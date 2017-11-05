@@ -16,24 +16,25 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-const fs = require("fs");
-const path = require("path");
+/**
+ * Compiles fractive source projects into a playable distribution.
+ */
+
+import * as fs from "fs";
+import * as path from "path";
 
 // Set up the Markdown parser and renderer
-const commonmark = require("commonmark/dist/commonmark.js");
+import * as commonmark from "commonmark";
 let markdownReader = new commonmark.Parser({smart: false});
 let markdownWriter = new commonmark.HtmlRenderer({softbreak: "<br/>"});
 
 // Minification
-const minifier = require("html-minifier");
+import * as minifier from "html-minifier";
 
-/**
- * Compiles fractive source projects into a playable distribution.
- */
-class Compiler
+let nextInlineID : number = 0;
+
+export namespace Compiler
 {
-	static nextInlineID : number = 0;
-
 	/**
 	 * Inserts the given story text (html) and scripts (javascript) into an html template, and
 	 * returns the complete resulting html file contents
@@ -42,7 +43,7 @@ class Compiler
 	 * @param javascript The javascript story scripts to insert into the template
 	 * @return The complete resulting html file contents
 	 */
-     static ApplyTemplate(templateFile : string, html : string, javascript : string, unbundledScripts : Array<string>) : string
+	function ApplyTemplate(templateFile : string, html : string, javascript : string, unbundledScripts : Array<string>) : string
 	{
 		if(!fs.existsSync(templateFile))
 		{
@@ -57,19 +58,19 @@ class Compiler
 
 		let template : string = fs.readFileSync(templateFile, "utf8"); // Base template
 
-        // String together all the <script> tags we need
-        let scriptSection : string = "";
+		// String together all the <script> tags we need
+		let scriptSection : string = "<script>";
+		scriptSection += "var exports = {};";	// This object holds all the TypeScript exports which are callable by story scripts
+		scriptSection += `${javascript}`;		// Insert all bundled scripts, including Core.js
+		scriptSection += "</script>";
 
-        // Insert all bundled scripts, including Core.js
-        scriptSection += `<script>${javascript}</script>`;
+		// Sort unbundled scripts alphabetically to allow managing dependencies
+		unbundledScripts.sort();
+		for(let i = 0; i < unbundledScripts.length; i++) { 
+			scriptSection += `<script src="${unbundledScripts[i]}"></script>`;
+		}
 
-        // Sort unbundled scripts alphabetically to allow managing dependencies
-        unbundledScripts.sort();
-        for(let i = 0; i < unbundledScripts.length; i++) { 
-          scriptSection += `<script src="${unbundledScripts[i]}"></script>`;
-        }
-
-        template = template.split("<!--{script}-->").join(scriptSection);
+		template = template.split("<!--{script}-->").join(scriptSection);
 
 		template = template.split("<!--{story}-->").join(html); // Insert html-formatted story text
 		template += "<script>Core.GotoSection(\"Start\");</script>"; // Auto-start at the "Start" section
@@ -89,8 +90,10 @@ class Compiler
 	/**
 	 * Compile all source files in the given path into a single playable html file
 	 * @param directory The path to search for source files to compile
+ 	 * @param templateFile The file path of the template file to use
+	 * @param bundleJavascript If true, embed story scripts in the output html; otherwise, deploy them separately alongside it
 	 */
-	static Compile(directory : string, templateFile : string, bundleJavascript : boolean) : void
+	export function Compile(directory : string, templateFile : string, bundleJavascript : boolean) : void
 	{
 		if(!fs.existsSync(directory))
 		{
@@ -104,44 +107,43 @@ class Compiler
 		}
 
 		// Find all the files that are eligible for compilation
-		let targets = Compiler.GatherTargetFiles(directory);
+		let targets = GatherTargetFiles(directory);
 
 		// Compile all the Markdown files
 		console.log("Processing story text...");
 		let html : string = "";
 		for(let i = 0; i < targets.markdownFiles.length; i++)
 		{
-        console.log(`  ${targets.markdownFiles[i].replace(directory, "")}`); // Strip root directory for display brevity
-        html += `<!-- ${targets.markdownFiles[i]} -->\n${Compiler.RenderFile(targets.markdownFiles[i])}\n`;
+			console.log(`  ${targets.markdownFiles[i].replace(directory, "")}`); // Strip root directory for display brevity
+			html += `<!-- ${targets.markdownFiles[i]} -->\n${RenderFile(targets.markdownFiles[i])}\n`;
 		}
 
 		// Import all the Javascript files
 		console.log("Processing scripts...");
-		let javascript = Compiler.ImportFile("lib/Core.js");
-
-        let unbundledScripts : Array<string> = [];
-
-        // If bundling the javascript files, extract them
-        if (bundleJavascript) {
-            for(let i = 0; i < targets.javascriptFiles.length; i++)
-            {
-                console.log(`  ${targets.javascriptFiles[i].replace(directory, "")}`); // Strip root directory for display brevity
-
-                javascript += `// ${targets.javascriptFiles[i]}\n${Compiler.ImportFile(targets.javascriptFiles[i])}\n`;
-            }
-        }
-        // Otherwise, strip them of the directory, and pass their paths onward
-        else {
-            unbundledScripts = targets.javascriptFiles;
-            for(let i = 0; i < unbundledScripts.length; i++)
-            {
-                unbundledScripts[i] = targets.javascriptFiles[i].replace(directory + "/", "");
-            }
-        }
+		let javascript = ImportFile(path.resolve(__dirname, "Core.js"));
+		let unbundledScripts : Array<string> = [];
+		if(bundleJavascript)
+		{
+			// If bundling the Javascript files, import them
+			for(let i = 0; i < targets.javascriptFiles.length; i++)
+			{
+				console.log(`  ${targets.javascriptFiles[i].replace(directory, "")}`); // Strip root directory for display brevity
+				javascript += `// ${targets.javascriptFiles[i]}\n${ImportFile(targets.javascriptFiles[i])}\n`;
+			}
+		}
+		else
+		{
+			// If NOT bundling the Javascript files, strip them of the directory, and pass their paths onward
+			unbundledScripts = targets.javascriptFiles;
+			for(let i = 0; i < unbundledScripts.length; i++)
+			{
+				unbundledScripts[i] = targets.javascriptFiles[i].replace(directory + "/", "");
+			}
+		}
 
 		// Wrap our compiled html with a page template
 		console.log(`Applying ${templateFile} template...`);
-		html = Compiler.ApplyTemplate(templateFile, html, javascript, unbundledScripts);
+		html = ApplyTemplate(templateFile, html, javascript, unbundledScripts);
 
 		// Write the final compiled file to disk
 		console.log("Writing output file...");
@@ -155,7 +157,7 @@ class Compiler
 	 * @param directory The directory to search
 	 * @return An object { markdownFiles : Array<string>, javascriptFiles : Array<string> }
 	 */
-	static GatherTargetFiles(directory : string)
+	function GatherTargetFiles(directory : string)
 	{
 		console.log("Scanning " + directory); // temp?
 
@@ -178,7 +180,8 @@ class Compiler
             // Search recursively for scripts
 			else if(stat.isDirectory())
 			{
-				let childFiles = Compiler.GatherTargetFiles(filePath);
+				// Search recursively for scripts
+				let childFiles = GatherTargetFiles(filePath);
 				markdownFiles = markdownFiles.concat(childFiles.markdownFiles);
 				javascriptFiles = javascriptFiles.concat(childFiles.javascriptFiles);
 			}
@@ -192,7 +195,7 @@ class Compiler
 	 * @param node The AST link node whose label you want to retrieve
 	 * @return The link label (as rendered html), or null on error. If no error but the <a></a> tags are empty, returns an empty string instead of null.
 	 */
-	static GetLinkLabel(node) : string
+	function GetLinkLabel(node) : string
 	{
 		if(node.type !== "link")
 		{
@@ -219,7 +222,7 @@ class Compiler
 	 * @param filepath The path and filename of the file to import
 	 * @return The text contents of the file, or null on error
 	 */
-	static ImportFile(filepath : string) : string
+	function ImportFile(filepath : string) : string
 	{
 		if(!fs.existsSync(filepath))
 		{
@@ -240,7 +243,7 @@ class Compiler
 	 * @param lineNumber The line where the error occurred.
 	 * @param characterNumber The character within the line where the error occurred.
 	 */
-	static LogParseError(text : string, lineNumber : number, characterNumber : number)
+	function LogParseError(text : string, lineNumber : number, characterNumber : number)
 	{
 		console.log(`(${lineNumber},${characterNumber}): ${text}`);
 	}
@@ -250,7 +253,7 @@ class Compiler
 	 * @param filepath The path and filename of the Markdown file to render
 	 * @return The rendered HTML, or null on error
 	 */
-	static RenderFile(filepath : string) : string
+	function RenderFile(filepath : string) : string
 	{
 		// Read the file contents
 		if(!fs.existsSync(filepath))
@@ -283,7 +286,7 @@ class Compiler
 					// We're starting a new section, so process the one we've just finished parsing
 					if(sectionName.length > 0 && sectionBody.length > 0)
 					{
-						html += Compiler.RenderSection(sectionName, sectionBody);
+						html += RenderSection(sectionName, sectionBody);
 					}
 
 					// Start the new section
@@ -292,7 +295,7 @@ class Compiler
 				}
 				else if(braceCount > 0)
 				{
-					Compiler.LogParseError("Unexpected { in macro declaration", lineNumber, characterNumber);
+					LogParseError("Unexpected { in macro declaration", lineNumber, characterNumber);
 					return null;
 				}
 				else
@@ -315,7 +318,7 @@ class Compiler
 				}
 				else if(braceCount === 0)
 				{
-					Compiler.LogParseError("Unmatched }", lineNumber, characterNumber);
+					LogParseError("Unmatched }", lineNumber, characterNumber);
 					return null;
 				}
 			}
@@ -323,7 +326,7 @@ class Compiler
 			{
 				if(braceCount > 0)
 				{
-					Compiler.LogParseError("Illegal whitespace in macro declaration", lineNumber, characterNumber);
+					LogParseError("Illegal whitespace in macro declaration", lineNumber, characterNumber);
 					return null;
 				}
 				else if(sectionName.length > 0) { sectionBody += text[i]; }
@@ -344,7 +347,7 @@ class Compiler
 		// is triggered by the parser finding the start of a new section.
 		if(sectionName.length > 0 && sectionBody.length > 0)
 		{
-			html += Compiler.RenderSection(sectionName, sectionBody);
+			html += RenderSection(sectionName, sectionBody);
 		}
 
 		return html;
@@ -356,7 +359,7 @@ class Compiler
 	 * @param body The Markdown-formatted section body
 	 * @return The rendered HTML, or null on error
 	 */
-	static RenderSection(name : string, body : string) : string
+	function RenderSection(name : string, body : string) : string
 	{
 		let ast = markdownReader.parse(body); // Returns an Abstract Syntax Tree (AST)
 
@@ -391,11 +394,11 @@ class Compiler
 			{
 				case "inline":
 				{
-					let onClick = `Core.ReplaceActiveElement('inline-${Compiler.nextInlineID}', Core.ExpandMacro('${url}'));`;
+					let onClick = `Core.ReplaceActiveElement('inline-${nextInlineID}', Core.ExpandMacro('${url}'));`;
 
 					// Prepending _ to the id makes this :inline macro disabled by default. It gets enabled when it's moved
 					// into the __currentSection div.
-					Compiler.RewriteLinkNode(node, onClick, Compiler.GetLinkLabel(node), `_inline-${Compiler.nextInlineID++}`);
+					RewriteLinkNode(node, onClick, GetLinkLabel(node), `_inline-${nextInlineID++}`);
 
 					break;
 				}
@@ -406,13 +409,13 @@ class Compiler
 						case "@": // Section link: navigate to the section
 						{
 							let onClick = `Core.GotoSection('${url.substring(1)}')`;
-							Compiler.RewriteLinkNode(node, onClick, Compiler.GetLinkLabel(node));
+							RewriteLinkNode(node, onClick, GetLinkLabel(node));
 							break;
 						}
 						case "#": // Function link: call the function
 						{
 							let onClick = `${url.substring(1)}()`;
-							Compiler.RewriteLinkNode(node, onClick, Compiler.GetLinkLabel(node));
+							RewriteLinkNode(node, onClick, GetLinkLabel(node));
 							break;
 						}
 						case "$": // Variable link: behavior undefined
@@ -444,7 +447,7 @@ class Compiler
 	 * @param onClick The desired contents of the onclick attribute, e.g. "MyFunction(myParams)"
 	 * @param linkLabel The text to place inside the <a></a> tags
 	 */
-	static RewriteLinkNode(node, onClick : string, linkLabel : string, id : string = undefined) : void
+	function RewriteLinkNode(node, onClick : string, linkLabel : string, id : string = undefined) : void
 	{
 		if(node.type != "link")
 		{
@@ -463,25 +466,20 @@ class Compiler
 	/**
 	 * Output the command-line usage and options of the compiler
 	 */
-	static ShowUsage()
+	export function ShowUsage()
 	{
 		console.log("Usage:");
-		console.log("  node lib/Compiler.js storyPath templateName bundleJavascript");
+		console.log("  node lib/CLI.js compile <storyPath> <templateName> <bundleJavascript>");
 		console.log("");
 		console.log("  - storyPath: The folder path where the story source files are located");
 		console.log("  - templateName: The name of the HTML template to use");
-		console.log("  - bundleJavascript: whether to bundle scripts in index.html");
+		console.log("  - bundleJavascript: 'true' or 'false', whether to bundle scripts in index.html");
 		console.log("");
 		console.log("  Templates are looked up in the 'templates' folder. The template name");
 		console.log("  is just the name of the file, sans extension. So 'basic.html' has a");
 		console.log("  template name of just 'basic'.");
 		console.log("");
 		console.log("Example:");
-		console.log("  node lib/Compiler.js /Users/Desktop/MyStory templates/basic.html true");
-		process.exit(0);
+		console.log("  node lib/CLI.js compile /Users/Desktop/MyStory templates/basic.html true");
 	}
 }
-
-// Run the compiler automatically when invoked from the command line, e.g. "node lib/Compiler.js <filename>"
-if(process.argv.length < 5) { Compiler.ShowUsage(); }
-Compiler.Compile(process.argv[2], process.argv[3], JSON.parse(process.argv[4]));

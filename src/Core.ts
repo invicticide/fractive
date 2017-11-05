@@ -19,7 +19,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 /**
  * Core functionality including section navigation and macro expansion.
  */
-class Core
+
+export namespace Core
 {
 	/**
 	 * Enable or disable :inline macros within the document subtree starting at the given root element.
@@ -28,7 +29,7 @@ class Core
 	 * @param root The root of the subtree to scan
 	 * @param tf True to enable, false to disable
 	 */
-	static EnableInlineMacros(root : Element, tf : boolean = true)
+	function EnableInlineMacros(root : Element, tf : boolean = true)
 	{
 		// Disabled ids have a _ in front of them. We want the active instance in the __currentSection div to be the
 		// only one that doesn't have that prefix.
@@ -38,7 +39,7 @@ class Core
 		// Recursively check all children
 		for(let i = 0; i < root.children.length; i++)
 		{
-			Core.EnableInlineMacros(root.children[i], tf);
+			EnableInlineMacros(root.children[i], tf);
 		}
 	}
 
@@ -50,7 +51,7 @@ class Core
 	 * @param macro The macro string, omitting the enclosing {}. Should start with a metacharacter (e.g. '$' for variables).
 	 * @return The resulting human-readable text.
 	 */
-	static ExpandMacro(macro : string) : string
+	export function ExpandMacro(macro : string) : string
 	{
 		let result : string = "";
 		switch(macro[0])
@@ -58,7 +59,7 @@ class Core
 			case '@':
 			{
 				// Return the contents of the named section, with its macros expanded
-				result = Core.ExpandSection(macro.substring(1));
+				result = ExpandSection(macro.substring(1));
 				break;
 			}
 			case '#':
@@ -90,7 +91,7 @@ class Core
 	 * @param id The string identifier of the section to expand.
 	 * @return The entire section text with all macros expanded.
 	 */
-	static ExpandSection(id : string) : string
+	function ExpandSection(id : string) : string
 	{
 		let section = document.getElementById(id);
 		if(section)
@@ -107,7 +108,7 @@ class Core
 				}
 				else if(section.innerHTML[i] === '}')
 				{
-					if(bParsingMacro) { bParsingMacro = false; finalHTML += Core.ExpandMacro(macro); }
+					if(bParsingMacro) { bParsingMacro = false; finalHTML += ExpandMacro(macro); }
 					else { console.log("Error: Got } without a corresponding { in " + id + " at character " + i.toString()); break; }
 				}
 				else if(bParsingMacro)
@@ -133,7 +134,7 @@ class Core
 	 * Navigate to the given section.
 	 * @param id The string identifier of the section to navigate to.
 	 */
-	static GotoSection(id : string) : void
+	export function GotoSection(id : string) : void
 	{
 		let history = document.getElementById("__history");
 		let currentSection = document.getElementById("__currentSection");
@@ -157,8 +158,8 @@ class Core
 		// Expand the destination section
 		let clone = document.createElement("div");
 		clone.id = "__currentSection";
-		clone.innerHTML = Core.ExpandSection(id);
-		Core.EnableInlineMacros(clone, true);
+		clone.innerHTML = ExpandSection(id);
+		EnableInlineMacros(clone, true);
 		clone.scrollTop = 0;
 		
 		// Replace the div so as to restart CSS animations
@@ -171,7 +172,7 @@ class Core
 	 * @param id The id of the element to be replaced
 	 * @param html The html to replace the element with
 	 */
-	static ReplaceActiveElement(id : string, html : string)
+	export function ReplaceActiveElement(id : string, html : string)
 	{
 		for(let element = document.getElementById(id); element; element = document.getElementById(id))
 		{
@@ -203,7 +204,7 @@ class Core
 	 * Show or hide the history section
 	 * @param tf If true, show history. If false, hide history.
 	 */
-	static ShowHistory(tf : boolean)
+	export function ShowHistory(tf : boolean)
 	{
 		let history = document.getElementById("__history");
 		history.hidden = !tf;

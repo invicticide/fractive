@@ -1,5 +1,7 @@
 .vscode/
+lib/**
 node_modules/**
 *.swp
 *.swo
-package-lock.json
+*.log
+*.tgz
