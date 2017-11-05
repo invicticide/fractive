@@ -12,10 +12,10 @@
   "license": "AGPL-3.0+",
   "author": "Josh Sutphin <josh@kickbomb.us> (http://kickbomb.us)",
   "homepage": "https://github.com/invicticide/fractive#readme",
-    "repository": {
-      "type": "git",
-      "url": "https://github.com/invicticide/fractive.git"
-    },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/invicticide/fractive.git"
+  },
   "bugs": {
     "url": "https://github.com/invicticide/fractive/issues"
   },
