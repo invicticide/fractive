@@ -263,6 +263,17 @@ export namespace Compiler
 		}
 		let text : string = fs.readFileSync(filepath, "utf8");
 
+    return RenderText(text);
+  }
+
+	/**
+	 * Renders the given Markdown text to HTML
+	 * @param text The complete text of the Markdown to render (can contain
+   * multiple sections)
+	 * @return The rendered HTML, or null on error
+	 */
+  export function RenderText(text: string) : string
+  {
 		// Set up parsing state
 		let braceCount : number = 0;
 		let sectionName : string = "";
