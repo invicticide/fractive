@@ -1,5 +1,7 @@
 .vscode/
 lib/**
+*.d.ts
+src/*.js
 node_modules/**
 *.swp
 *.swo

@@ -18,7 +18,7 @@ Fractive is licensed under [AGPL-3.0+](https://github.com/invicticide/fractive/b
 
 Install [node.js](https://nodejs.org) by downloading it and running the installer. (Fractive is currently developed on version 8.9.0 LTS.)
 
-Verify node and npm:
+**Verify node and npm:**
 
 	node -v
 	npm -v
