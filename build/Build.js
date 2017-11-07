@@ -8,9 +8,6 @@ var path = require("path");
  */
 var Build = function()
 {
-	// cp.execSync("node -e \"for(var i = 0; i < 3; i++) { throw new Error('exception!'); }\"");
-	// process.exit(0);
-
 	try
 	{
 		console.log("Building Fractive...");
