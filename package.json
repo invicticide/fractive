@@ -30,7 +30,7 @@
     "html-minifier": ">=3.5.5"
   },
   "scripts": {
-    "build": "./node_modules/typescript/bin/tsc",
+    "build": "node build/Build.js",
     "prepare": "npm run build",
     "test": "echo \"Error: no test specified\" && exit 1"
   }

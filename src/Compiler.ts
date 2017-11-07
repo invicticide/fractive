@@ -111,12 +111,16 @@ export namespace Compiler
 
 		// Compile all the Markdown files
 		console.log("Processing story text...");
+		let errorCount : number = 0;
 		let html : string = "";
 		for(let i = 0; i < targets.markdownFiles.length; i++)
 		{
 			console.log(`  ${targets.markdownFiles[i].replace(directory, "")}`); // Strip root directory for display brevity
-			html += `<!-- ${targets.markdownFiles[i]} -->\n${RenderFile(targets.markdownFiles[i])}\n`;
+			var rendered = RenderFile(targets.markdownFiles[i]);
+			if(rendered === null) { errorCount++; }
+			else { html += `<!-- ${targets.markdownFiles[i]} -->\n${rendered}\n`; }
 		}
+		if(errorCount > 0) { process.exit(1); }
 
 		// Import all the Javascript files
 		console.log("Processing scripts...");
@@ -242,9 +246,9 @@ export namespace Compiler
 	 * @param lineNumber The line where the error occurred.
 	 * @param characterNumber The character within the line where the error occurred.
 	 */
-	function LogParseError(text : string, lineNumber : number, characterNumber : number)
+	function LogParseError(text : string, filePath : string, lineNumber : number, characterNumber : number)
 	{
-		console.log(`(${lineNumber},${characterNumber}): ${text}`);
+		console.error(`${filePath} (${lineNumber},${characterNumber}): ${text}`);
 	}
 
 	/**
@@ -294,7 +298,7 @@ export namespace Compiler
 				}
 				else if(braceCount > 0)
 				{
-					LogParseError("Unexpected { in macro declaration", lineNumber, characterNumber);
+					LogParseError("Unexpected { in macro declaration", filepath, lineNumber, characterNumber);
 					return null;
 				}
 				else
@@ -317,7 +321,7 @@ export namespace Compiler
 				}
 				else if(braceCount === 0)
 				{
-					LogParseError("Unmatched }", lineNumber, characterNumber);
+					LogParseError("Unmatched }", filepath, lineNumber, characterNumber);
 					return null;
 				}
 			}
@@ -325,7 +329,7 @@ export namespace Compiler
 			{
 				if(braceCount > 0)
 				{
-					LogParseError("Illegal whitespace in macro declaration", lineNumber, characterNumber);
+					LogParseError("Illegal whitespace in macro declaration", filepath, lineNumber, characterNumber);
 					return null;
 				}
 				else if(sectionName.length > 0) { sectionBody += text[i]; }
