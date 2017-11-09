@@ -1,3 +1,4 @@
+.temp/
 .vscode/
 lib/**
 node_modules/**

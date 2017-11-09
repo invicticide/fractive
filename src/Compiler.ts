@@ -25,8 +25,8 @@ import * as path from "path";
 
 // Set up the Markdown parser and renderer
 import * as commonmark from "commonmark";
-let markdownReader = new commonmark.Parser({smart: false});
-let markdownWriter = new commonmark.HtmlRenderer({softbreak: "<br/>"});
+const markdownReader = new commonmark.Parser({smart: false});
+const markdownWriter = new commonmark.HtmlRenderer({softbreak: "<br/>"});
 
 // Minification
 import * as minifier from "html-minifier";
@@ -43,7 +43,7 @@ export namespace Compiler
 	 * @param javascript The javascript story scripts to insert into the template
 	 * @return The complete resulting html file contents
 	 */
-	function ApplyTemplate(templateFile : string, html : string, javascript : string, unbundledScripts : Array<string>) : string
+	function ApplyTemplate(templateFile : string, html : string, javascript : string) : string
 	{
 		if(!fs.existsSync(templateFile))
 		{
@@ -58,22 +58,13 @@ export namespace Compiler
 
 		let template : string = fs.readFileSync(templateFile, "utf8"); // Base template
 
-		// String together all the <script> tags we need
 		let scriptSection : string = "<script>";
 		scriptSection += "var exports = {};";	// This object holds all the TypeScript exports which are callable by story scripts
 		scriptSection += `${javascript}`;		// Insert all bundled scripts, including Core.js
 		scriptSection += "</script>";
-
-		// Sort unbundled scripts alphabetically to allow managing dependencies
-		unbundledScripts.sort();
-		for(let i = 0; i < unbundledScripts.length; i++) { 
-			scriptSection += `<script src="${unbundledScripts[i]}"></script>`;
-		}
-
 		template = template.split("<!--{script}-->").join(scriptSection);
 
 		template = template.split("<!--{story}-->").join(html); // Insert html-formatted story text
-		template += "<script>Core.GotoSection(\"Start\");</script>"; // Auto-start at the "Start" section
 
 		return minifier.minify(template, {
 			collapseWhitespace: true,
@@ -88,12 +79,63 @@ export namespace Compiler
 	}
 
 	/**
+	 * Asynchronously packs all Javascript sources into a bundle (this is only async because webpack is async)
+	 * @param entryPath The path and filename of the entry point script
+	 * @param success Function to call on completion
+	 * @param failure Function to call on error
+	 */
+	function BuildScripts(entryPath : string, success : (bundleContents : string) => void, failure : (err : string) => void)
+	{
+		const MemoryFS = require("memory-fs");
+		const webpack = require("webpack");
+
+		// Configure the webpack compiler
+		const compiler = webpack({
+			entry: entryPath,
+			output: { filename: "bundle.js", path: "/" },
+			stats: "verbose"
+		});
+		
+		// We'll compile into memory rather than to a disk location, so we need a MemoryFS
+		let memFS = new MemoryFS();
+		compiler.outputFileSystem = memFS;		
+		
+		// Run the compiler (which is async) and wait for it to finish
+		compiler.run((err, stats) =>
+		{
+			if(err)
+			{
+				failure(err.details || err.stack || err);
+				return;
+			}
+
+			const info = stats.toJson();
+			if(stats.hasErrors())
+			{
+				failure(info.errors.join());
+				return;
+			}
+
+			if(stats.hasWarnings())
+			{
+				console.warn(info.warnings);
+			}
+
+			console.log(stats.toString({
+				chunks: true,	// Makes the build much quieter
+				colors: true	// Show colors in the console
+			}));
+
+			success(memFS.readFileSync("/bundle.js", "utf8"));
+		});
+	}
+
+	/**
 	 * Compile all source files in the given path into a single playable html file
 	 * @param directory The path to search for source files to compile
  	 * @param templateFile The file path of the template file to use
-	 * @param bundleJavascript If true, embed story scripts in the output html; otherwise, deploy them separately alongside it
 	 */
-	export function Compile(directory : string, templateFile : string, bundleJavascript : boolean) : void
+	export function Compile(directory : string, templateFile : string) : void
 	{
 		if(!fs.existsSync(directory))
 		{
@@ -122,38 +164,40 @@ export namespace Compiler
 		}
 		if(errorCount > 0) { process.exit(1); }
 
-		// Import all the Javascript files
+		// Create the webpack entry point, which brings all the user scripts in as dependencies
+		// and assigns them accessible package names (User0, User1...)
+		let entryContents : string = `Core = require("${path.resolve(__dirname, "./Core.js")}");\n`;
+		for(let i = 0; i < targets.javascriptFiles.length; i++)
+		{
+			entryContents += `User${i} = require("${targets.javascriptFiles[i]}");\n`;
+		}
+		let entryPath : string = path.resolve(__dirname, "../.temp/app.js");
+		if(!fs.existsSync(path.dirname(entryPath))) { fs.mkdirSync(path.dirname(entryPath)); }
+		fs.writeFileSync(entryPath, entryContents, "utf8");
+
+		// Package all the Javascript files
 		console.log("Processing scripts...");
-		let javascript = ImportFile(path.resolve(__dirname, "Core.js"));
-		let unbundledScripts : Array<string> = [];
-		if(bundleJavascript)
-		{
-			// If bundling the Javascript files, import them
-			for(let i = 0; i < targets.javascriptFiles.length; i++)
-			{
-				console.log(`  ${targets.javascriptFiles[i].replace(directory, "")}`); // Strip root directory for display brevity
-				javascript += `// ${targets.javascriptFiles[i]}\n${ImportFile(targets.javascriptFiles[i])}\n`;
-			}
-		}
-		else
-		{
-			// If NOT bundling the Javascript files, strip them of the directory, and pass their paths onward
-			unbundledScripts = targets.javascriptFiles;
-			for(let i = 0; i < unbundledScripts.length; i++)
-			{
-				unbundledScripts[i] = targets.javascriptFiles[i].replace(directory + "/", "");
-			}
-		}
-
-		// Wrap our compiled html with a page template
-		console.log(`Applying ${templateFile} template...`);
-		html = ApplyTemplate(templateFile, html, javascript, unbundledScripts);
-
-		// Write the final compiled file to disk
-		console.log("Writing output file...");
-		fs.writeFileSync(`${directory}/index.html`, html, "utf8");
+		targets.javascriptFiles.push(path.resolve(__dirname, "Core.js"));
+		console.log(targets.javascriptFiles); // temp
+		BuildScripts(entryPath,
+			// Success
+			(bundleContents) => {
+				// Wrap our compiled html with a page template
+				console.log(`Applying ${templateFile} template...`);
+				html = ApplyTemplate(templateFile, html, bundleContents);
 		
-		console.log(`Build complete! Your story was published to ${directory}/index.html!\n`);
+				// Write the final compiled file to disk
+				console.log("Writing output file...");
+				fs.writeFileSync(`${directory}/index.html`, html, "utf8");
+				
+				console.log(`Build complete! Your story was published to ${directory}/index.html!\n`);
+			},
+			// Failure
+			(error) => {
+				console.error(error);
+				process.exit(1);
+			}
+		);
 	}
 
 	/**
@@ -163,15 +207,15 @@ export namespace Compiler
 	 */
 	function GatherTargetFiles(directory : string)
 	{
-		console.log("Scanning " + directory); // temp?
-
 		let markdownFiles : Array<string> = [];
 		let javascriptFiles : Array<string> = [];
 
 		let files : Array<string> = fs.readdirSync(directory, "utf8");
 		for(let i = 0; i < files.length; i++)
 		{
-			var filePath : string = `${directory}/${files[i]}`;
+			var filePath : string = path.resolve(__dirname, `../${directory}/${files[i]}`);
+			if(!fs.existsSync(filePath)) { continue; }
+
 			var stat = fs.lstatSync(filePath);
 			if(stat.isFile())
 			{
@@ -183,7 +227,7 @@ export namespace Compiler
 			}
 			else if(stat.isDirectory())
 			{
-				// Search recursively for scripts
+				// Search recursively for source files
 				let childFiles = GatherTargetFiles(filePath);
 				markdownFiles = markdownFiles.concat(childFiles.markdownFiles);
 				javascriptFiles = javascriptFiles.concat(childFiles.javascriptFiles);
@@ -198,11 +242,11 @@ export namespace Compiler
 	 * @param node The AST link node whose label you want to retrieve
 	 * @return The link label (as rendered html), or null on error. If no error but the <a></a> tags are empty, returns an empty string instead of null.
 	 */
-	function GetLinkLabel(node) : string
+	function GetLinkText(node) : string
 	{
 		if(node.type !== "link")
 		{
-			console.log(`GetLinkLabel received a node of type ${node.type}, which is illegal and will be skipped`);
+			console.log(`GetLinkText received a node of type ${node.type}, which is illegal and will be skipped`);
 			return null;
 		}
 
@@ -218,26 +262,6 @@ export namespace Compiler
 			}
 		}
 		return html;
-	}
-
-	/**
-	 * Reads and returns the raw contents of a file
-	 * @param filepath The path and filename of the file to import
-	 * @return The text contents of the file, or null on error
-	 */
-	function ImportFile(filepath : string) : string
-	{
-		if(!fs.existsSync(filepath))
-		{
-			console.log(`File not found: "${filepath}"`);
-			process.exit(1);
-		}
-		if(!fs.lstatSync(filepath).isFile())
-		{
-			console.log(`"${filepath} is not a file`);
-			process.exit(1);
-		}
-		return fs.readFileSync(filepath, "utf8");
 	}
 
 	/**
@@ -397,12 +421,9 @@ export namespace Compiler
 			{
 				case "inline":
 				{
-					let onClick = `Core.ReplaceActiveElement('inline-${nextInlineID}', Core.ExpandMacro('${url}'));`;
-
 					// Prepending _ to the id makes this :inline macro disabled by default. It gets enabled when it's moved
 					// into the __currentSection div.
-					RewriteLinkNode(node, onClick, GetLinkLabel(node), `_inline-${nextInlineID++}`);
-
+					RewriteLinkNode(node, [{ attr: "replace-with", value: url }], GetLinkText(node), `_inline-${nextInlineID++}`);
 					break;
 				}
 				default:
@@ -411,14 +432,12 @@ export namespace Compiler
 					{
 						case "@": // Section link: navigate to the section
 						{
-							let onClick = `Core.GotoSection('${url.substring(1)}')`;
-							RewriteLinkNode(node, onClick, GetLinkLabel(node));
+							RewriteLinkNode(node, [ { attr: "goto-section", value: url.substring(1) } ], GetLinkText(node), null);
 							break;
 						}
 						case "#": // Function link: call the function
 						{
-							let onClick = `${url.substring(1)}()`;
-							RewriteLinkNode(node, onClick, GetLinkLabel(node));
+							RewriteLinkNode(node, [{ attr: "call-function", value: url.substring(1) }], GetLinkText(node), null);
 							break;
 						}
 						case "$": // Variable link: behavior undefined
@@ -443,14 +462,15 @@ export namespace Compiler
 	}
 
 	/**
-	 * Rewrites a link node (from a CommonMark AST) to be <a onclick="${onClick}">${linkLabel}</a>
-	 * This function modifies the AST in-place by replacing the link node with an html_inline node
-	 * that explicitly formats the rewritten <a> tag.
+	 * Rewrites a link node (from a CommonMark AST) applying the data attributes in dataAttrs appropriately.
+	 * This function modifies the AST in-place by replacing the link node with an html_inline node that
+	 * explicitly formats the rewritten <a> tag.
 	 * @param node The AST link node to replace
-	 * @param onClick The desired contents of the onclick attribute, e.g. "MyFunction(myParams)"
-	 * @param linkLabel The text to place inside the <a></a> tags
+	 * @param dataAttrs Data attributes to append, as {attr, value} where attr is the name of the data attribute sans the data- part. So {"my-attr", "somevalue"} becomes "data-my-attr='somevalue'"
+	 * @param linkText The text to place inside the <a></a> tags
+	 * @param id The element id to assign
 	 */
-	function RewriteLinkNode(node, onClick : string, linkLabel : string, id : string = undefined) : void
+	function RewriteLinkNode(node, dataAttrs : [{ attr : string, value : string }], linkText : string, id : string) : void
 	{
 		if(node.type != "link")
 		{
@@ -460,8 +480,14 @@ export namespace Compiler
 
 		// Replace the link node with a new text node to hold the rewritten <a> tag
 		var newNode = new commonmark.Node("html_inline", node.sourcepos);
-		if(id !== undefined) { newNode.literal = `<a href="#" id="${id}" onclick="${onClick}">${linkLabel}</a>`; }
-		else { newNode.literal = `<a href="#" onclick="${onClick}">${linkLabel}</a>`; }
+		let attrs : string = "";
+		for(let i = 0; i < dataAttrs.length; i++)
+		{
+			attrs += ` data-${dataAttrs[i].attr}="${dataAttrs[i].value}"`;
+		}
+		if(id === null) { newNode.literal = `<a href="#"${attrs}>${linkText}</a>`; }
+		else { newNode.literal = `<a href="#" id="${id}"${attrs}>${linkText}</a>`; }
+
 		node.insertBefore(newNode);
 		node.unlink();
 	}

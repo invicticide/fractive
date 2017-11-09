@@ -59,14 +59,15 @@ export namespace Core
 			case '@':
 			{
 				// Return the contents of the named section, with its macros expanded
-				result = ExpandSection(macro.substring(1));
+				result = ExpandSection(macro.substring(1)).innerHTML;
 				break;
 			}
 			case '#':
 			{
 				// Return the result of the named function call
 				let functionName = macro.substring(1);
-				let fn = window[functionName];
+				//@ts-ignore
+				let fn = User0.User0[functionName]; // TODO: Why is the double dereference necessary? And how do I know which module to use?
 				if(typeof fn === "function") { result = fn(); }
 				else { console.log(functionName + " is not a function"); }
 				break;
@@ -74,7 +75,8 @@ export namespace Core
 			case '$':
 			{
 				// Return the value of the named variable
-				result = window[macro.substring(1)];
+				//@ts-ignore
+				result = User0.User0[macro.substring(1)]; // TODO: Why is the double dereference necessary? And how do I know which module to use?
 				break;
 			}
 			default:
@@ -89,45 +91,45 @@ export namespace Core
 	/**
 	 * Expand all macros within the given section, and return the resulting human-readable text.
 	 * @param id The string identifier of the section to expand.
-	 * @return The entire section text with all macros expanded.
+	 * @return A new section element with all inner macros expanded.
 	 */
-	function ExpandSection(id : string) : string
+	function ExpandSection(id : string) : Element
 	{
-		let section = document.getElementById(id);
-		if(section)
-		{
-			let finalHTML = '';
-			let macro = '';
-			let bParsingMacro = false;
-			for(let i = 0; i < section.innerHTML.length; i++)
-			{
-				if(section.innerHTML[i] === '{')
-				{
-					if(!bParsingMacro) { bParsingMacro = true; macro = ''; }
-					else { console.log("Error: Nested { in " + id + " at character " + i.toString()); break; }
-				}
-				else if(section.innerHTML[i] === '}')
-				{
-					if(bParsingMacro) { bParsingMacro = false; finalHTML += ExpandMacro(macro); }
-					else { console.log("Error: Got } without a corresponding { in " + id + " at character " + i.toString()); break; }
-				}
-				else if(bParsingMacro)
-				{
-					macro += section.innerHTML[i];
-				}
-				else
-				{
-					finalHTML += section.innerHTML[i];
-				}
-			}			
-
-			return finalHTML;
-		}
-		else
+		let source = document.getElementById(id);
+		if(source === null)
 		{
 			console.log("Section " + id + " doesn't exist");
-			return '';
+			return null;
 		}
+
+		let finalHTML = '';
+		let macro = '';
+		let bParsingMacro = false;
+		for(let i = 0; i < source.innerHTML.length; i++)
+		{
+			if(source.innerHTML[i] === '{')
+			{
+				if(!bParsingMacro) { bParsingMacro = true; macro = ''; }
+				else { console.log("Error: Nested { in " + id + " at character " + i.toString()); break; }
+			}
+			else if(source.innerHTML[i] === '}')
+			{
+				if(bParsingMacro) { bParsingMacro = false; finalHTML += ExpandMacro(macro); }
+				else { console.log("Error: Got } without a corresponding { in " + id + " at character " + i.toString()); break; }
+			}
+			else if(bParsingMacro)
+			{
+				macro += source.innerHTML[i];
+			}
+			else
+			{
+				finalHTML += source.innerHTML[i];
+			}
+		}			
+
+		let element = document.createElement("div");
+		element.innerHTML = finalHTML;
+		return element;
 	}
 
 	/**
@@ -156,14 +158,59 @@ export namespace Core
 		history.scrollTop = history.scrollHeight;
 
 		// Expand the destination section
-		let clone = document.createElement("div");
-		clone.id = "__currentSection";
-		clone.innerHTML = ExpandSection(id);
+		let clone = ExpandSection(id);
 		EnableInlineMacros(clone, true);
+		RegisterLinks(clone);
 		clone.scrollTop = 0;
 		
-		// Replace the div so as to restart CSS animations
+		// Replace the div so as to restart CSS animations (just replacing innerHTML does not do this!)
+		clone.id = "__currentSection";
 		currentSection.parentElement.replaceChild(clone, currentSection);
+	}
+
+	/**
+	 * Recursively activates all links in the DOM subtree rooted at this element. This registers appropriate
+	 * click handlers for each link based on the presence and type of data attributes on <a> tags.
+	 * @param element The current root element to process
+	 */
+	export function RegisterLinks(element : Element)
+	{
+		if(element.tagName == "A")
+		{
+			for(let i = 0; i < element.attributes.length; i++)
+			{
+				switch(element.attributes[i].name)
+				{
+					case "data-goto-section":
+					{
+						element.addEventListener("click", function() {
+							Core.GotoSection(element.attributes[i].value);
+						});
+						break;
+					}
+					case "data-call-function":
+					{
+						//@ts-ignore
+						element.addEventListener("click", User0.User0[element.attributes[i].value]); // TODO: Why is the double dereference necessary? And how do I know which module to use?
+						break;
+					}
+					case "data-replace-with":
+					{
+						element.addEventListener("click", function() {
+							Core.ReplaceActiveElement(element.id, ExpandMacro(element.attributes[i].value));
+						});
+						break;
+					}
+				}
+			}
+		}
+		if(element.hasChildNodes)
+		{
+			for(let i = 0; i < element.children.length; i++)
+			{
+				RegisterLinks(element.children[i]);
+			}
+		}
 	}
 
 	/**
@@ -194,6 +241,8 @@ export namespace Core
 				let replacement = document.createElement("span");
 				replacement.className = "__inlineMacro";
 				replacement.innerHTML = html;
+				EnableInlineMacros(replacement, true);
+				RegisterLinks(replacement);		
 				element.parentNode.replaceChild(replacement, element);
 				break;
 			}
@@ -209,4 +258,11 @@ export namespace Core
 		let history = document.getElementById("__history");
 		history.hidden = !tf;
 	}
+}
+
+// Start the game
+window.onload = function(e)
+{
+	if(e !== null) {} // Suppress tsc unused variable warning
+	Core.GotoSection("Start");
 }

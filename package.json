@@ -22,12 +22,14 @@
   "main": "lib/Main.js",
   "types": "lib/Main.d.ts",
   "devDependencies": {
-    "typescript": ">=2.6.0",
-    "@types/node": "^8.0.28"
+    "@types/node": "^8.0.28",
+    "typescript": ">=2.6.0"
   },
   "dependencies": {
     "commonmark": ">=0.28.1",
-    "html-minifier": ">=3.5.5"
+    "html-loader": "^0.5.1",
+    "html-minifier": ">=3.5.5",
+    "webpack": "^3.8.1"
   },
   "scripts": {
     "build": "node build/Build.js",

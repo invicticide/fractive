@@ -35,11 +35,7 @@ for(let i = 0; i < process.argv.length; i++)
 			}
 			else
 			{
-				Compiler.Compile(
-					process.argv[i + 1],
-					process.argv[i + 2],
-					JSON.parse(process.argv[i + 3])
-				);
+				Compiler.Compile(process.argv[++i], process.argv[++i]);
 			}
 			break;
 		}
