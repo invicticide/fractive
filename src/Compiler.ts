@@ -150,11 +150,16 @@ export namespace Compiler
 		console.log(`Applying ${templateFile} template...`);
 		html = ApplyTemplate(templateFile, html, javascript, unbundledScripts);
 
+        // Make sure the output directory exists
+        if (!fs.existsSync(outputDirectory))
+        {
+            fs.mkdirSync(outputDirectory);
+        }
 		// Write the final compiled file to disk
 		console.log("Writing output file...");
 		fs.writeFileSync(`${outputDirectory}/index.html`, html, "utf8");
 		
-		console.log(`Build complete! Your story was published to ${directory}/index.html!\n`);
+		console.log(`Build complete! Your story was published to ${outputDirectory}/index.html!\n`);
 	}
 
 	/**

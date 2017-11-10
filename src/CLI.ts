@@ -50,8 +50,8 @@ for(let i = 0; i < process.argv.length; i++)
 
 				Compiler.Compile(
 					storyDirectory,
-					templateFile,
                     outputDirectory,
+					templateFile,
                     bundleJS
 				);
 			}
