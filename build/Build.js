@@ -13,11 +13,14 @@ var Build = function()
 		console.log("Building Fractive...");
 		{
 			var result = cp.spawnSync("node_modules/.bin/tsc", [], { env : process.env });
+
+			// tsc return codes: https://github.com/Microsoft/TypeScript/blob/master/src/compiler/types.ts (search `enum ExitStatus`)
+			// Currently both 0 and 2 produce outputs (0 is clean, 2 has warnings) and only 1 is actually an error result
 			if(result.status === 1)
 			{
 				// tsc doesn't write to stderr; its errors are all on stdout, because reasons
 				if(result.stdout !== null) { console.error(`\n${result.stdout.toString()}`); }
-        process.exit(result.status);
+        		process.exit(result.status);
 			}
 		}
 
