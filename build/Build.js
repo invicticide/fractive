@@ -24,11 +24,13 @@ var Build = function()
 		console.log("\nBuilding examples...");
 		{
 			var examples = fs.readdirSync("examples", "utf8");
-			for(var i = 0; i < examples.length; i++)
+			for(let i = 0; i < examples.length; i++)
 			{
 				// Ignore dotfiles (.git, .DS_Store, etc.)
-				if(examples[i][0] === ".") { continue; }
-	
+				if(examples[i][0] === ".") { examples.splice(i--, 1); }
+			}
+			for(let i = 0; i < examples.length; i++)
+			{
 				console.log(`  ${examples[i]}`);
 				var result = cp.spawnSync(`node lib/CLI.js compile examples/${examples[i]} templates/basic.html examples/${examples[i]}/dist true`, [], { env : process.env, shell : true });
 				if(result.status !== 0)
@@ -38,10 +40,13 @@ var Build = function()
 					if(result.stderr !== null) { console.error(`\n${result.stderr.toString()}`); }
 					process.exit(result.status);
 				}
+				
+				// Echo stdout from a successful compiler run if desired (mainly for debugging)
+				console.log(`${result.stdout.toString()}`);
 			}
 		}
 
-		console.log("\nDone!\n");
+		console.log("Done!\n");
 	}
 	catch(ex)
 	{

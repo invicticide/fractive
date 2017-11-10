@@ -38,22 +38,9 @@ for(let i = 0; i < process.argv.length; i++)
 			{
                 let storyDirectory = process.argv[i + 1];
                 let templateFile = process.argv[i + 2];
-                let outputDirectory = "dist"
-                if (process.argv.length > i + 3) {
-                    outputDirectory = process.argv[i + 3];
-                }
-                let bundleJS = true;
-                if (process.argv.length > i + 4) {
-                    // Parse the last argument as a boolean using JSON parser
-                    bundleJS = JSON.parse(process.argv[i+4]);
-                }
-
-				Compiler.Compile(
-					storyDirectory,
-                    outputDirectory,
-					templateFile,
-                    bundleJS
-				);
+                let outputDirectory = (process.argv.length > i + 3 ? process.argv[i + 3] : "dist");
+                let bundleJavascript = (process.argv.length > i + 4 ? JSON.parse(process.argv[i + 4]) : true);
+				Compiler.Compile(storyDirectory, outputDirectory, templateFile, bundleJavascript);
 			}
 			break;
 		}

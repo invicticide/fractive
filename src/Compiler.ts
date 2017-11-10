@@ -66,8 +66,9 @@ export namespace Compiler
 
 		// Sort unbundled scripts alphabetically to allow managing dependencies
 		unbundledScripts.sort();
-		for(let i = 0; i < unbundledScripts.length; i++) { 
-			scriptSection += `<script src="${unbundledScripts[i]}"></script>`;
+		for(let i = 0; i < unbundledScripts.length; i++)
+		{ 
+			scriptSection += `<script src="${path.basename(unbundledScripts[i])}"></script>`;
 		}
 
 		template = template.split("<!--{script}-->").join(scriptSection);
@@ -107,6 +108,20 @@ export namespace Compiler
 			process.exit(1);
 		}
 
+		if(!fs.existsSync(outputDirectory))
+		{
+			fs.mkdirSync(outputDirectory);
+		}
+		else
+		{
+			let files : Array<string> = fs.readdirSync(outputDirectory, "utf8");
+			for(let i = 0; i < files.length; i++)
+			{
+				let unlinkPath : string = path.resolve(outputDirectory, files[i]);
+				fs.unlinkSync(unlinkPath);
+			}
+		}
+
 		// Find all the files that are eligible for compilation
 		let targets = GatherTargetFiles(directory);
 
@@ -116,7 +131,7 @@ export namespace Compiler
 		let html : string = "";
 		for(let i = 0; i < targets.markdownFiles.length; i++)
 		{
-			console.log(`  ${targets.markdownFiles[i].replace(directory, "")}`); // Strip root directory for display brevity
+			console.log(`  ${targets.markdownFiles}`);
 			var rendered = RenderFile(targets.markdownFiles[i]);
 			if(rendered === null) { errorCount++; }
 			else { html += `<!-- ${targets.markdownFiles[i]} -->\n${rendered}\n`; }
@@ -132,34 +147,36 @@ export namespace Compiler
 			// If bundling the Javascript files, import them
 			for(let i = 0; i < targets.javascriptFiles.length; i++)
 			{
-				console.log(`  ${targets.javascriptFiles[i].replace(directory, "")}`); // Strip root directory for display brevity
+				console.log(`  [bundle] ${targets.javascriptFiles[i]}`);
 				javascript += `// ${targets.javascriptFiles[i]}\n${ImportFile(targets.javascriptFiles[i])}\n`;
 			}
 		}
 		else
 		{
 			// If NOT bundling the Javascript files, strip them of the directory, and pass their paths onward
-			unbundledScripts = targets.javascriptFiles;
-			for(let i = 0; i < unbundledScripts.length; i++)
+			for(let i = 0; i < targets.javascriptFiles.length; i++)
 			{
-				unbundledScripts[i] = targets.javascriptFiles[i].replace(directory + "/", "");
+				console.log(`  [copy] ${targets.javascriptFiles[i]}`);
+				unbundledScripts.push(targets.javascriptFiles[i]);
 			}
 		}
-
+		
 		// Wrap our compiled html with a page template
-		console.log(`Applying ${templateFile} template...`);
+		console.log(`Applying template...\n  ${templateFile}`);
 		html = ApplyTemplate(templateFile, html, javascript, unbundledScripts);
 
-        // Make sure the output directory exists
-        if (!fs.existsSync(outputDirectory))
-        {
-            fs.mkdirSync(outputDirectory);
-        }
-		// Write the final compiled file to disk
-		console.log("Writing output file...");
-		fs.writeFileSync(`${outputDirectory}/index.html`, html, "utf8");
-		
-		console.log(`Build complete! Your story was published to ${outputDirectory}/index.html!\n`);
+		// Write the final compiled file(s) to disk
+		console.log("Writing output files...");
+		{
+			let indexPath : string = path.resolve(outputDirectory, "index.html");
+			console.log(`  ${indexPath}`);
+			fs.writeFileSync(path.resolve(outputDirectory, "index.html"), html, "utf8");
+		}
+		for(let i = 0; i < unbundledScripts.length; i++)
+		{
+			console.log(`  ${unbundledScripts[i]}`);
+			fs.copyFileSync(targets.javascriptFiles[i], path.resolve(outputDirectory, path.basename(targets.javascriptFiles[i])));
+		}
 	}
 
 	/**
@@ -169,8 +186,6 @@ export namespace Compiler
 	 */
 	function GatherTargetFiles(directory : string)
 	{
-		console.log("Scanning " + directory); // temp?
-
 		let markdownFiles : Array<string> = [];
 		let javascriptFiles : Array<string> = [];
 
