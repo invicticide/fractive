@@ -35,10 +35,13 @@ for(let i = 0; i < process.argv.length; i++)
 			}
 			else
 			{
+				let bundleJavascript : boolean = true;
+				if(process.argv[i + 3] === "false") { bundleJavascript = false; }
+				
 				Compiler.Compile(
 					process.argv[i + 1],
 					process.argv[i + 2],
-					JSON.parse(process.argv[i + 3])
+					bundleJavascript
 				);
 			}
 			break;
