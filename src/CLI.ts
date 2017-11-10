@@ -26,6 +26,7 @@ for(let i = 0; i < process.argv.length; i++)
 {
 	switch(process.argv[i])
 	{
+        // compile [storyDirectory] [template HTML file] [outputDirectory (default: dist)] [bundleJS (default: true)]
 		case "compile":
 		{
 			if(process.argv.length < i + 3)
@@ -35,10 +36,23 @@ for(let i = 0; i < process.argv.length; i++)
 			}
 			else
 			{
+                let storyDirectory = process.argv[i + 1];
+                let templateFile = process.argv[i + 2];
+                let outputDirectory = "dist"
+                if (process.argv.length > i + 3) {
+                    outputDirectory = process.argv[i + 3];
+                }
+                let bundleJS = true;
+                if (process.argv.length > i + 4) {
+                    // Parse the last argument as a boolean using JSON parser
+                    bundleJS = JSON.parse(process.argv[i+4]);
+                }
+
 				Compiler.Compile(
-					process.argv[i + 1],
-					process.argv[i + 2],
-					JSON.parse(process.argv[i + 3])
+					storyDirectory,
+					templateFile,
+                    outputDirectory,
+                    bundleJS
 				);
 			}
 			break;
