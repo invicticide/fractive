@@ -13,11 +13,11 @@ var Build = function()
 		console.log("Building Fractive...");
 		{
 			var result = cp.spawnSync("node_modules/.bin/tsc", [], { env : process.env });
-			if(result.status !== 0)
+			if(result.status === 1)
 			{
 				// tsc doesn't write to stderr; its errors are all on stdout, because reasons
 				if(result.stdout !== null) { console.error(`\n${result.stdout.toString()}`); }
-				process.exit(result.status);
+        process.exit(result.status);
 			}
 		}
 
@@ -30,7 +30,7 @@ var Build = function()
 				if(examples[i][0] === ".") { continue; }
 	
 				console.log(`  ${examples[i]}`);
-				var result = cp.spawnSync(`node lib/CLI.js compile examples/${examples[i]} templates/basic.html true`, [], { env : process.env, shell : true });
+				var result = cp.spawnSync(`node lib/CLI.js compile examples/${examples[i]} templates/basic.html examples/${examples[i]}/dist true`, [], { env : process.env, shell : true });
 				if(result.status !== 0)
 				{
 					// The compiler writes its errors to stderr and general status to stdout. In this context

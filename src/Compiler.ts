@@ -90,10 +90,11 @@ export namespace Compiler
 	/**
 	 * Compile all source files in the given path into a single playable html file
 	 * @param directory The path to search for source files to compile
+     * @param outputDirectory The directory in which to place the output index.html
  	 * @param templateFile The file path of the template file to use
 	 * @param bundleJavascript If true, embed story scripts in the output html; otherwise, deploy them separately alongside it
 	 */
-	export function Compile(directory : string, templateFile : string, bundleJavascript : boolean) : void
+	export function Compile(directory : string, outputDirectory : string, templateFile : string, bundleJavascript : boolean) : void
 	{
 		if(!fs.existsSync(directory))
 		{
@@ -149,11 +150,16 @@ export namespace Compiler
 		console.log(`Applying ${templateFile} template...`);
 		html = ApplyTemplate(templateFile, html, javascript, unbundledScripts);
 
+        // Make sure the output directory exists
+        if (!fs.existsSync(outputDirectory))
+        {
+            fs.mkdirSync(outputDirectory);
+        }
 		// Write the final compiled file to disk
 		console.log("Writing output file...");
-		fs.writeFileSync(`${directory}/index.html`, html, "utf8");
+		fs.writeFileSync(`${outputDirectory}/index.html`, html, "utf8");
 		
-		console.log(`Build complete! Your story was published to ${directory}/index.html!\n`);
+		console.log(`Build complete! Your story was published to ${outputDirectory}/index.html!\n`);
 	}
 
 	/**
