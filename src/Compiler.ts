@@ -25,8 +25,8 @@ import * as path from "path";
 
 // Set up the Markdown parser and renderer
 import * as commonmark from "commonmark";
-let markdownReader = new commonmark.Parser({smart: false});
-let markdownWriter = new commonmark.HtmlRenderer({softbreak: "<br/>"});
+const markdownReader = new commonmark.Parser({smart: false});
+const markdownWriter = new commonmark.HtmlRenderer({softbreak: "<br/>"});
 
 // Minification
 import * as minifier from "html-minifier";
@@ -171,7 +171,9 @@ export namespace Compiler
 		let files : Array<string> = fs.readdirSync(directory, "utf8");
 		for(let i = 0; i < files.length; i++)
 		{
-			var filePath : string = `${directory}/${files[i]}`;
+			var filePath : string = path.resolve(directory, files[i]);
+			if(!fs.existsSync(filePath)) { continue; }
+
 			var stat = fs.lstatSync(filePath);
 			if(stat.isFile())
 			{
@@ -183,7 +185,7 @@ export namespace Compiler
 			}
 			else if(stat.isDirectory())
 			{
-				// Search recursively for scripts
+				// Search recursively for source files
 				let childFiles = GatherTargetFiles(filePath);
 				markdownFiles = markdownFiles.concat(childFiles.markdownFiles);
 				javascriptFiles = javascriptFiles.concat(childFiles.javascriptFiles);
@@ -198,11 +200,11 @@ export namespace Compiler
 	 * @param node The AST link node whose label you want to retrieve
 	 * @return The link label (as rendered html), or null on error. If no error but the <a></a> tags are empty, returns an empty string instead of null.
 	 */
-	function GetLinkLabel(node) : string
+	function GetLinkText(node) : string
 	{
 		if(node.type !== "link")
 		{
-			console.log(`GetLinkLabel received a node of type ${node.type}, which is illegal and will be skipped`);
+			console.log(`GetLinkText received a node of type ${node.type}, which is illegal and will be skipped`);
 			return null;
 		}
 
@@ -397,12 +399,9 @@ export namespace Compiler
 			{
 				case "inline":
 				{
-					let onClick = `Core.ReplaceActiveElement('inline-${nextInlineID}', Core.ExpandMacro('${url}'));`;
-
 					// Prepending _ to the id makes this :inline macro disabled by default. It gets enabled when it's moved
 					// into the __currentSection div.
-					RewriteLinkNode(node, onClick, GetLinkLabel(node), `_inline-${nextInlineID++}`);
-
+					RewriteLinkNode(node, [{ attr: "replace-with", value: url }], GetLinkText(node), `_inline-${nextInlineID++}`);					
 					break;
 				}
 				default:
@@ -411,14 +410,12 @@ export namespace Compiler
 					{
 						case "@": // Section link: navigate to the section
 						{
-							let onClick = `Core.GotoSection('${url.substring(1)}')`;
-							RewriteLinkNode(node, onClick, GetLinkLabel(node));
+							RewriteLinkNode(node, [ { attr: "goto-section", value: url.substring(1) } ], GetLinkText(node), null);
 							break;
 						}
 						case "#": // Function link: call the function
 						{
-							let onClick = `${url.substring(1)}()`;
-							RewriteLinkNode(node, onClick, GetLinkLabel(node));
+							RewriteLinkNode(node, [{ attr: "call-function", value: url.substring(1) }], GetLinkText(node), null);
 							break;
 						}
 						case "$": // Variable link: behavior undefined
@@ -443,14 +440,15 @@ export namespace Compiler
 	}
 
 	/**
-	 * Rewrites a link node (from a CommonMark AST) to be <a onclick="${onClick}">${linkLabel}</a>
-	 * This function modifies the AST in-place by replacing the link node with an html_inline node
-	 * that explicitly formats the rewritten <a> tag.
+	 * Rewrites a link node (from a CommonMark AST) applying the data attributes in dataAttrs appropriately.
+	 * This function modifies the AST in-place by replacing the link node with an html_inline node that
+	 * explicitly formats the rewritten <a> tag.
 	 * @param node The AST link node to replace
-	 * @param onClick The desired contents of the onclick attribute, e.g. "MyFunction(myParams)"
-	 * @param linkLabel The text to place inside the <a></a> tags
+	 * @param dataAttrs Data attributes to append, as {attr, value} where attr is the name of the data attribute sans the data- part. So {"my-attr", "somevalue"} becomes "data-my-attr='somevalue'"
+	 * @param linkText The text to place inside the <a></a> tags
+	 * @param id The element id to assign
 	 */
-	function RewriteLinkNode(node, onClick : string, linkLabel : string, id : string = undefined) : void
+	function RewriteLinkNode(node, dataAttrs : [{ attr : string, value : string }], linkText : string, id : string) : void
 	{
 		if(node.type != "link")
 		{
@@ -458,10 +456,16 @@ export namespace Compiler
 			return;
 		}
 
-		// Replace the link node with a new text node to hold the rewritten <a> tag
+		// Replace the link node with a new html_inline node to hold the rewritten <a> tag
 		var newNode = new commonmark.Node("html_inline", node.sourcepos);
-		if(id !== undefined) { newNode.literal = `<a href="#" id="${id}" onclick="${onClick}">${linkLabel}</a>`; }
-		else { newNode.literal = `<a href="#" onclick="${onClick}">${linkLabel}</a>`; }
+		let attrs : string = "";
+		for(let i = 0; i < dataAttrs.length; i++)
+		{
+			attrs += ` data-${dataAttrs[i].attr}="${dataAttrs[i].value}"`;
+		}
+		if(id === null) { newNode.literal = `<a href="#"${attrs}>${linkText}</a>`; }
+		else { newNode.literal = `<a href="#" id="${id}"${attrs}>${linkText}</a>`; }
+
 		node.insertBefore(newNode);
 		node.unlink();
 	}
