@@ -12,12 +12,22 @@ var Build = function()
 	{
 		console.log("Building Fractive...");
 		{
+      if (fs.existsSync('node_modules/.bin/tsc')) {
+        console.log('it\'s there');
+      }
+
 			var result = cp.spawnSync("node_modules/.bin/tsc", [], { env : process.env });
 			if(result.status !== 0)
 			{
 				// tsc doesn't write to stderr; its errors are all on stdout, because reasons
-				if(result.stdout !== null) { console.error(`\n${result.stdout.toString()}`); }
-				process.exit(result.status);
+				if(result.stdout !== null) {
+          console.error(`\n${result.stdout.toString()}`);
+          process.exit(result.status);
+        }
+
+        // On Windows, result.status can be nonzero without a real error,
+        // so don't call process.exit without error output
+        // :shrug:
 			}
 		}
 
