@@ -41,9 +41,10 @@ export namespace Compiler
 	 * @param templateFile The file path of the template file to use
 	 * @param html The html-formatted story text to insert into the template
 	 * @param javascript The javascript story scripts to insert into the template
+	 * @param minify True if we should minify the output
 	 * @return The complete resulting html file contents
 	 */
-	function ApplyTemplate(templateFile : string, html : string, javascript : string, unbundledScripts : Array<string>) : string
+	function ApplyTemplate(templateFile : string, html : string, javascript : string, unbundledScripts : Array<string>, minify : boolean) : string
 	{
 		if(!fs.existsSync(templateFile))
 		{
@@ -76,16 +77,23 @@ export namespace Compiler
 		template = template.split("<!--{story}-->").join(html); // Insert html-formatted story text
 		template += "<script>Core.GotoSection(\"Start\");</script>"; // Auto-start at the "Start" section
 
-		return minifier.minify(template, {
-			collapseWhitespace: true,
-			minifyCSS: true,
-			minifyJS: true,
-			removeAttributeQuotes: true,
-			removeComments: true,
-			removeEmptyAttributes: true,
-			removeEmptyElements: false, // The history and currentSection divs are empty; don't remove them!
-			removeRedundantAttributes: true
-		});
+		if(minify)
+		{
+			return minifier.minify(template, {
+				collapseWhitespace: true,
+				minifyCSS: true,
+				minifyJS: true,
+				removeAttributeQuotes: true,
+				removeComments: true,
+				removeEmptyAttributes: true,
+				removeEmptyElements: false, // The history and currentSection divs are empty; don't remove them!
+				removeRedundantAttributes: true
+			});
+			}
+		else
+		{
+			return template;
+		}
 	}
 
 	/**
@@ -94,8 +102,9 @@ export namespace Compiler
      * @param outputDirectory The directory in which to place the output index.html
  	 * @param templateFile The file path of the template file to use
 	 * @param bundleJavascript If true, embed story scripts in the output html; otherwise, deploy them separately alongside it
+	 * @param minify True if we should minify the output html
 	 */
-	export function Compile(directory : string, outputDirectory : string, templateFile : string, bundleJavascript : boolean) : void
+	export function Compile(directory : string, outputDirectory : string, templateFile : string, bundleJavascript : boolean, minify : boolean) : void
 	{
 		if(!fs.existsSync(directory))
 		{
@@ -163,7 +172,7 @@ export namespace Compiler
 		
 		// Wrap our compiled html with a page template
 		console.log(`Applying template...\n  ${templateFile}`);
-		html = ApplyTemplate(templateFile, html, javascript, unbundledScripts);
+		html = ApplyTemplate(templateFile, html, javascript, unbundledScripts, minify);
 
 		// Write the final compiled file(s) to disk
 		console.log("Writing output files...");
@@ -264,14 +273,106 @@ export namespace Compiler
 	}
 
 	/**
+	 * Replace a substring of a node's content with a <span> having the given data attributes.
+	 * @param rootNode The root node to modify. Should contain text content.
+	 * @param startIndex Start of the substring to replace.
+	 * @param endIndex End (exclusive) of the substring to replace.
+	 * @param dataAttrs Data attributes to set, as {attr, value} where attr is the name of the data attribute sans the data- part. So {"my-attr", "somevalue"} becomes "data-my-attr='somevalue'"
+	 * @returns The new html_inline node that was inserted.
+	 */
+	function InsertHtmlIntoNode(rootNode, startIndex : number, endIndex : number, dataAttrs : [{ attr : string, value : string }])
+	{
+		let preContent : string = rootNode.literal.substring(0, startIndex);
+		let postContent : string = rootNode.literal.substring(endIndex);
+
+		rootNode.literal = preContent; // TODO: update sourcepos end
+
+		var htmlNode = new commonmark.Node("html_inline", rootNode.sourcepos); // TODO: real sourcepos
+		let attrs : string = "";
+		for(let i = 0; i < dataAttrs.length; i++)
+		{
+			attrs += ` data-${dataAttrs[i].attr}="${dataAttrs[i].value}"`;
+		}
+		switch(rootNode.type)
+		{
+			case "code":
+			{
+				htmlNode.literal = `<code><span${attrs}></span></code>`;
+				break;
+			}
+
+			case "code_block":
+			{
+				htmlNode.literal = `<pre><code><span${attrs}></span></code></pre>`;
+				break;
+			}
+
+			default:
+			{
+				htmlNode.literal = `<span${attrs}></span>`;
+				break;
+			}
+		}
+		rootNode.insertAfter(htmlNode);
+		
+		// Clean up empty pre node now that we've attached the insert to the tree
+		if(rootNode.literal === "") { rootNode.unlink(); }
+
+		if(postContent && postContent.length > 0)
+		{
+			var postNode = new commonmark.Node(rootNode.type, rootNode.sourcepos); // TODO: real sourcepos
+			postNode.literal = postContent;
+			htmlNode.insertAfter(postNode);
+		}
+
+		return htmlNode;
+	}
+
+	/**
+	 * Dumps the given AST to the console in a tree-like format.
+	 * This doesn't render the AST; it's just a debug visualization of its current structure.
+	 * @param ast The AST to display
+	 */
+	function LogAST(ast)
+	{
+		let indent : number = 0;
+		let getIndent = function(indent)
+		{
+			let result : string = '';
+			for(let i = 0; i < indent; i++) { result += '  '; }
+			return result;
+		};
+		let walker = ast.walker();
+		var event;
+		while((event = walker.next()))
+		{
+			if(event.node.isContainer && !event.entering) { indent--; }
+			if(!event.node.isContainer || event.entering)
+			{
+				console.log(`${getIndent(indent)}${event.node.type}: ${event.node.literal ? event.node.literal.split('\n').join('\\n') : ''}`);
+			}
+			if(event.node.isContainer && event.entering) { indent++; }
+		}
+	}
+
+	/**
 	 * Log a consistently-formatted parse error including the line/character number where the error occurred.
 	 * @param text The error message to display.
 	 * @param lineNumber The line where the error occurred.
 	 * @param characterNumber The character within the line where the error occurred.
 	 */
-	function LogParseError(text : string, filePath : string, lineNumber : number, characterNumber : number)
+	function LogParseError(text : string, filePath : string, node, lineOffset? : number, columnOffset? : number)
 	{
-		console.error(`${filePath} (${lineNumber},${characterNumber}): ${text}`);
+		if(node && node.sourcepos)
+		{
+			let line : number = node.sourcepos[0][0] + (lineOffset !== undefined ? lineOffset : 0);
+			let column : number = node.sourcepos[0][1] + (columnOffset !== undefined ? columnOffset : 0);
+			console.error(`${filePath} (${line},${column}): ${text}`);
+		}
+		else
+		{
+			console.error(`${filePath}: ${text}`);
+		}
 	}
 
 	/**
@@ -281,183 +382,202 @@ export namespace Compiler
 	 */
 	function RenderFile(filepath : string) : string
 	{
-		// Read the file contents
 		if(!fs.existsSync(filepath))
 		{
 			console.log("File not found: " + filepath);
 			process.exit(1);
 		}
-		let text : string = fs.readFileSync(filepath, "utf8");
+		let ast = markdownReader.parse(fs.readFileSync(filepath, "utf8")); // Returns an Abstract Syntax Tree (AST)
 
-		// Set up parsing state
-		let braceCount : number = 0;
-		let sectionName : string = "";
-		let sectionBody : string = "";
-		let lineNumber : number = 1;
-		let characterNumber : number = 1;
+		// TODO: Build config option for displaying AST debug
+		console.log("\nRAW AST\n");
+		LogAST(ast);
 
-		// This will hold our compiled html
-		let html = "";
-
-		// Parse the file contents
-		for(let i = 0; i < text.length; i++)
-		{
-			if(text[i] === "{")
-			{
-				if(braceCount === 0 && text[i + 1] === "{")
-				{
-					i++;
-					braceCount += 2;
-
-					// We're starting a new section, so process the one we've just finished parsing
-					if(sectionName.length > 0 && sectionBody.length > 0)
-					{
-						html += RenderSection(sectionName, sectionBody);
-					}
-
-					// Start the new section
-					sectionName = "";
-					sectionBody = "";
-				}
-				else if(braceCount > 0)
-				{
-					LogParseError("Unexpected { in macro declaration", filepath, lineNumber, characterNumber);
-					return null;
-				}
-				else
-				{
-					if(sectionName.length > 0) { sectionBody += text[i]; }
-					braceCount++;					
-				}
-			}
-			else if(text[i] === "}")
-			{
-				if(braceCount === 2 && text[i + 1] === "}")
-				{
-					i++;
-					braceCount -= 2;
-				}
-				else if(braceCount === 1)
-				{
-					if(sectionName.length > 0) { sectionBody += text[i]; }
-					braceCount--;
-				}
-				else if(braceCount === 0)
-				{
-					LogParseError("Unmatched }", filepath, lineNumber, characterNumber);
-					return null;
-				}
-			}
-			else if(text[i] === "\n" || text[i] === "\t" || text[i] === " ")
-			{
-				if(braceCount > 0)
-				{
-					LogParseError("Illegal whitespace in macro declaration", filepath, lineNumber, characterNumber);
-					return null;
-				}
-				else if(sectionName.length > 0) { sectionBody += text[i]; }
-			}
-			else if(braceCount === 2) { sectionName += text[i]; }
-			else if(sectionName.length > 0) { sectionBody += text[i]; }
-
-			// Handle line breaks
-			if(text[i] === "\n")
-			{
-				lineNumber++;
-				characterNumber = 1;
-			}
-			else { characterNumber++; }
-		}
-
-		// Make sure we render the last section in the source text! It gets skipped because section rendering
-		// is triggered by the parser finding the start of a new section.
-		if(sectionName.length > 0 && sectionBody.length > 0)
-		{
-			html += RenderSection(sectionName, sectionBody);
-		}
-
-		return html;
-	}
-
-	/**
-	 * Renders the given Markdown text section into HTML
-	 * @param name The section name as defined by a {{SectionName}} macro
-	 * @param body The Markdown-formatted section body
-	 * @return The rendered HTML, or null on error
-	 */
-	function RenderSection(name : string, body : string) : string
-	{
-		let ast = markdownReader.parse(body); // Returns an Abstract Syntax Tree (AST)
-
-		// Custom AST manipulation before rendering. Rewrite <a> tags to call into js onclick to transition
-		// to a new passage for {@Passage} macros, or call a function for {#Function} macros.
+		// Consolidate contiguous `text` nodes in the AST. I'm not sure why these get arbitrarily split up -- it does
+		// seem to be triggered by punctuation -- but it's a huge pita to process macros that way.
 		let walker = ast.walker();
-		var event, node;
+		var event, node, prevNode;
 		while((event = walker.next()))
 		{
 			node = event.node;
-
-			if(node.type !== "link") { continue; }
-			if(event.entering) { continue; }
-
-			let url : string = node.destination;
-			url = url.replace("%7B", "{").replace("%7D", "}");
-			
-			if(url[0] !== "{") { continue; }
-
-			if(url[url.length - 1] !== "}")
+			if(node.type === "text" && prevNode && prevNode.type === "text")
 			{
-				console.log(`Link destination ${url} is missing its closing brace`);
-				return null;
+				if(node.literal) { prevNode.literal += node.literal; }
+				node.unlink();
 			}
-
-			// Tokenize the url, stripping the braces in the process. Result should look like
-			// "{@SectionName:inline}" => [ "@SectionName", "inline" ]
-			let tokens : Array<string> = url.substring(1, url.length - 1).split(":");
-			url = tokens[0];
-			let modifier : string = (tokens.length > 1 ? tokens[1] : "");
-			switch(modifier)
+			else
 			{
-				case "inline":
-				{
-					// Prepending _ to the id makes this :inline macro disabled by default. It gets enabled when it's moved
-					// into the __currentSection div.
-					RewriteLinkNode(node, [{ attr: "replace-with", value: url }], GetLinkText(node), `_inline-${nextInlineID++}`);					
-					break;
-				}
-				default:
-				{
-					switch(url[0])
-					{
-						case "@": // Section link: navigate to the section
-						{
-							RewriteLinkNode(node, [ { attr: "goto-section", value: url.substring(1) } ], GetLinkText(node), null);
-							break;
-						}
-						case "#": // Function link: call the function
-						{
-							RewriteLinkNode(node, [{ attr: "call-function", value: url.substring(1) }], GetLinkText(node), null);
-							break;
-						}
-						case "$": // Variable link: behavior undefined
-						{
-							console.log(`Link destination ${url} is a variable macro, which is not supported`);
-							return null;
-						}
-						default: // Unknown macro
-						{
-							console.log(`Link destination ${url} is an unrecognized macro`);
-							return null;
-						}
-					}
-					break;
-				}
+				prevNode = node;
 			}
 		}
 
+		// TODO: Build config option for displaying AST debug
+		console.log("\nCONSOLIDATED AST\n");
+		LogAST(ast);
+		
+		// Custom AST manipulation before rendering. When we're done, there should be no functional {macros} left in
+		// the tree; they should all be rewritten to html tags with data-attributes describing their function.
+		walker = ast.walker();
+		while((event = walker.next()))
+		{
+			node = event.node;
+			switch(node.type)
+			{
+				// Rewrite links with data-attributes that indicate the link type and macro destination
+				case "link":
+				{
+					if(event.entering) { continue; }
+					
+					let url : string = node.destination;
+					url = url.replace("%7B", "{").replace("%7D", "}");
+					
+					// This link doesn't have a macro as its destination, so we don't need to rewrite it
+					if(url[0] !== "{") { continue; }
+		
+					if(url[url.length - 1] !== "}")
+					{
+						LogParseError("Unterminated macro in link destination", filepath, node);
+						return null;
+					}
+		
+					// Tokenize the url, stripping the braces in the process. Result should look like
+					// "{@SectionName:inline}" => [ "@SectionName", "inline" ]
+					let tokens : Array<string> = url.substring(1, url.length - 1).split(":");
+					url = tokens[0];
+					let modifier : string = (tokens.length > 1 ? tokens[1] : "");
+					switch(modifier)
+					{
+						case "inline":
+						{
+							// Prepending _ to the id makes this :inline macro disabled by default. It gets enabled when it's moved
+							// into the __currentSection div.
+							RewriteLinkNode(node, [{ attr: "replace-with", value: url }], GetLinkText(node), `_inline-${nextInlineID++}`);					
+							break;
+						}
+						default:
+						{
+							switch(url[0])
+							{
+								case "@": // Section link: navigate to the section
+								{
+									RewriteLinkNode(node, [ { attr: "goto-section", value: url.substring(1) } ], GetLinkText(node), null);
+									break;
+								}
+								case "#": // Function link: call the function
+								{
+									RewriteLinkNode(node, [{ attr: "call-function", value: url.substring(1) }], GetLinkText(node), null);
+									break;
+								}
+								case "$": // Variable link: behavior undefined
+								{
+									LogParseError("Variable macros can't be used as link destinations", filepath, node);
+									return null;
+								}
+								default: // Unknown macro
+								{
+									LogParseError("Unrecognized macro in link destination", filepath, node);
+									return null;
+								}
+							}
+							break;
+						}
+					}
+
+					break;
+				} // case "link"
+
+				// Replace macros in text with <span> with a data-attribute indicating the macro type and target
+				case "text":
+				case "code":
+				case "code_block":
+				{
+					let lineOffset : number = 0;
+					let columnOffset : number = 0;
+					for(let i = 0; i < node.literal.length; i++)
+					{
+						if(node.literal[i] === '\\')
+						{
+							i++; // Skip over the next character
+						}
+						else if(node.literal[i] === '{')
+						{
+							let macro : string = null;
+							let braceCount : number = 1;
+							for(let j = i + 1; j < node.literal.length; j++)
+							{
+								if(node.literal[j] === '{')
+								{
+									braceCount++;
+								}
+								else if(node.literal[j] === '}')
+								{
+									if(--braceCount == 0)
+									{
+										macro = node.literal.substring(i, j + 1);
+										break;
+									}
+								}
+							}
+							if(macro === null)
+							{
+								LogParseError(`Unterminated macro near "${node.literal.substring(i, i + 10)}" in text`, filepath, node, lineOffset, columnOffset);
+								return null;
+							}
+							var insertedNode;
+							switch(macro[1])
+							{
+								case "{":
+								{
+									insertedNode = InsertHtmlIntoNode(node, i, i + macro.length, [{ attr: "begin-section", value: macro }]);
+									break;
+								}
+								case "@":
+								{
+									insertedNode = InsertHtmlIntoNode(node, i, i + macro.length, [{ attr: "expand-section", value: macro }]);
+									break;
+								}
+								case "#":
+								{
+									insertedNode = InsertHtmlIntoNode(node, i, i + macro.length, [{ attr: "expand-function", value: macro }]);
+									break;
+								}
+								case "$":
+								{
+									insertedNode = InsertHtmlIntoNode(node, i, i + macro.length, [{ attr: "expand-variable", value: macro }]);
+									break;
+								}
+								default:
+								{
+									LogParseError(`Unrecognized macro "${macro}" in text`, filepath, node.parent, lineOffset, columnOffset);
+									return null;
+								}
+							}
+							walker.resumeAt(insertedNode);
+						}
+						else if(node.literal[i] === '\n')
+						{
+							lineOffset++;
+							columnOffset = -1;
+						}
+						
+						columnOffset++;
+					}
+					
+					// We skipped over escape sequences while parsing, but now we need to strip the backslashes entirely
+					// so they don't get rendered out to the html as `\\`
+					node.literal = node.literal.split('\\').join('');
+					
+					break;
+				} // case "text"
+			}
+		}
+
+		// TODO: Build config option for displaying AST debug
+		console.log("\nFINAL AST\n");
+		LogAST(ast);
+
 		// Render the final section html and wrap it in a section <div>
-		let result = markdownWriter.render(ast);
-		return `<div id="${name}" class="section" hidden="true">${result}</div>\n`;
+		return markdownWriter.render(ast);
 	}
 
 	/**
