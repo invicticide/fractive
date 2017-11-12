@@ -390,8 +390,8 @@ export namespace Compiler
 		let ast = markdownReader.parse(fs.readFileSync(filepath, "utf8")); // Returns an Abstract Syntax Tree (AST)
 
 		// TODO: Build config option for displaying AST debug
-		console.log("\nRAW AST\n");
-		LogAST(ast);
+		// console.log("\nRAW AST\n");
+		// LogAST(ast);
 
 		// Consolidate contiguous `text` nodes in the AST. I'm not sure why these get arbitrarily split up -- it does
 		// seem to be triggered by punctuation -- but it's a huge pita to process macros that way.
@@ -412,11 +412,12 @@ export namespace Compiler
 		}
 
 		// TODO: Build config option for displaying AST debug
-		console.log("\nCONSOLIDATED AST\n");
-		LogAST(ast);
+		// console.log("\nCONSOLIDATED AST\n");
+		// LogAST(ast);
 		
 		// Custom AST manipulation before rendering. When we're done, there should be no functional {macros} left in
 		// the tree; they should all be rewritten to html tags with data-attributes describing their function.
+		let sectionCount : number = 0;
 		walker = ast.walker();
 		while((event = walker.next()))
 		{
@@ -528,22 +529,54 @@ export namespace Compiler
 							{
 								case "{":
 								{
-									insertedNode = InsertHtmlIntoNode(node, i, i + macro.length, [{ attr: "begin-section", value: macro }]);
+									// Begin a new section
+									if(node.parent)
+									{
+										var insertedNode = new commonmark.Node("html_inline", node.sourcepos); // TODO: Real sourcepos
+										insertedNode.literal = `${sectionCount > 0 ? "</div>\n" : ""}<div id="${macro.substring(2, macro.length - 2)}" hidden="true">`;
+										if(node.prev)
+										{
+											// TODO: This should probably be reported as some sort of error; it may swallow the section contents
+											node.prev.insertAfter(insertedNode);
+											node.unlink();
+										}
+										else if(node.parent.type === "paragraph")
+										{
+											// This is the most common case for correctly-formatted section declarations
+											node.parent.insertAfter(insertedNode);
+											node.parent.unlink();
+										}
+										else
+										{
+											// TODO: This should probably be reported as some sort of error; it may swallow the section contents
+											node.parent.prependChild(insertedNode);
+											node.unlink();
+										}
+										sectionCount++;
+									}
+									else
+									{
+										LogParseError(`Node for "${macro}" has no parent`, filepath, node, lineOffset, columnOffset);
+										return null;
+									}
 									break;
 								}
 								case "@":
 								{
-									insertedNode = InsertHtmlIntoNode(node, i, i + macro.length, [{ attr: "expand-section", value: macro }]);
+									// Section expansion macro
+									insertedNode = InsertHtmlIntoNode(node, i, i + macro.length, [{ attr: "expand-section", value: macro.substring(2, macro.length - 1) }]);
 									break;
 								}
 								case "#":
 								{
-									insertedNode = InsertHtmlIntoNode(node, i, i + macro.length, [{ attr: "expand-function", value: macro }]);
+									// Function expansion macro
+									insertedNode = InsertHtmlIntoNode(node, i, i + macro.length, [{ attr: "expand-function", value: macro.substring(2, macro.length - 1) }]);
 									break;
 								}
 								case "$":
 								{
-									insertedNode = InsertHtmlIntoNode(node, i, i + macro.length, [{ attr: "expand-variable", value: macro }]);
+									// Variable expansion macro
+									insertedNode = InsertHtmlIntoNode(node, i, i + macro.length, [{ attr: "expand-variable", value: macro.substring(2, macro.length - 1) }]);
 									break;
 								}
 								default:
@@ -553,6 +586,7 @@ export namespace Compiler
 								}
 							}
 							walker.resumeAt(insertedNode);
+							break;
 						}
 						else if(node.literal[i] === '\n')
 						{
@@ -569,12 +603,19 @@ export namespace Compiler
 					
 					break;
 				} // case "text"
-			}
-		}
+			} // switch nodeType
+		} // while walker
+
+		// Close the final section div
+		walker = ast.walker();
+		let firstEvent = walker.next();
+		let closingNode = new commonmark.Node("html_inline");
+		closingNode.literal = "</div>";
+		firstEvent.node.appendChild(closingNode);
 
 		// TODO: Build config option for displaying AST debug
-		console.log("\nFINAL AST\n");
-		LogAST(ast);
+		// console.log("\nFINAL AST\n");
+		// LogAST(ast);
 
 		// Render the final section html and wrap it in a section <div>
 		return markdownWriter.render(ast);

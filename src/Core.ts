@@ -100,34 +100,90 @@ export namespace Core
 			return null;
 		}
 
-		let finalHTML = '';
-		let macro = '';
-		let bParsingMacro = false;
-		for(let i = 0; i < source.innerHTML.length; i++)
-		{
-			if(source.innerHTML[i] === '{')
-			{
-				if(!bParsingMacro) { bParsingMacro = true; macro = ''; }
-				else { console.log("Error: Nested { in " + id + " at character " + i.toString()); break; }
-			}
-			else if(source.innerHTML[i] === '}')
-			{
-				if(bParsingMacro) { bParsingMacro = false; finalHTML += ExpandMacro(macro); }
-				else { console.log("Error: Got } without a corresponding { in " + id + " at character " + i.toString()); break; }
-			}
-			else if(bParsingMacro)
-			{
-				macro += source.innerHTML[i];
-			}
-			else
-			{
-				finalHTML += source.innerHTML[i];
-			}
-		}			
+		let sectionInstance = source.cloneNode(true) as Element; // deep
+		sectionInstance.removeAttribute("hidden");
 
-		let element = document.createElement("div");
-		element.innerHTML = finalHTML;
-		return element;
+		let scan = function(element : Element)
+		{
+			for(let i = 0; i < element.attributes.length; i++)
+			{
+				let expanded : boolean = false;
+				switch(element.attributes[i].name)
+				{
+					case "data-expand-section":
+					{
+						if(element.parentElement)
+						{
+							let sectionName = element.attributes[i].value;
+							if(!document.getElementById(sectionName))
+							{
+								let newElement = document.createElement("span");
+								newElement.textContent = `{section "${sectionName}" is not declared}`;
+								element = element.parentElement.replaceChild(newElement, element);
+							}
+							else
+							{
+								element = element.parentElement.replaceChild(ExpandSection(element.attributes[i].value), element);
+							}
+							expanded = true;
+						}
+						break;
+					}
+					case "data-expand-function":
+					{
+						if(element.parentElement)
+						{
+							let newElement = document.createElement("span");
+							let functionName = element.attributes[i].value;
+							if(window[functionName] === undefined)
+							{
+								newElement.textContent = `{function "${functionName}" is not declared}`;
+							}
+							else
+							{
+								newElement.textContent = window[functionName]().toString();
+							}
+							element = element.parentElement.replaceChild(newElement, element);
+							expanded = true;
+						}
+						break;
+					}
+					case "data-expand-variable":
+					{
+						if(element.parentElement)
+						{
+							let newElement = document.createElement("span");
+							let variableName = element.attributes[i].value;
+							if(window[variableName] === undefined)
+							{
+								newElement.textContent = `{variable ${variableName} is not declared}`;
+							}
+							else
+							{
+								newElement.textContent = window[element.attributes[i].value].toString();
+							}
+							element = element.parentElement.replaceChild(newElement, element);
+							expanded = true;
+						}
+						break;
+					}
+				}
+
+				// If we replaced the element with an expansion, the attributes list we're iterating over will
+				// no longer be valid. But that's fine, because we're done here anyway.
+				if(expanded) { break; }
+			}
+			if(element.hasChildNodes)
+			{
+				for(let i = 0; i < element.children.length; i++)
+				{
+					scan(element.children[i]);
+				}
+			}
+		};
+		scan(sectionInstance);
+
+		return sectionInstance;
 	}
 
 	/**
