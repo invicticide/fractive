@@ -31,10 +31,12 @@ const markdownWriter = new commonmark.HtmlRenderer({softbreak: "<br/>"});
 // Minification
 import * as minifier from "html-minifier";
 
-let nextInlineID : number = 0;
 
 export namespace Compiler
 {
+	let nextInlineID : number = 0;
+	let sectionCount : number = 0;
+
 	/**
 	 * Inserts the given story text (html) and scripts (javascript) into an html template, and
 	 * returns the complete resulting html file contents
@@ -417,183 +419,27 @@ export namespace Compiler
 		
 		// Custom AST manipulation before rendering. When we're done, there should be no functional {macros} left in
 		// the tree; they should all be rewritten to html tags with data-attributes describing their function.
-		let sectionCount : number = 0;
+		sectionCount = 0;
 		walker = ast.walker();
 		while((event = walker.next()))
 		{
 			node = event.node;
 			switch(node.type)
 			{
-				// Rewrite links with data-attributes that indicate the link type and macro destination
 				case "link":
 				{
-					if(event.entering) { continue; }
-					
-					let url : string = node.destination;
-					url = url.replace("%7B", "{").replace("%7D", "}");
-					
-					// This link doesn't have a macro as its destination, so we don't need to rewrite it
-					if(url[0] !== "{") { continue; }
-		
-					if(url[url.length - 1] !== "}")
-					{
-						LogParseError("Unterminated macro in link destination", filepath, node);
-						return null;
-					}
-		
-					// Tokenize the url, stripping the braces in the process. Result should look like
-					// "{@SectionName:inline}" => [ "@SectionName", "inline" ]
-					let tokens : Array<string> = url.substring(1, url.length - 1).split(":");
-					url = tokens[0];
-					let modifier : string = (tokens.length > 1 ? tokens[1] : "");
-					switch(modifier)
-					{
-						case "inline":
-						{
-							// Prepending _ to the id makes this :inline macro disabled by default. It gets enabled when it's moved
-							// into the __currentSection div.
-							RewriteLinkNode(node, [{ attr: "replace-with", value: url }], GetLinkText(node), `_inline-${nextInlineID++}`);					
-							break;
-						}
-						default:
-						{
-							switch(url[0])
-							{
-								case "@": // Section link: navigate to the section
-								{
-									RewriteLinkNode(node, [ { attr: "goto-section", value: url.substring(1) } ], GetLinkText(node), null);
-									break;
-								}
-								case "#": // Function link: call the function
-								{
-									RewriteLinkNode(node, [{ attr: "call-function", value: url.substring(1) }], GetLinkText(node), null);
-									break;
-								}
-								case "$": // Variable link: behavior undefined
-								{
-									LogParseError("Variable macros can't be used as link destinations", filepath, node);
-									return null;
-								}
-								default: // Unknown macro
-								{
-									LogParseError("Unrecognized macro in link destination", filepath, node);
-									return null;
-								}
-							}
-							break;
-						}
-					}
-
+					RenderLink(walker, event, filepath);
 					break;
-				} // case "link"
-
-				// Replace macros in text with <span> with a data-attribute indicating the macro type and target
+				}
 				case "text":
 				case "code":
 				case "code_block":
 				{
-					let lineOffset : number = 0;
-					let columnOffset : number = 0;
-					for(let i = 0; i < node.literal.length; i++)
-					{
-						if(node.literal[i] === '\\')
-						{
-							i++; // Skip over the next character
-						}
-						else if(node.literal[i] === '{')
-						{
-							let macro : string = null;
-							let braceCount : number = 1;
-							for(let j = i + 1; j < node.literal.length; j++)
-							{
-								if(node.literal[j] === '{')
-								{
-									braceCount++;
-								}
-								else if(node.literal[j] === '}')
-								{
-									if(--braceCount == 0)
-									{
-										macro = node.literal.substring(i, j + 1);
-										break;
-									}
-								}
-							}
-							if(macro === null)
-							{
-								LogParseError(`Unterminated macro near "${node.literal.substring(i, i + 10)}" in text`, filepath, node, lineOffset, columnOffset);
-								return null;
-							}
-							var insertedNode;
-							switch(macro[1])
-							{
-								case "{":
-								{
-									// Begin a new section
-									if(node.parent)
-									{
-										var insertedNode = new commonmark.Node("html_inline", node.sourcepos); // TODO: Real sourcepos
-										insertedNode.literal = `${sectionCount > 0 ? "</div>\n" : ""}<div id="${macro.substring(2, macro.length - 2)}" class="section" hidden="true">`;
-										if(node.prev)
-										{
-											// TODO: This should probably be reported as some sort of error; it may swallow the section contents
-											node.prev.insertAfter(insertedNode);
-											node.unlink();
-										}
-										else if(node.parent.type === "paragraph")
-										{
-											// This is the most common case for correctly-formatted section declarations
-											node.parent.insertAfter(insertedNode);
-											node.parent.unlink();
-										}
-										else
-										{
-											// TODO: This should probably be reported as some sort of error; it may swallow the section contents
-											node.parent.prependChild(insertedNode);
-											node.unlink();
-										}
-										sectionCount++;
-									}
-									else
-									{
-										LogParseError(`Node for "${macro}" has no parent`, filepath, node, lineOffset, columnOffset);
-										return null;
-									}
-									break;
-								}
-								case "@":
-								case "#":
-								case "$":
-								{
-									insertedNode = InsertHtmlIntoNode(node, i, i + macro.length, [{ attr: "expand-macro", value: macro.substring(1, macro.length - 1) }]);
-									break;
-								}
-								default:
-								{
-									LogParseError(`Unrecognized macro "${macro}" in text`, filepath, node.parent, lineOffset, columnOffset);
-									return null;
-								}
-							}
-							walker.resumeAt(insertedNode);
-							break;
-						}
-						else if(node.literal[i] === '\n')
-						{
-							lineOffset++;
-							columnOffset = -1;
-						}
-						
-						columnOffset++;
-					}
-					
-					// We skipped over escape sequences while parsing, but now we need to strip the backslashes entirely
-					// so they don't get rendered out to the html as `\\`
-					node.literal = node.literal.split('\\').join('');
-					
+					RenderText(walker, event, filepath);
 					break;
-				} // case "text"
-			} // switch nodeType
-		} // while walker
+				}
+			}
+		}
 
 		// Close the final section div
 		walker = ast.walker();
@@ -608,6 +454,187 @@ export namespace Compiler
 
 		// Render the final section html and wrap it in a section <div>
 		return markdownWriter.render(ast);
+	}
+
+	/**
+	 * Rewrite a link node with data-attributes that indicate the link type and macro destination
+	 * @param walker The current AST iterator state
+	 * @param event The AST event to process (this should be a link node)
+	 * @param filepath The path of the file we're currently processing (for error reporting)
+	 */
+	function RenderLink(walker, event, filepath : string)
+	{
+		if(!walker || !event) { return; }
+		if(event.node.type !== "link") { return; }
+		
+		// Links are containers; we can't rewrite them until we're finished rendering the whole
+		// container, because we need to preserve their children.
+		if(event.entering) { return; }
+		
+		let url : string = event.node.destination;
+		url = url.replace("%7B", "{").replace("%7D", "}");
+		
+		// This link doesn't have a macro as its destination, so we don't need to rewrite it
+		if(url[0] !== "{") { return; }
+
+		if(url[url.length - 1] !== "}")
+		{
+			LogParseError("Unterminated macro in link destination", filepath, event.node);
+			return null;
+		}
+
+		// Tokenize the url, stripping the braces in the process. Result should look like
+		// "{@SectionName:inline}" => [ "@SectionName", "inline" ]
+		let tokens : Array<string> = url.substring(1, url.length - 1).split(":");
+		url = tokens[0];
+		let modifier : string = (tokens.length > 1 ? tokens[1] : "");
+		switch(modifier)
+		{
+			case "inline":
+			{
+				// Prepending _ to the id makes this :inline macro disabled by default. It gets enabled when it's moved
+				// into the __currentSection div.
+				RewriteLinkNode(event.node, [{ attr: "replace-with", value: url }], GetLinkText(event.node), `_inline-${nextInlineID++}`);					
+				break;
+			}
+			default:
+			{
+				switch(url[0])
+				{
+					case "@": // Section link: navigate to the section
+					{
+						RewriteLinkNode(event.node, [ { attr: "goto-section", value: url.substring(1) } ], GetLinkText(event.node), null);
+						break;
+					}
+					case "#": // Function link: call the function
+					{
+						RewriteLinkNode(event.node, [{ attr: "call-function", value: url.substring(1) }], GetLinkText(event.node), null);
+						break;
+					}
+					case "$": // Variable link: behavior undefined
+					{
+						LogParseError("Variable macros can't be used as link destinations", filepath, event.node);
+						return null;
+					}
+					default: // Unknown macro
+					{
+						LogParseError("Unrecognized macro in link destination", filepath, event.node);
+						return null;
+					}
+				}
+				break;
+			}
+		}
+	}
+
+	/**
+	 * Replace macros in text with <span> with a data-attribute indicating the macro type and target
+	 * @param walker The current AST iterator state
+	 * @param event The AST event to process
+	 * @param filepath The path of the file we're currently processing (for error reporting)
+	 */
+	function RenderText(walker, event, filepath : string)
+	{
+		if(!walker || !event) { return; }
+
+		let node = event.node;
+		let lineOffset : number = 0;
+		let columnOffset : number = 0;
+		for(let i = 0; i < node.literal.length; i++)
+		{
+			if(node.literal[i] === '\\')
+			{
+				i++; // Skip over the next character
+			}
+			else if(node.literal[i] === '{')
+			{
+				let macro : string = null;
+				let braceCount : number = 1;
+				for(let j = i + 1; j < node.literal.length; j++)
+				{
+					if(node.literal[j] === '{')
+					{
+						braceCount++;
+					}
+					else if(node.literal[j] === '}')
+					{
+						if(--braceCount == 0)
+						{
+							macro = node.literal.substring(i, j + 1);
+							break;
+						}
+					}
+				}
+				if(macro === null)
+				{
+					LogParseError(`Unterminated macro near "${node.literal.substring(i, i + 10)}" in text`, filepath, node, lineOffset, columnOffset);
+					return null;
+				}
+				var insertedNode;
+				switch(macro[1])
+				{
+					case "{":
+					{
+						// Begin a new section
+						if(node.parent)
+						{
+							var insertedNode = new commonmark.Node("html_inline", node.sourcepos); // TODO: Real sourcepos
+							insertedNode.literal = `${sectionCount > 0 ? "</div>\n" : ""}<div id="${macro.substring(2, macro.length - 2)}" class="section" hidden="true">`;
+							if(node.prev)
+							{
+								// TODO: This should probably be reported as some sort of error; it may swallow the section contents
+								node.prev.insertAfter(insertedNode);
+								node.unlink();
+							}
+							else if(node.parent.type === "paragraph")
+							{
+								// This is the most common case for correctly-formatted section declarations
+								node.parent.insertAfter(insertedNode);
+								node.parent.unlink();
+							}
+							else
+							{
+								// TODO: This should probably be reported as some sort of error; it may swallow the section contents
+								node.parent.prependChild(insertedNode);
+								node.unlink();
+							}
+							sectionCount++;
+						}
+						else
+						{
+							LogParseError(`Node for "${macro}" has no parent`, filepath, node, lineOffset, columnOffset);
+							return null;
+						}
+						break;
+					}
+					case "@":
+					case "#":
+					case "$":
+					{
+						insertedNode = InsertHtmlIntoNode(node, i, i + macro.length, [{ attr: "expand-macro", value: macro.substring(1, macro.length - 1) }]);
+						break;
+					}
+					default:
+					{
+						LogParseError(`Unrecognized macro "${macro}" in text`, filepath, node.parent, lineOffset, columnOffset);
+						return null;
+					}
+				}
+				walker.resumeAt(insertedNode);
+				break;
+			}
+			else if(node.literal[i] === '\n')
+			{
+				lineOffset++;
+				columnOffset = -1;
+			}
+			
+			columnOffset++;
+		}
+		
+		// We skipped over escape sequences while parsing, but now we need to strip the backslashes entirely
+		// so they don't get rendered out to the html as `\\`
+		node.literal = node.literal.split('\\').join('');
 	}
 
 	/**
