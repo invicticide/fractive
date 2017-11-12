@@ -17,7 +17,7 @@ Non-expanding reference to a variable in a `text` element: \\{$TestVariable}
 # Links
 
 [Link to a section]({@TestSection})
-[Link to a function]({#TestFunction})
+[Link to a function]({#LinkedFunction})
 
 [Link with a section in the label: {@TestSection}](#)
 [Link with a function in the label: {#TestFunction}](#)
@@ -25,9 +25,9 @@ Non-expanding reference to a variable in a `text` element: \\{$TestVariable}
 
 # Images
 
-![Image with a section url]({@TestSection})
-![Image with a function url]({#TestFunction})
-![Image with a variable url]({$TestVariable})
+![Image with a direct url](avatar.png)
+![Image with a function url]({#ImageFunction})
+![Image with a variable url]({$ImageVariable})
 
 # Emphasis
 

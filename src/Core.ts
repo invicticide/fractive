@@ -135,6 +135,13 @@ export namespace Core
 						}
 						break;
 					}
+					case "data-image-source-macro":
+					{
+						let source = ExpandMacro(element.attributes[i].value);
+						console.log(`Expanding ${element.tagName} with src attribute ${element.attributes[i].value} to "${source}"`); // temp
+						element.setAttribute("src", ExpandMacro(element.attributes[i].value));
+						expanded = true;
+					}
 				}
 
 				// If we replaced the element with an expansion, the attributes list we're iterating over will

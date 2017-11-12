@@ -188,17 +188,23 @@ export namespace Compiler
 			console.log(`  ${unbundledScripts[i]}`);
 			fs.copyFileSync(targets.javascriptFiles[i], path.resolve(outputDirectory, path.basename(targets.javascriptFiles[i])));
 		}
+		for(let i = 0; i < targets.miscFiles.length; i++)
+		{
+			console.log(`  ${targets.miscFiles[i]}`);
+			fs.copyFileSync(targets.miscFiles[i], path.resolve(outputDirectory, path.basename(targets.miscFiles[i])));
+		}
 	}
 
 	/**
 	 * Returns a list of all target files (md/js) in the given directory and its subdirectories
 	 * @param directory The directory to search
-	 * @return An object { markdownFiles : Array<string>, javascriptFiles : Array<string> }
+	 * @return An object { markdownFiles : Array<string>, javascriptFiles : Array<string>, miscFiles : Array<string> }
 	 */
 	function GatherTargetFiles(directory : string)
 	{
 		let markdownFiles : Array<string> = [];
 		let javascriptFiles : Array<string> = [];
+		let miscFiles : Array<string> = [];
 
 		let files : Array<string> = fs.readdirSync(directory, "utf8");
 		for(let i = 0; i < files.length; i++)
@@ -209,10 +215,12 @@ export namespace Compiler
 			var stat = fs.lstatSync(filePath);
 			if(stat.isFile())
 			{
+				// TODO: Apply ignore filter
 				switch(path.extname(files[i]))
 				{
-					case ".md": { markdownFiles.push(filePath); break; }
-					case ".js": { javascriptFiles.push(filePath); break; }
+					case ".md":	{ markdownFiles.push(filePath); break; }
+					case ".js":	{ javascriptFiles.push(filePath); break; }
+					default:	{ miscFiles.push(filePath); break; }
 				}
 			}
 			else if(stat.isDirectory())
@@ -221,10 +229,11 @@ export namespace Compiler
 				let childFiles = GatherTargetFiles(filePath);
 				markdownFiles = markdownFiles.concat(childFiles.markdownFiles);
 				javascriptFiles = javascriptFiles.concat(childFiles.javascriptFiles);
+				miscFiles = miscFiles.concat(childFiles.miscFiles);
 			}
 		}
 		
-		return { markdownFiles : markdownFiles, javascriptFiles : javascriptFiles };
+		return { markdownFiles : markdownFiles, javascriptFiles : javascriptFiles, miscFiles : miscFiles };
 	}
 
 	/**
@@ -428,14 +437,19 @@ export namespace Compiler
 			{
 				case "link":
 				{
-					RenderLink(walker, event, filepath);
+					if(!RenderLink(walker, event, filepath)) { return null; }
 					break;
 				}
 				case "text":
 				case "code":
 				case "code_block":
 				{
-					RenderText(walker, event, filepath);
+					if(!RenderText(walker, event, filepath)) { return null; }
+					break;
+				}
+				case "image":
+				{
+					if(!RenderImage(walker, event, filepath)) { return null; }
 					break;
 				}
 			}
@@ -457,30 +471,115 @@ export namespace Compiler
 	}
 
 	/**
+	 * Rewrite an image node with a macro "src" attribute
+	 * @param walker The current AST iterator state
+	 * @param event The AST event to process (this should be a link node)
+	 * @param filepath The path of the file we're currently processing (for error reporting)
+	 * @returns True on success, false on error
+	 */
+	function RenderImage(walker, event, filepath : string) : boolean
+	{
+		if(!walker || !event)
+		{
+			console.error("RenderImage received an invalid state");
+			return false;
+		}
+		if(event.node.type !== "image")
+		{
+			console.error(`RenderImage was passed a ${event.node.type} node, which is illegal`);
+			return false;
+		}
+
+		let node = event.node;
+
+		let alt : string = "";
+		if(node.firstChild && node.firstChild.type == "text")
+		{
+			alt = node.firstChild.literal;
+			node.firstChild.unlink();
+		}
+
+		let url : string = node.destination;
+		url = url.replace("%7B", "{").replace("%7D", "}");
+		if(url[0] !== "{")
+		{
+			// Even though this isn't a macro url, we still need to rewrite the image tag to echo the alt text into
+			// the title attribute, so it appears on mouseover.
+			let newNode = new commonmark.Node("html_inline");
+			newNode.literal = `<img src="${url}" alt="${alt}" title="${alt}">`;
+			node.insertBefore(newNode);
+			node.unlink();
+			walker.resumeAt(newNode);
+		}
+		else
+		{
+			if(url[url.length - 1] !== "}")
+			{
+				LogParseError(`Unterminated macro ${url} in image URL`, filepath, node);
+				return false;
+			}
+			switch(url[1])
+			{
+				case "@":
+				{
+					LogParseError(`Invalid macro ${url} in image URL (section macros cannot be used as image sources)`, filepath, node);
+					return false;
+				}
+				case "#":
+				case "$":
+				{
+					let newNode = new commonmark.Node("html_inline");
+					newNode.literal = `<img data-image-source-macro="${url.substring(1, url.length - 1)}" src="#" alt="${alt}" title="${alt}">`;
+					node.insertBefore(newNode);
+					node.unlink();
+					walker.resumeAt(newNode);
+					break;
+				}
+				default:
+				{
+					LogParseError(`Unknown macro ${url} in image URL`, filepath, node);
+					return false;
+				}
+			}
+		}
+
+		return true;
+	}
+
+	/**
 	 * Rewrite a link node with data-attributes that indicate the link type and macro destination
 	 * @param walker The current AST iterator state
 	 * @param event The AST event to process (this should be a link node)
 	 * @param filepath The path of the file we're currently processing (for error reporting)
+	 * @returns True on success, false on error
 	 */
-	function RenderLink(walker, event, filepath : string)
+	function RenderLink(walker, event, filepath : string) : boolean
 	{
-		if(!walker || !event) { return; }
-		if(event.node.type !== "link") { return; }
+		if(!walker || !event)
+		{
+			console.error("RenderLink received an invalid state");
+			return false;
+		}
+		if(event.node.type !== "link")
+		{
+			console.error(`RenderLink received a ${event.node.type} node, which is illegal`);
+			return false;
+		}
 		
 		// Links are containers; we can't rewrite them until we're finished rendering the whole
 		// container, because we need to preserve their children.
-		if(event.entering) { return; }
+		if(event.entering) { return true; }
 		
 		let url : string = event.node.destination;
 		url = url.replace("%7B", "{").replace("%7D", "}");
 		
 		// This link doesn't have a macro as its destination, so we don't need to rewrite it
-		if(url[0] !== "{") { return; }
+		if(url[0] !== "{") { return true; }
 
 		if(url[url.length - 1] !== "}")
 		{
 			LogParseError("Unterminated macro in link destination", filepath, event.node);
-			return null;
+			return false;
 		}
 
 		// Tokenize the url, stripping the braces in the process. Result should look like
@@ -494,7 +593,7 @@ export namespace Compiler
 			{
 				// Prepending _ to the id makes this :inline macro disabled by default. It gets enabled when it's moved
 				// into the __currentSection div.
-				RewriteLinkNode(event.node, [{ attr: "replace-with", value: url }], GetLinkText(event.node), `_inline-${nextInlineID++}`);					
+				if(!RewriteLinkNode(event.node, [{ attr: "replace-with", value: url }], GetLinkText(event.node), `_inline-${nextInlineID++}`)) { return false; }
 				break;
 			}
 			default:
@@ -503,28 +602,30 @@ export namespace Compiler
 				{
 					case "@": // Section link: navigate to the section
 					{
-						RewriteLinkNode(event.node, [ { attr: "goto-section", value: url.substring(1) } ], GetLinkText(event.node), null);
+						if(!RewriteLinkNode(event.node, [ { attr: "goto-section", value: url.substring(1) } ], GetLinkText(event.node), null)) { return false; }
 						break;
 					}
 					case "#": // Function link: call the function
 					{
-						RewriteLinkNode(event.node, [{ attr: "call-function", value: url.substring(1) }], GetLinkText(event.node), null);
+						if(!RewriteLinkNode(event.node, [{ attr: "call-function", value: url.substring(1) }], GetLinkText(event.node), null)) { return false; }
 						break;
 					}
 					case "$": // Variable link: behavior undefined
 					{
 						LogParseError("Variable macros can't be used as link destinations", filepath, event.node);
-						return null;
+						return false;
 					}
 					default: // Unknown macro
 					{
 						LogParseError("Unrecognized macro in link destination", filepath, event.node);
-						return null;
+						return false;
 					}
 				}
 				break;
 			}
 		}
+
+		return true;
 	}
 
 	/**
@@ -532,10 +633,15 @@ export namespace Compiler
 	 * @param walker The current AST iterator state
 	 * @param event The AST event to process
 	 * @param filepath The path of the file we're currently processing (for error reporting)
+	 * @returns True on success, false on error
 	 */
-	function RenderText(walker, event, filepath : string)
+	function RenderText(walker, event, filepath : string) : boolean
 	{
-		if(!walker || !event) { return; }
+		if(!walker || !event)
+		{
+			console.error("RenderText received an invalid state");
+			return false;
+		}
 
 		let node = event.node;
 		let lineOffset : number = 0;
@@ -568,7 +674,7 @@ export namespace Compiler
 				if(macro === null)
 				{
 					LogParseError(`Unterminated macro near "${node.literal.substring(i, i + 10)}" in text`, filepath, node, lineOffset, columnOffset);
-					return null;
+					return false;
 				}
 				var insertedNode;
 				switch(macro[1])
@@ -582,9 +688,8 @@ export namespace Compiler
 							insertedNode.literal = `${sectionCount > 0 ? "</div>\n" : ""}<div id="${macro.substring(2, macro.length - 2)}" class="section" hidden="true">`;
 							if(node.prev)
 							{
-								// TODO: This should probably be reported as some sort of error; it may swallow the section contents
-								node.prev.insertAfter(insertedNode);
-								node.unlink();
+								LogParseError(`Section macro "${macro}" must be defined in its own paragraph/on its own line`, filepath, node, lineOffset, columnOffset);
+								return false;
 							}
 							else if(node.parent.type === "paragraph")
 							{
@@ -594,16 +699,15 @@ export namespace Compiler
 							}
 							else
 							{
-								// TODO: This should probably be reported as some sort of error; it may swallow the section contents
-								node.parent.prependChild(insertedNode);
-								node.unlink();
+								LogParseError(`Section macro "${macro}" cannot be defined inside another block element`, filepath, node, lineOffset, columnOffset);
+								return false;
 							}
 							sectionCount++;
 						}
 						else
 						{
 							LogParseError(`Node for "${macro}" has no parent`, filepath, node, lineOffset, columnOffset);
-							return null;
+							return false;
 						}
 						break;
 					}
@@ -617,7 +721,7 @@ export namespace Compiler
 					default:
 					{
 						LogParseError(`Unrecognized macro "${macro}" in text`, filepath, node.parent, lineOffset, columnOffset);
-						return null;
+						return false;
 					}
 				}
 				walker.resumeAt(insertedNode);
@@ -635,6 +739,8 @@ export namespace Compiler
 		// We skipped over escape sequences while parsing, but now we need to strip the backslashes entirely
 		// so they don't get rendered out to the html as `\\`
 		node.literal = node.literal.split('\\').join('');
+
+		return true;
 	}
 
 	/**
@@ -645,13 +751,14 @@ export namespace Compiler
 	 * @param dataAttrs Data attributes to append, as {attr, value} where attr is the name of the data attribute sans the data- part. So {"my-attr", "somevalue"} becomes "data-my-attr='somevalue'"
 	 * @param linkText The text to place inside the <a></a> tags
 	 * @param id The element id to assign
+	 * @returns True on success, false on error
 	 */
-	function RewriteLinkNode(node, dataAttrs : [{ attr : string, value : string }], linkText : string, id : string) : void
+	function RewriteLinkNode(node, dataAttrs : [{ attr : string, value : string }], linkText : string, id : string) : boolean
 	{
 		if(node.type != "link")
 		{
 			console.log(`RewriteLinkNode received a node of type ${node.type}, which is illegal and will be skipped`);
-			return;
+			return false;
 		}
 
 		// Replace the link node with a new html_inline node to hold the rewritten <a> tag
@@ -666,6 +773,8 @@ export namespace Compiler
 
 		node.insertBefore(newNode);
 		node.unlink();
+
+		return true;
 	}
 
 	/**
