@@ -533,7 +533,7 @@ export namespace Compiler
 									if(node.parent)
 									{
 										var insertedNode = new commonmark.Node("html_inline", node.sourcepos); // TODO: Real sourcepos
-										insertedNode.literal = `${sectionCount > 0 ? "</div>\n" : ""}<div id="${macro.substring(2, macro.length - 2)}" hidden="true">`;
+										insertedNode.literal = `${sectionCount > 0 ? "</div>\n" : ""}<div id="${macro.substring(2, macro.length - 2)}" class="section" hidden="true">`;
 										if(node.prev)
 										{
 											// TODO: This should probably be reported as some sort of error; it may swallow the section contents
