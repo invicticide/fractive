@@ -92,7 +92,7 @@ export namespace Compiler
 				removeEmptyElements: false, // The history and currentSection divs are empty; don't remove them!
 				removeRedundantAttributes: true
 			});
-			}
+		}
 		else
 		{
 			return template;
