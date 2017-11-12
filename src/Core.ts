@@ -20,6 +20,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * Core functionality including section navigation and macro expansion.
  */
 
+require("source-map-support").install();
+
 export namespace Core
 {
 	/**

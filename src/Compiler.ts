@@ -20,6 +20,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * Compiles fractive source projects into a playable distribution.
  */
 
+require("source-map-support").install();
+
 import * as fs from "fs";
 import * as path from "path";
 
@@ -30,7 +32,6 @@ const markdownWriter = new commonmark.HtmlRenderer({softbreak: "<br/>"});
 
 // Minification
 import * as minifier from "html-minifier";
-
 
 export namespace Compiler
 {
