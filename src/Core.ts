@@ -49,41 +49,55 @@ export namespace Core
 	 * {#function} macros execute the function and replace the macro with the return value.
 	 * {$variable} macros replace the macro with the value of the variable.
 	 * @param macro The macro string, omitting the enclosing {}. Should start with a metacharacter (e.g. '$' for variables).
-	 * @return The resulting human-readable text.
+	 * @return The resulting html.
 	 */
 	export function ExpandMacro(macro : string) : string
 	{
-		let result : string = "";
 		switch(macro[0])
 		{
 			case '@':
 			{
-				// Return the contents of the named section, with its macros expanded
-				result = ExpandSection(macro.substring(1)).innerHTML;
-				break;
+				let sectionName = macro.substring(1);
+				if(!document.getElementById(sectionName))
+				{
+					return `{section "${sectionName}" is not declared}`;
+				}
+				else
+				{
+					return ExpandSection(macro.substring(1)).innerHTML;
+				}
 			}
 			case '#':
 			{
 				// Return the result of the named function call
 				let functionName = macro.substring(1);
-				let fn = window[functionName];
-				if(typeof fn === "function") { result = fn(); }
-				else { console.log(functionName + " is not a function"); }
-				break;
+				if(window[functionName] === undefined)
+				{
+					return `{function "${functionName}" is not declared}`;
+				}
+				else
+				{
+					return window[functionName]().toString();
+				}
 			}
 			case '$':
 			{
 				// Return the value of the named variable
-				result = window[macro.substring(1)];
-				break;
+				let variableName = macro.substring(1);
+				if(window[variableName] === undefined)
+				{
+					return `{variable "${variableName}" is not declared}`;
+				}
+				else
+				{
+					return window[variableName].toString();
+				}
 			}
 			default:
 			{
-				console.log("Unknown metacharacter in macro: " + macro);
-				return "";
+				return `{unknown metacharacter in macro "${macro}"`;
 			}
 		}
-		return result;
 	}
 
 	/**
@@ -110,59 +124,13 @@ export namespace Core
 				let expanded : boolean = false;
 				switch(element.attributes[i].name)
 				{
-					case "data-expand-section":
-					{
-						if(element.parentElement)
-						{
-							let sectionName = element.attributes[i].value;
-							if(!document.getElementById(sectionName))
-							{
-								let newElement = document.createElement("span");
-								newElement.textContent = `{section "${sectionName}" is not declared}`;
-								element = element.parentElement.replaceChild(newElement, element);
-							}
-							else
-							{
-								element = element.parentElement.replaceChild(ExpandSection(element.attributes[i].value), element);
-							}
-							expanded = true;
-						}
-						break;
-					}
-					case "data-expand-function":
+					case "data-expand-macro":
 					{
 						if(element.parentElement)
 						{
 							let newElement = document.createElement("span");
-							let functionName = element.attributes[i].value;
-							if(window[functionName] === undefined)
-							{
-								newElement.textContent = `{function "${functionName}" is not declared}`;
-							}
-							else
-							{
-								newElement.textContent = window[functionName]().toString();
-							}
-							element = element.parentElement.replaceChild(newElement, element);
-							expanded = true;
-						}
-						break;
-					}
-					case "data-expand-variable":
-					{
-						if(element.parentElement)
-						{
-							let newElement = document.createElement("span");
-							let variableName = element.attributes[i].value;
-							if(window[variableName] === undefined)
-							{
-								newElement.textContent = `{variable ${variableName} is not declared}`;
-							}
-							else
-							{
-								newElement.textContent = window[element.attributes[i].value].toString();
-							}
-							element = element.parentElement.replaceChild(newElement, element);
+							newElement.innerHTML = ExpandMacro(element.attributes[i].value);
+							element.parentElement.replaceChild(newElement, element);
 							expanded = true;
 						}
 						break;

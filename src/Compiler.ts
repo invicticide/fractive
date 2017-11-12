@@ -562,21 +562,10 @@ export namespace Compiler
 									break;
 								}
 								case "@":
-								{
-									// Section expansion macro
-									insertedNode = InsertHtmlIntoNode(node, i, i + macro.length, [{ attr: "expand-section", value: macro.substring(2, macro.length - 1) }]);
-									break;
-								}
 								case "#":
-								{
-									// Function expansion macro
-									insertedNode = InsertHtmlIntoNode(node, i, i + macro.length, [{ attr: "expand-function", value: macro.substring(2, macro.length - 1) }]);
-									break;
-								}
 								case "$":
 								{
-									// Variable expansion macro
-									insertedNode = InsertHtmlIntoNode(node, i, i + macro.length, [{ attr: "expand-variable", value: macro.substring(2, macro.length - 1) }]);
+									insertedNode = InsertHtmlIntoNode(node, i, i + macro.length, [{ attr: "expand-macro", value: macro.substring(1, macro.length - 1) }]);
 									break;
 								}
 								default:
