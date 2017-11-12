@@ -34,18 +34,16 @@ var Build = function()
 			}
 			for(let i = 0; i < examples.length; i++)
 			{
-				console.log(`  ${examples[i]}`);
-				var result = cp.spawnSync(`node lib/CLI.js compile examples/${examples[i]} templates/basic.html examples/${examples[i]}/dist true`, [], { env : process.env, shell : true });
+				console.log(`\n${examples[i]} (${i + 1}/${examples.length})`);
+
+				var result = cp.spawnSync(`node lib/CLI.js compile examples/${examples[i]} templates/basic.html examples/${examples[i]}/dist true true`, [], { env : process.env, shell : true });
+				console.log(`${result.stdout.toString()}`);
+
 				if(result.status !== 0)
 				{
-					// The compiler writes its errors to stderr and general status to stdout. In this context
-					// we don't care about stdout (it just pollutes the terminal) so we'll just echo stderr.
 					if(result.stderr !== null) { console.error(`\n${result.stderr.toString()}`); }
 					process.exit(result.status);
 				}
-				
-				// Echo stdout from a successful compiler run if desired (mainly for debugging)
-				console.log(`${result.stdout.toString()}`);
 			}
 		}
 
