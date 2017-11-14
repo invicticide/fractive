@@ -16,3 +16,8 @@ function ImageFunction()
 {
 	return ImageVariable;
 }
+
+var Nestor = {
+	NestedFunction : function() { return "Nested function!"; },
+	NestedVariable : "Nested variable!"
+};

@@ -14,6 +14,9 @@ Non-expanding reference to a section in a `text` element: \\{@TestSection}
 Non-expanding reference to a function in a `text` element: \\{#TestFunction}
 Non-expanding reference to a variable in a `text` element: \\{$TestVariable}
 
+Expand a nested function: {#Nestor.NestedFunction}
+Expand a nested variable: {$Nestor.NestedVariable}
+
 # Links
 
 [Link to a section]({@TestSection})

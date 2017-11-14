@@ -20,8 +20,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * Core functionality including section navigation and macro expansion.
  */
 
-require("source-map-support").install();
-
 export namespace Core
 {
 	/**
@@ -72,27 +70,39 @@ export namespace Core
 			case '#':
 			{
 				// Return the result of the named function call
-				let functionName = macro.substring(1);
-				if(window[functionName] === undefined)
+				let targetObject = null;
+				let tokens = macro.substring(1).split('.');
+				for(let i = 0; i < tokens.length; i++)
 				{
-					return `{function "${functionName}" is not declared}`;
+					if(i === 0) { targetObject = window[tokens[0]]; }
+					else { targetObject = targetObject[tokens[i]]; }
+				}
+				if(targetObject === undefined)
+				{
+					return `{function "${macro.substring(1)}" is not declared}`;
 				}
 				else
 				{
-					return window[functionName]().toString();
+					return targetObject().toString();
 				}
 			}
 			case '$':
 			{
 				// Return the value of the named variable
-				let variableName = macro.substring(1);
-				if(window[variableName] === undefined)
+				let targetObject = null;
+				let tokens = macro.substring(1).split('.');
+				for(let i = 0; i < tokens.length; i++)
 				{
-					return `{variable "${variableName}" is not declared}`;
+					if(i === 0) { targetObject = window[tokens[0]]; }
+					else { targetObject = targetObject[tokens[i]]; }
+				}
+				if(targetObject === undefined)
+				{
+					return `{variable "${macro.substring(1)}" is not declared}`;
 				}
 				else
 				{
-					return window[variableName].toString();
+					return targetObject.toString();
 				}
 			}
 			default:
