@@ -4,7 +4,7 @@ If you plan to contribute to Fractive, you should be aware that I use a slightly
 
 ## Naming conventions
 
-Class and function names are `CamelCase`; variable names are `mixedCase`. Occasionally I'll declare a local function-within-a-function, and that's also `mixedCase`:
+Class and function names are `PascalCase`; variable names are `camelCase`. Occasionally I'll declare a local function-within-a-function, and that's also `camelCase`:
 
 	// This kind of pattern is useful for local recursion, among other things
 	function OuterFunction()
