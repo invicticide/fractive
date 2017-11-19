@@ -22,6 +22,7 @@ var cp = require("child_process");
 var fs = require("fs");
 var path = require("path");
 var jsonSchemaToTypescript = require("json-schema-to-typescript");
+var clc = require("cli-color");
 
 /**
  * Compiles the engine files. Typings files should've been built before this.
@@ -36,7 +37,11 @@ function BuildEngine()
 	if(result.status === 1)
 	{
 		// tsc doesn't write to stderr; its errors are all on stdout, because reasons
-		if(result.stdout !== null) { console.error(`\n${result.stdout.toString()}`); }
+		if(result.stdout !== null)
+		{
+			let s = result.stdout.toString();
+			if(s.length > 0) { console.error(clc.red(`\n${s}`)); }
+		}
 		process.exit(result.status);
 	}
 	else
@@ -45,8 +50,8 @@ function BuildEngine()
 		// We'll rewrite those as warnings here, for clarity.
 		if(result.stdout !== null)
 		{
-			let output = result.stdout.toString().split(": error TS").join(": warning TS");;
-			console.log(`\n${output}`);
+			let s = result.stdout.toString();
+			if(s.length > 0) { console.log(clc.yellow(`\n${s.split(": error TS").join(": warning TS")}`)); }
 		}
 	}
 }
@@ -56,7 +61,7 @@ function BuildEngine()
  */
 function BuildExamples()
 {
-	console.log("Building examples...");
+	console.log("Building examples...\n");
 
 	let examples = fs.readdirSync("examples", "utf8");
 	for(let i = 0; i < examples.length; i++)
@@ -68,7 +73,8 @@ function BuildExamples()
 	{
 		console.log(`${examples[i]} (${i + 1}/${examples.length})`);
 
-		let result = cp.spawnSync(`node lib/CLI.js compile examples/${examples[i]}`, [], { env : process.env, shell : true });
+		let cmd = `node lib/CLI.js compile examples/${examples[i]} ${process.argv.join(" ")}`;
+		let result = cp.spawnSync(cmd, [], { env : process.env, shell : true });
 		console.log(`${result.stdout.toString()}`);
 
 		if(result.status !== 0)
@@ -87,7 +93,6 @@ console.log("Generating type declarations...");
 jsonSchemaToTypescript.compileFromFile(schemaInput).then(ts =>
 {
 	fs.writeFileSync(schemaOutput, ts, "utf8");
-	console.log(`  [output]    ${schemaOutput}\n`);
 	BuildEngine();
 	BuildExamples();
 });

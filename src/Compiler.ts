@@ -22,8 +22,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 require("source-map-support").install();
 
+// File system stuff
 import * as fs from "fs";
-import * as globby from "globby";
 import * as path from "path";
 import * as util from "util";
 
@@ -50,9 +50,28 @@ let ProjectDefaults : FractiveProject = {
 	ignore: [],
 	template: "template.html",
 	output: "build",
-	dryRun: false,
 	minify: true
 };
+import * as globby from "globby";
+
+// CLI colors
+import * as clc from "cli-color";
+
+export interface CompilerOptions
+{
+	/**
+	 * If true, log what would've been done but don't actually modify any files on disk
+	 */
+	dryRun? : boolean;
+	/**
+	 * If true, log extra execution details
+	 */
+	verbose? : boolean;
+	/**
+	 * If true, log additional debug info during build
+	 */
+	debug? : boolean;
+}
 
 export namespace Compiler
 {
@@ -116,32 +135,33 @@ export namespace Compiler
 	/**
 	 * Deletes the given directory and all files and subdirectories within it
 	 * @param targetPath The directory to delete
-	 * @param dryRun If true, just log what would've happened without actually deleting anything
+	 * @param options Compiler options blob
 	 */
-	function CleanDirectoryRecursive(targetPath: string, dryRun : boolean)
+	function CleanDirectoryRecursive(targetPath: string, options : CompilerOptions)
 	{
 		if(fs.lstatSync(targetPath).isDirectory())
 		{
 			let files : Array<string> = fs.readdirSync(targetPath, "utf8");
 			for(let i = 0; i < files.length; i++)
 			{
-				CleanDirectoryRecursive(path.resolve(targetPath, files[i]), dryRun);
+				CleanDirectoryRecursive(path.resolve(targetPath, files[i]), options);
 			}
-			if(dryRun) { LogFileAction(targetPath, "rmdir"); }
-			else { fs.rmdirSync(targetPath); }
+			if(options.verbose) { LogAction(targetPath, "rmdir"); }
+			if(!options.dryRun) { fs.rmdirSync(targetPath); }
 		}
 		else
 		{
-			if(dryRun) { LogFileAction(targetPath, "unlink"); }
-			else { fs.unlinkSync(targetPath); }
+			if(options.verbose) { LogAction(targetPath, "unlink"); }
+			if(!options.dryRun) { fs.unlinkSync(targetPath); }
 		}
 	}
 
 	/**
 	 * Compile all source files described by the given project file into a single playable html file
 	 * @param buildPath Path to the fractive.json to build from
+	 * @param options Compiler options blob
 	 */
-	export function Compile(buildPath : string) : void
+	export function Compile(buildPath : string, options : CompilerOptions) : void
 	{
 		let basePath = path.dirname(buildPath);
 
@@ -152,10 +172,10 @@ export namespace Compiler
 		let valid = validator.validate(JSON.parse(fs.readFileSync("src/ProjectSchema.json", "utf8")), targetProject);
 		if(!valid)
 		{
-			console.error(`  ${buildPath}: Failed validating JSON`);
+			LogError(`  ${buildPath}: Failed validating JSON`);
 			for(let i = 0; i < validator.errors.length; i++)
 			{
-				console.error(`  ${validator.errors[i].dataPath} ${validator.errors[i].message} ${util.inspect(validator.errors[i].params)}`);
+				LogError(`  ${validator.errors[i].dataPath} ${validator.errors[i].message} ${util.inspect(validator.errors[i].params)}`);
 			}
 			process.exit(1);
 		}
@@ -164,20 +184,20 @@ export namespace Compiler
 		// Validate inputs and outputs
 		if(project.markdown.length < 1)
 		{
-			console.error("No Markdown input paths or files were given (check 'input.markdown' in your fractive.json)");
+			LogError("No Markdown input patterns were given (check the 'markdown' property in your fractive.json)");
 			process.exit(1);
 		}
 		if(project.output.length < 1)
 		{
-			console.error("No output directory was given (check 'output' in your fractive.json)");
+			LogError("No output directory was given (check the 'output' property in your fractive.json)");
 			process.exit(1);
 		}
-		if(project.dryRun) { console.log("(This is a dry run. No output files will be written.)"); }
+		if(options.dryRun) { console.log(clc.red("\n(This is a dry run. No output files will be written.)\n")); }
 
 		// Create or clean output directory
 		let cleanDir = path.resolve(basePath, project.output);
 		if(!fs.existsSync(cleanDir)) { fs.mkdirSync(cleanDir); }
-		else { CleanDirectoryRecursive(cleanDir, project.dryRun); }
+		else { CleanDirectoryRecursive(cleanDir, options); }
 
 		// Gather all our target files to build
 		let globOptions = {
@@ -199,8 +219,8 @@ export namespace Compiler
 		let html : string = "";
 		for(let i = 0; i < targets.markdownFiles.length; i++)
 		{
-			LogFileAction(targets.markdownFiles[i], "render");
-			var rendered = RenderFile(path.resolve(basePath, targets.markdownFiles[i]));
+			LogAction(targets.markdownFiles[i], "render");
+			var rendered = RenderFile(path.resolve(basePath, targets.markdownFiles[i]), options);
 			if(rendered === null) { errorCount++; }
 			else { html += `<!-- ${targets.markdownFiles[i]} -->\n${rendered}\n`; }
 		}
@@ -210,7 +230,7 @@ export namespace Compiler
 		let javascript = ImportFile(path.resolve(__dirname, "Core.js"));
 		for(let i = 0; i < targets.javascriptFiles.length; i++)
 		{
-			LogFileAction(targets.javascriptFiles[i], "import");
+			LogAction(targets.javascriptFiles[i], "import");
 			javascript += `// ${targets.javascriptFiles[i]}\n${ImportFile(path.resolve(basePath, targets.javascriptFiles[i]))}\n`;
 		}
 		
@@ -224,8 +244,8 @@ export namespace Compiler
 		// Copy all our assets
 		for(let i = 0; i < targets.assetFiles.length; i++)
 		{
-			LogFileAction(targets.assetFiles[i], "copy");
-			if(!project.dryRun)
+			LogAction(targets.assetFiles[i], "copy");
+			if(!options.dryRun)
 			{
 				let sourcePath = path.resolve(basePath, targets.assetFiles[i]);
 				let destPath = path.resolve(outputDir, targets.assetFiles[i]);
@@ -238,8 +258,8 @@ export namespace Compiler
 		// Write the final index.html. We report this after copying assets, even though we actually prepared it before,
 		// because it feels more natural to have the last reported output file be the file that actually runs our game.
 		let indexPath : string = path.resolve(outputDir, "index.html");
-		LogFileAction(indexPath.split(path.resolve(basePath)).join(""), "output");
-		if(!project.dryRun) { fs.writeFileSync(indexPath, html, "utf8"); }
+		LogAction(indexPath.split(path.resolve(basePath)).join(""), "output");
+		if(!options.dryRun) { fs.writeFileSync(indexPath, html, "utf8"); }
 	}
 
 	/**
@@ -350,8 +370,11 @@ export namespace Compiler
 	 * This doesn't render the AST; it's just a debug visualization of its current structure.
 	 * @param ast The AST to display
 	 */
+	// @ts-ignore unused function warning
 	function LogAST(ast)
 	{
+		if(ast === null) { return; }
+
 		let indent : number = 0;
 		let getIndent = function(indent)
 		{
@@ -366,20 +389,29 @@ export namespace Compiler
 			if(event.node.isContainer && !event.entering) { indent--; }
 			if(!event.node.isContainer || event.entering)
 			{
-				console.log(`${getIndent(indent)}${event.node.type}: ${event.node.literal ? event.node.literal.split('\n').join('\\n') : ''}`);
+				console.log(clc.blue(`${getIndent(indent)}${event.node.type}: ${event.node.literal ? event.node.literal.split('\n').join('\\n') : ''}`));
 			}
 			if(event.node.isContainer && event.entering) { indent++; }
 		}
 	}
 
 	/**
-	 * Helper for logging file actions in a consistently formatted way
+	 * Logs a consistently formatted file action to stdout
 	 * @param filePath The path of the file an action was performed on
 	 * @param action The action that was performed
 	 */
-	function LogFileAction(filePath : string, action: string)
+	function LogAction(filePath : string, action: string)
 	{
-		console.log(`  ${action} ${filePath}`); // TODO: CLI color codes
+		console.log(`  ${clc.green(action)} ${filePath}`);
+	}
+
+	/**
+	 * Logs a consistently formatted error message to stderr
+	 * @param text The text to display
+	 */
+	function LogError(text : string)
+	{
+		console.error(clc.red(text));
 	}
 
 	/**
@@ -394,20 +426,21 @@ export namespace Compiler
 		{
 			let line : number = node.sourcepos[0][0] + (lineOffset !== undefined ? lineOffset : 0);
 			let column : number = node.sourcepos[0][1] + (columnOffset !== undefined ? columnOffset : 0);
-			console.error(`${filePath} (${line},${column}): ${text}`);
+			LogError(`${filePath} (${line},${column}): ${text}`);
 		}
 		else
 		{
-			console.error(`${filePath}: ${text}`);
+			LogError(`${filePath}: ${text}`);
 		}
 	}
 
 	/**
 	 * Renders the given Markdown file to HTML
 	 * @param filepath The path and filename of the Markdown file to render
+	 * @param options Compiler options blob
 	 * @return The rendered HTML, or null on error
 	 */
-	function RenderFile(filepath : string) : string
+	function RenderFile(filepath : string, options : CompilerOptions) : string
 	{
 		if(!fs.existsSync(filepath))
 		{
@@ -416,9 +449,11 @@ export namespace Compiler
 		}
 		let ast = markdownReader.parse(fs.readFileSync(filepath, "utf8")); // Returns an Abstract Syntax Tree (AST)
 
-		// TODO: Build config option for displaying AST debug
-		// console.log("\nRAW AST\n");
-		// LogAST(ast);
+		if(options.debug)
+		{
+			console.log("\nRAW AST\n");
+			LogAST(ast);
+		}
 
 		// Consolidate contiguous `text` nodes in the AST. I'm not sure why these get arbitrarily split up -- it does
 		// seem to be triggered by punctuation -- but it's a huge pita to process macros that way.
@@ -438,9 +473,11 @@ export namespace Compiler
 			}
 		}
 
-		// TODO: Build config option for displaying AST debug
-		// console.log("\nCONSOLIDATED AST\n");
-		// LogAST(ast);
+		if(options.debug)
+		{
+			console.log("\nCONSOLIDATED AST\n");
+			LogAST(ast);
+		}
 		
 		// Custom AST manipulation before rendering. When we're done, there should be no functional {macros} left in
 		// the tree; they should all be rewritten to html tags with data-attributes describing their function.
@@ -478,9 +515,11 @@ export namespace Compiler
 		closingNode.literal = "</div>";
 		firstEvent.node.appendChild(closingNode);
 
-		// TODO: Build config option for displaying AST debug
-		// console.log("\nFINAL AST\n");
-		// LogAST(ast);
+		if(options.debug)
+		{
+			console.log("\nFINAL AST\n");
+			LogAST(ast);
+		}
 
 		// Render the final section html and wrap it in a section <div>
 		return markdownWriter.render(ast);
@@ -497,12 +536,12 @@ export namespace Compiler
 	{
 		if(!walker || !event)
 		{
-			console.error("RenderImage received an invalid state");
+			LogError("RenderImage received an invalid state");
 			return false;
 		}
 		if(event.node.type !== "image")
 		{
-			console.error(`RenderImage was passed a ${event.node.type} node, which is illegal`);
+			LogError(`RenderImage was passed a ${event.node.type} node, which is illegal`);
 			return false;
 		}
 
@@ -573,12 +612,12 @@ export namespace Compiler
 	{
 		if(!walker || !event)
 		{
-			console.error("RenderLink received an invalid state");
+			LogError("RenderLink received an invalid state");
 			return false;
 		}
 		if(event.node.type !== "link")
 		{
-			console.error(`RenderLink received a ${event.node.type} node, which is illegal`);
+			LogError(`RenderLink received a ${event.node.type} node, which is illegal`);
 			return false;
 		}
 		
@@ -655,7 +694,7 @@ export namespace Compiler
 	{
 		if(!walker || !event)
 		{
-			console.error("RenderText received an invalid state");
+			LogError("RenderText received an invalid state");
 			return false;
 		}
 
@@ -798,13 +837,17 @@ export namespace Compiler
 	 */
 	export function ShowUsage()
 	{
-		console.log("Usage:");
-		console.log("  node lib/CLI.js compile [storyDirectory|configFilePath]");
-		console.log("");
-		console.log("    storyDirectory: The folder path where the story source files are located. Looks for fractive.json in the root.");
-		console.log("    configFilePath: If you want to build with a different config, specify the config.json path directly.");
-		console.log("");
-		console.log("Example:");
-		console.log("  node lib/CLI.js compile /Users/Desktop/MyStory");
+		console.log(``);
+		console.log(`${clc.green("node lib/CLI.js compile")} ${clc.blue("<storyDirectory|configFilePath>")} ${clc.yellow("[options]")}`);
+		console.log(``);
+		console.log(`${clc.blue("storyDirectory:")} The folder path where the story source files are located. Looks for fractive.json in the root.`);
+		console.log(`${clc.blue("configFilePath:")} If you want to build with a different config, specify the config.json path directly.`);
+		console.log(``);
+		console.log(`${clc.yellow("--dry-run:")} Log what would've been done, but don't actually touch any files.`);
+		console.log(`${clc.yellow("--verbose:")} Log more detailed build information`);
+		console.log(`${clc.yellow("--debug:")} Log debugging information during the build`);
+		console.log(``);
+		console.log(`${clc.green("node lib/CLI.js compile /Users/Desktop/MyStory")} ${clc.yellow("--verbose")}`);
+		console.log(``);
 	}
 }

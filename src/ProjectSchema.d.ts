@@ -46,10 +46,6 @@ export interface FractiveProject {
    */
   output?: string;
   /**
-   * If true, report all build steps as normal but don't actually modify any files on disk
-   */
-  dryRun?: boolean;
-  /**
    * If true, minify the final story HTML (reduces file size but makes the HTML source much less human-readable)
    */
   minify?: boolean;

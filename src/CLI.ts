@@ -20,8 +20,9 @@ require("source-map-support").install();
 
 import * as fs from "fs";
 import * as path from "path";
+import * as clc from "cli-color";
 
-import { Compiler } from "./Compiler";
+import { Compiler, CompilerOptions } from "./Compiler";
 
 /**
  * Invoke 'node lib/CLI.js <command> <args>' to execute command-line tools
@@ -34,7 +35,7 @@ for(let i = 0; i < process.argv.length; i++)
         // compile [storyDirectory|configFilePath]
 		case "compile":
 		{
-			if(process.argv.length < i + 1)
+			if(process.argv.length <= i + 1)
 			{
 				Compiler.ShowUsage();
 				process.exit(1);
@@ -48,11 +49,21 @@ for(let i = 0; i < process.argv.length; i++)
 
 				if(fs.existsSync(buildPath))
 				{
-					Compiler.Compile(buildPath);
+					let options : CompilerOptions = {};
+					for(let j = i + 2; j < process.argv.length; j++)
+					{
+						switch(process.argv[j])
+						{
+							case "--dry-run":	{ options.dryRun = true; break; }
+							case "--verbose":	{ options.verbose = true; break; }
+							case "--debug":		{ options.debug = true; break; }
+						}
+					}
+					Compiler.Compile(buildPath, options);
 				}
 				else
 				{
-					console.error(`Couldn't find project config "${buildPath}"`);
+					console.error(clc.red(`Couldn't find project config "${buildPath}"`));
 					process.exit(1);
 				}
 			}
