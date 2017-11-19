@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 require("source-map-support").install();
 
 import * as fs from "fs";
+import * as globby from "globby";
 import * as path from "path";
 import * as util from "util";
 
@@ -43,9 +44,10 @@ let ProjectDefaults : FractiveProject = {
 	author: "Anonymous",
 	description: "An interactive story written in Fractive",
 	website: "fractive.io",
-	markdown: [],
-	javascript: [],
-	assets: [],
+	markdown: [ "source/**/*.md" ],
+	javascript: [ "source/**/*.js" ],
+	assets: [ "assets/**" ],
+	ignore: [],
 	template: "template.html",
 	output: "build",
 	dryRun: false,
@@ -64,21 +66,22 @@ export namespace Compiler
 	 * @param javascript The javascript story scripts to insert into the template
 	 * @return The complete resulting html file contents
 	 */
-	function ApplyTemplate(project : FractiveProject, html : string, javascript : string) : string
+	function ApplyTemplate(basePath : string, project : FractiveProject, html : string, javascript : string) : string
 	{
-		if(!fs.existsSync(project.template))
+		let templatePath : string = path.resolve(basePath, project.template);		
+		if(!fs.existsSync(templatePath))
 		{
-			console.log(`Template file not found: "${project.template}"`);
+			console.log(`Template file not found: "${templatePath}"`);
 			process.exit(1);
 		}
-		if(!fs.lstatSync(project.template).isFile())
+		if(!fs.lstatSync(templatePath).isFile())
 		{
-			console.log(`Template "${project.template}" is not a file`);
+			console.log(`Template "${templatePath}" is not a file`);
 			process.exit(1);
 		}
 
 		// Base template
-		let template : string = fs.readFileSync(project.template, "utf8");
+		let template : string = fs.readFileSync(templatePath, "utf8");
 
 		// Imported scripts
 		let scriptSection : string = "<script>";
@@ -111,11 +114,37 @@ export namespace Compiler
 	}
 
 	/**
+	 * Deletes the given directory and all files and subdirectories within it
+	 * @param targetPath The directory to delete
+	 * @param dryRun If true, just log what would've happened without actually deleting anything
+	 */
+	function CleanDirectoryRecursive(targetPath: string, dryRun : boolean)
+	{
+		if(fs.lstatSync(targetPath).isDirectory())
+		{
+			let files : Array<string> = fs.readdirSync(targetPath, "utf8");
+			for(let i = 0; i < files.length; i++)
+			{
+				CleanDirectoryRecursive(path.resolve(targetPath, files[i]), dryRun);
+			}
+			if(dryRun) { LogFileAction(targetPath, "rmdir"); }
+			else { fs.rmdirSync(targetPath); }
+		}
+		else
+		{
+			if(dryRun) { LogFileAction(targetPath, "unlink"); }
+			else { fs.unlinkSync(targetPath); }
+		}
+	}
+
+	/**
 	 * Compile all source files described by the given project file into a single playable html file
 	 * @param buildPath Path to the fractive.json to build from
 	 */
 	export function Compile(buildPath : string) : void
 	{
+		let basePath = path.dirname(buildPath);
+
 		// Load the target project file and overlay it onto the ProjectDefaults. This allows user-made project
 		// files to only specify those properties which they want to override.
 		let targetProject : FractiveProject = JSON.parse(fs.readFileSync(buildPath, "utf8"));
@@ -145,46 +174,33 @@ export namespace Compiler
 		}
 		if(project.dryRun) { console.log("(This is a dry run. No output files will be written.)"); }
 
-		// Resolve all config paths to the base path
-		let basePath = path.dirname(buildPath);
-		for(let i = 0; i < project.markdown.length; i++) { project.markdown[i] = path.resolve(basePath, project.markdown[i]); }
-		for(let i = 0; i < project.javascript.length; i++) { project.javascript[i] = path.resolve(basePath, project.javascript[i]); }
-		for(let i = 0; i < project.assets.length; i++) { project.assets[i] = path.resolve(basePath, project.assets[i]); }
-		project.template = path.resolve(basePath, project.template);
-		project.output = path.resolve(basePath, project.output);
-
-		// Create or clear output directory
-		if(!project.dryRun)
-		{
-			if(!fs.existsSync(project.output))
-			{
-				fs.mkdirSync(project.output);
-			}
-			else
-			{
-				let files : Array<string> = fs.readdirSync(project.output, "utf8");
-				for(let i = 0; i < files.length; i++)
-				{
-					let unlinkPath : string = path.resolve(project.output, files[i]);
-					fs.unlinkSync(unlinkPath);
-				}
-			}
-		}
+		// Create or clean output directory
+		let cleanDir = path.resolve(basePath, project.output);
+		if(!fs.existsSync(cleanDir)) { fs.mkdirSync(cleanDir); }
+		else { CleanDirectoryRecursive(cleanDir, project.dryRun); }
 
 		// Gather all our target files to build
-		let targets = {
-			markdownFiles: GatherFilesFromPaths(project.markdown, ".md"),
-			javascriptFiles: GatherFilesFromPaths(project.javascript, ".js"),
-			assetFiles: GatherFilesFromPaths(project.assets, "*")
+		let globOptions = {
+			cwd: basePath,
+			expandDirectories: true,
+			ignore: project.ignore.concat(`${project.output}/**`),
+			matchBase: true,
+			nodir: true,
+			nomount: true
 		};
-
+		let targets = {
+			markdownFiles: globby.sync(project.markdown, globOptions),
+			javascriptFiles: globby.sync(project.javascript, globOptions),
+			assetFiles: globby.sync(project.assets, globOptions)
+		};
+		
 		// Compile all the Markdown files
 		let errorCount : number = 0;
 		let html : string = "";
 		for(let i = 0; i < targets.markdownFiles.length; i++)
 		{
-			console.log(`  [render]    ${targets.markdownFiles}`);
-			var rendered = RenderFile(targets.markdownFiles[i]);
+			LogFileAction(targets.markdownFiles[i], "render");
+			var rendered = RenderFile(path.resolve(basePath, targets.markdownFiles[i]));
 			if(rendered === null) { errorCount++; }
 			else { html += `<!-- ${targets.markdownFiles[i]} -->\n${rendered}\n`; }
 		}
@@ -194,72 +210,36 @@ export namespace Compiler
 		let javascript = ImportFile(path.resolve(__dirname, "Core.js"));
 		for(let i = 0; i < targets.javascriptFiles.length; i++)
 		{
-			console.log(`  [import]    ${targets.javascriptFiles[i]}`);
-			javascript += `// ${targets.javascriptFiles[i]}\n${ImportFile(targets.javascriptFiles[i])}\n`;
+			LogFileAction(targets.javascriptFiles[i], "import");
+			javascript += `// ${targets.javascriptFiles[i]}\n${ImportFile(path.resolve(basePath, targets.javascriptFiles[i]))}\n`;
 		}
 		
 		// Wrap our compiled html with a page template
-		html = ApplyTemplate(project, html, javascript);
+		html = ApplyTemplate(basePath, project, html, javascript);
+
+		// Create output directory
+		let outputDir = path.resolve(basePath, project.output);
+		if(!fs.existsSync(outputDir)) { fs.mkdirSync(outputDir); }
 
 		// Copy all our assets
 		for(let i = 0; i < targets.assetFiles.length; i++)
 		{
-			console.log(`  [copy]      ${targets.assetFiles[i]}`);
-			if(!project.dryRun) { fs.copyFileSync(targets.assetFiles[i], path.resolve(project.output, path.basename(targets.assetFiles[i]))); }
+			LogFileAction(targets.assetFiles[i], "copy");
+			if(!project.dryRun)
+			{
+				let sourcePath = path.resolve(basePath, targets.assetFiles[i]);
+				let destPath = path.resolve(outputDir, targets.assetFiles[i]);
+				let destDir = path.dirname(destPath);
+				if(!fs.existsSync(destDir)) { fs.mkdirSync(destDir); }
+				fs.copyFileSync(sourcePath, destPath);
+			}
 		}
 
 		// Write the final index.html. We report this after copying assets, even though we actually prepared it before,
 		// because it feels more natural to have the last reported output file be the file that actually runs our game.
-		let indexPath : string = path.resolve(project.output, "index.html");
-		console.log(`  [output]    ${indexPath}`);
-		if(!project.dryRun) { fs.writeFileSync(path.resolve(project.output, "index.html"), html, "utf8"); }
-	}
-
-	/**
-	 * Returns a list of files matching the given extension that are found in the given inputPaths.
-	 * @param inputPaths List of files and/or directories to scan. Files are gathered directly, and directories are scanned recursively.
-	 * @param extension Only gather files that match this extension. Can be '*' to gather all files.
-	 * @returns An array of paths representing every gathered file.
-	 */
-	function GatherFilesFromPaths(inputPaths : Array<string>, extension : string) : Array<string>
-	{
-		let files : Array<string> = [];
-		for(let i = 0; i < inputPaths.length; i++)
-		{
-			let inputPath : string = inputPaths[i];
-			if(!fs.existsSync(inputPath))
-			{
-				console.error(`Input path "${inputPath}" doesn't exist`);
-				process.exit(1);
-			}
-			if(fs.lstatSync(inputPath).isDirectory())
-			{
-				let scan = function(directory : string, extension : string) : Array<string>
-				{
-					let _result : Array<string> = [];
-					let _files : Array<string> = fs.readdirSync(directory, "utf8");
-					for(let i = 0; i < _files.length; i++)
-					{
-						let file : string = path.resolve(directory, _files[i]);
-						if(fs.lstatSync(file).isDirectory())
-						{
-							_result = _result.concat(scan(file, extension));
-						}
-						else if(path.extname(file).toLowerCase() === extension.toLowerCase() || extension === "*")
-						{
-							_result = _result.concat(file);
-						}
-					}
-					return _result;
-				}
-				files = files.concat(scan(inputPath, extension));
-			}
-			else if(path.extname(inputPath).toLowerCase() === extension.toLowerCase() || extension === "*")
-			{
-				files = files.concat(inputPath);
-			}
-		}
-		return files;
+		let indexPath : string = path.resolve(outputDir, "index.html");
+		LogFileAction(indexPath.split(path.resolve(basePath)).join(""), "output");
+		if(!project.dryRun) { fs.writeFileSync(indexPath, html, "utf8"); }
 	}
 
 	/**
@@ -390,6 +370,16 @@ export namespace Compiler
 			}
 			if(event.node.isContainer && event.entering) { indent++; }
 		}
+	}
+
+	/**
+	 * Helper for logging file actions in a consistently formatted way
+	 * @param filePath The path of the file an action was performed on
+	 * @param action The action that was performed
+	 */
+	function LogFileAction(filePath : string, action: string)
+	{
+		console.log(`  ${action} ${filePath}`); // TODO: CLI color codes
 	}
 
 	/**

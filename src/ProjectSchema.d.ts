@@ -22,17 +22,21 @@ export interface FractiveProject {
    */
   website?: string;
   /**
-   * List of files and/or folders where Markdown source files reside. These are compiled in the order in which they appear. Folders are searched recursively for files with a .md extension.
+   * List of glob-style patterns for locating Markdown source files. These are compiled in the order in which they appear.
    */
   markdown?: string[];
   /**
-   * List of files and/or folders where Javascript files reside. These are imported in the order in which they appear. Folders are searched recursively for files with a .js extension.
+   * List of glob-style patterns for locating Javascript files reside. These are imported in the order in which they appear.
    */
   javascript?: string[];
   /**
-   * List of files and/or folders where additional asset files reside. These are imported in the order in which they appear. Folders are searched recursively for all files.
+   * List of glob-style patterns for locating additional asset files. These are imported in the order in which they appear.
    */
   assets?: string[];
+  /**
+   * List of glob-style patterns for files to ignore. Ignores are applied when searching for Markdown files, Javascript files, and asset files.
+   */
+  ignore?: string[];
   /**
    * The HTML template file to use for the final story output
    */

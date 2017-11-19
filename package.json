@@ -28,6 +28,7 @@
   "dependencies": {
     "ajv": "^5.3.0",
     "commonmark": ">=0.28.1",
+    "globby": "^7.1.1",
     "html-minifier": ">=3.5.5",
     "json-override": "^0.2.0",
     "json-schema-to-typescript": "^5.1.0",

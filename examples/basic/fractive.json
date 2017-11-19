@@ -1,7 +1,5 @@
 {
 	"title": "basic",
-	"markdown": [ "text.md" ],
-	"javascript": [ "script.js" ],
 	"template": "../../templates/basic.html",
-	"dryRun": true
+	"dryRun": false
 }

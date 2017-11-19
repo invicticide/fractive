@@ -10,7 +10,7 @@ function LinkedFunction()
 	alert("Linked function!");
 }
 
-var ImageVariable = "avatar.png";
+var ImageVariable = "assets/avatar.png";
 
 function ImageFunction()
 {

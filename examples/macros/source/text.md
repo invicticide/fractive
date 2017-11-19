@@ -28,7 +28,7 @@ Expand a nested variable: {$Nestor.NestedVariable}
 
 # Images
 
-![Image with a direct url](avatar.png)
+![Image with a direct url](assets/avatar.png)
 ![Image with a function url]({#ImageFunction})
 ![Image with a variable url]({$ImageVariable})
 

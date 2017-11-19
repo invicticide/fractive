@@ -12,19 +12,25 @@
 			"type": "array",
 			"items": { "type": "string" },
 			"uniqueItems": true,
-			"description": "List of files and/or folders where Markdown source files reside. These are compiled in the order in which they appear. Folders are searched recursively for files with a .md extension."
+			"description": "List of glob-style patterns for locating Markdown source files. These are compiled in the order in which they appear."
 		},
 		"javascript": {
 			"type": "array",
 			"items": { "type": "string" },
 			"uniqueItems": true,
-			"description": "List of files and/or folders where Javascript files reside. These are imported in the order in which they appear. Folders are searched recursively for files with a .js extension."
+			"description": "List of glob-style patterns for locating Javascript files reside. These are imported in the order in which they appear."
 		},
 		"assets": {
 			"type": "array",
 			"items": { "type": "string" },
 			"uniqueItems": true,
-			"description": "List of files and/or folders where additional asset files reside. These are imported in the order in which they appear. Folders are searched recursively for all files."
+			"description": "List of glob-style patterns for locating additional asset files. These are imported in the order in which they appear."
+		},
+		"ignore": {
+			"type": "array",
+			"items": { "type": "string" },
+			"uniqueItems": true,
+			"description": "List of glob-style patterns for files to ignore. Ignores are applied when searching for Markdown files, Javascript files, and asset files."
 		},
 		"template": { "type": "string", "description": "The HTML template file to use for the final story output" },
 		"output": { "type": "string", "description": "The folder where the final story files will be saved" },
