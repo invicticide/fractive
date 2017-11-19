@@ -1,0 +1,8 @@
+{
+	"title": "macros",
+	"markdown": [ "text.md" ],
+	"javascript": [ "script.js" ],
+	"assets": [ "." ],
+	"template": "../../templates/basic.html",
+	"dryRun": true
+}

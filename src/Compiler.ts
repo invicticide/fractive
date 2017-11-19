@@ -24,6 +24,7 @@ require("source-map-support").install();
 
 import * as fs from "fs";
 import * as path from "path";
+import * as util from "util";
 
 // Set up the Markdown parser and renderer
 import * as commonmark from "commonmark";
@@ -33,54 +34,64 @@ const markdownWriter = new commonmark.HtmlRenderer({softbreak: "<br/>"});
 // Minification
 import * as minifier from "html-minifier";
 
+// Project file validation and overlay support
+import * as ajv from "ajv";
+import * as overrideJSON from "json-override";
+import { FractiveProject } from "./ProjectSchema";
+let ProjectDefaults : FractiveProject = {
+	title: "Untitled",
+	author: "Anonymous",
+	description: "An interactive story written in Fractive",
+	website: "fractive.io",
+	markdown: [],
+	javascript: [],
+	assets: [],
+	template: "template.html",
+	output: "build",
+	dryRun: false,
+	minify: true
+};
+
 export namespace Compiler
 {
 	let nextInlineID : number = 0;
 	let sectionCount : number = 0;
 
 	/**
-	 * Inserts the given story text (html) and scripts (javascript) into an html template, and
-	 * returns the complete resulting html file contents
-	 * @param templateFile The file path of the template file to use
+	 * Inserts the given story text (html) and scripts (javascript) into an html template, and returns the complete resulting html file contents
+	 * @param project Fractive project configuration object
 	 * @param html The html-formatted story text to insert into the template
 	 * @param javascript The javascript story scripts to insert into the template
-	 * @param minify True if we should minify the output
 	 * @return The complete resulting html file contents
 	 */
-	function ApplyTemplate(templateFile : string, html : string, javascript : string, unbundledScripts : Array<string>, minify : boolean) : string
+	function ApplyTemplate(project : FractiveProject, html : string, javascript : string) : string
 	{
-		if(!fs.existsSync(templateFile))
+		if(!fs.existsSync(project.template))
 		{
-			console.log(`Template file not found: "${templateFile}"`);
+			console.log(`Template file not found: "${project.template}"`);
 			process.exit(1);
 		}
-		if(!fs.lstatSync(templateFile).isFile())
+		if(!fs.lstatSync(project.template).isFile())
 		{
-			console.log(`Template "${templateFile}" is not a file`);
+			console.log(`Template "${project.template}" is not a file`);
 			process.exit(1);
 		}
 
-		let template : string = fs.readFileSync(templateFile, "utf8"); // Base template
+		// Base template
+		let template : string = fs.readFileSync(project.template, "utf8");
 
-		// String together all the <script> tags we need
+		// Imported scripts
 		let scriptSection : string = "<script>";
 		scriptSection += "var exports = {};";	// This object holds all the TypeScript exports which are callable by story scripts
 		scriptSection += `${javascript}`;		// Insert all bundled scripts, including Core.js
 		scriptSection += "</script>";
-
-		// Sort unbundled scripts alphabetically to allow managing dependencies
-		unbundledScripts.sort();
-		for(let i = 0; i < unbundledScripts.length; i++)
-		{ 
-			scriptSection += `<script src="${path.basename(unbundledScripts[i])}"></script>`;
-		}
-
 		template = template.split("<!--{script}-->").join(scriptSection);
 
+		// Story text
 		template = template.split("<!--{story}-->").join(html); // Insert html-formatted story text
 		template += "<script>Core.GotoSection(\"Start\");</script>"; // Auto-start at the "Start" section
 
-		if(minify)
+		if(project.minify)
 		{
 			return minifier.minify(template, {
 				collapseWhitespace: true,
@@ -100,50 +111,79 @@ export namespace Compiler
 	}
 
 	/**
-	 * Compile all source files in the given path into a single playable html file
-	 * @param directory The path to search for source files to compile
-     * @param outputDirectory The directory in which to place the output index.html
- 	 * @param templateFile The file path of the template file to use
-	 * @param bundleJavascript If true, embed story scripts in the output html; otherwise, deploy them separately alongside it
-	 * @param minify True if we should minify the output html
+	 * Compile all source files described by the given project file into a single playable html file
+	 * @param buildPath Path to the fractive.json to build from
 	 */
-	export function Compile(directory : string, outputDirectory : string, templateFile : string, bundleJavascript : boolean, minify : boolean) : void
+	export function Compile(buildPath : string) : void
 	{
-		if(!fs.existsSync(directory))
+		// Load the target project file and overlay it onto the ProjectDefaults. This allows user-made project
+		// files to only specify those properties which they want to override.
+		let targetProject : FractiveProject = JSON.parse(fs.readFileSync(buildPath, "utf8"));
+		let validator = new ajv();
+		let valid = validator.validate(JSON.parse(fs.readFileSync("src/ProjectSchema.json", "utf8")), targetProject);
+		if(!valid)
 		{
-			console.log(`Directory not found: "${directory}"`);
-			process.exit(1);
-		}
-		if(!fs.lstatSync(directory).isDirectory())
-		{
-			console.log(`${directory} is not a directory`);
-			process.exit(1);
-		}
-
-		if(!fs.existsSync(outputDirectory))
-		{
-			fs.mkdirSync(outputDirectory);
-		}
-		else
-		{
-			let files : Array<string> = fs.readdirSync(outputDirectory, "utf8");
-			for(let i = 0; i < files.length; i++)
+			console.error(`  ${buildPath}: Failed validating JSON`);
+			for(let i = 0; i < validator.errors.length; i++)
 			{
-				let unlinkPath : string = path.resolve(outputDirectory, files[i]);
-				fs.unlinkSync(unlinkPath);
+				console.error(`  ${validator.errors[i].dataPath} ${validator.errors[i].message} ${util.inspect(validator.errors[i].params)}`);
+			}
+			process.exit(1);
+		}
+		let project : FractiveProject = overrideJSON(ProjectDefaults, targetProject, true); // createNew
+
+		// Validate inputs and outputs
+		if(project.markdown.length < 1)
+		{
+			console.error("No Markdown input paths or files were given (check 'input.markdown' in your fractive.json)");
+			process.exit(1);
+		}
+		if(project.output.length < 1)
+		{
+			console.error("No output directory was given (check 'output' in your fractive.json)");
+			process.exit(1);
+		}
+		if(project.dryRun) { console.log("(This is a dry run. No output files will be written.)"); }
+
+		// Resolve all config paths to the base path
+		let basePath = path.dirname(buildPath);
+		for(let i = 0; i < project.markdown.length; i++) { project.markdown[i] = path.resolve(basePath, project.markdown[i]); }
+		for(let i = 0; i < project.javascript.length; i++) { project.javascript[i] = path.resolve(basePath, project.javascript[i]); }
+		for(let i = 0; i < project.assets.length; i++) { project.assets[i] = path.resolve(basePath, project.assets[i]); }
+		project.template = path.resolve(basePath, project.template);
+		project.output = path.resolve(basePath, project.output);
+
+		// Create or clear output directory
+		if(!project.dryRun)
+		{
+			if(!fs.existsSync(project.output))
+			{
+				fs.mkdirSync(project.output);
+			}
+			else
+			{
+				let files : Array<string> = fs.readdirSync(project.output, "utf8");
+				for(let i = 0; i < files.length; i++)
+				{
+					let unlinkPath : string = path.resolve(project.output, files[i]);
+					fs.unlinkSync(unlinkPath);
+				}
 			}
 		}
 
-		// Find all the files that are eligible for compilation
-		let targets = GatherTargetFiles(directory);
+		// Gather all our target files to build
+		let targets = {
+			markdownFiles: GatherFilesFromPaths(project.markdown, ".md"),
+			javascriptFiles: GatherFilesFromPaths(project.javascript, ".js"),
+			assetFiles: GatherFilesFromPaths(project.assets, "*")
+		};
 
 		// Compile all the Markdown files
-		console.log("Processing story text...");
 		let errorCount : number = 0;
 		let html : string = "";
 		for(let i = 0; i < targets.markdownFiles.length; i++)
 		{
-			console.log(`  ${targets.markdownFiles}`);
+			console.log(`  [render]    ${targets.markdownFiles}`);
 			var rendered = RenderFile(targets.markdownFiles[i]);
 			if(rendered === null) { errorCount++; }
 			else { html += `<!-- ${targets.markdownFiles[i]} -->\n${rendered}\n`; }
@@ -151,90 +191,75 @@ export namespace Compiler
 		if(errorCount > 0) { process.exit(1); }
 
 		// Import all the Javascript files
-		console.log("Processing scripts...");
 		let javascript = ImportFile(path.resolve(__dirname, "Core.js"));
-		let unbundledScripts : Array<string> = [];
-		if(bundleJavascript)
+		for(let i = 0; i < targets.javascriptFiles.length; i++)
 		{
-			// If bundling the Javascript files, import them
-			for(let i = 0; i < targets.javascriptFiles.length; i++)
-			{
-				console.log(`  [bundle] ${targets.javascriptFiles[i]}`);
-				javascript += `// ${targets.javascriptFiles[i]}\n${ImportFile(targets.javascriptFiles[i])}\n`;
-			}
-		}
-		else
-		{
-			// If NOT bundling the Javascript files, strip them of the directory, and pass their paths onward
-			for(let i = 0; i < targets.javascriptFiles.length; i++)
-			{
-				console.log(`  [copy] ${targets.javascriptFiles[i]}`);
-				unbundledScripts.push(targets.javascriptFiles[i]);
-			}
+			console.log(`  [import]    ${targets.javascriptFiles[i]}`);
+			javascript += `// ${targets.javascriptFiles[i]}\n${ImportFile(targets.javascriptFiles[i])}\n`;
 		}
 		
 		// Wrap our compiled html with a page template
-		console.log(`Applying template...\n  ${templateFile}`);
-		html = ApplyTemplate(templateFile, html, javascript, unbundledScripts, minify);
+		html = ApplyTemplate(project, html, javascript);
 
-		// Write the final compiled file(s) to disk
-		console.log("Writing output files...");
+		// Copy all our assets
+		for(let i = 0; i < targets.assetFiles.length; i++)
 		{
-			let indexPath : string = path.resolve(outputDirectory, "index.html");
-			console.log(`  ${indexPath}`);
-			fs.writeFileSync(path.resolve(outputDirectory, "index.html"), html, "utf8");
+			console.log(`  [copy]      ${targets.assetFiles[i]}`);
+			if(!project.dryRun) { fs.copyFileSync(targets.assetFiles[i], path.resolve(project.output, path.basename(targets.assetFiles[i]))); }
 		}
-		for(let i = 0; i < unbundledScripts.length; i++)
-		{
-			console.log(`  ${unbundledScripts[i]}`);
-			fs.copyFileSync(targets.javascriptFiles[i], path.resolve(outputDirectory, path.basename(targets.javascriptFiles[i])));
-		}
-		for(let i = 0; i < targets.miscFiles.length; i++)
-		{
-			console.log(`  ${targets.miscFiles[i]}`);
-			fs.copyFileSync(targets.miscFiles[i], path.resolve(outputDirectory, path.basename(targets.miscFiles[i])));
-		}
+
+		// Write the final index.html. We report this after copying assets, even though we actually prepared it before,
+		// because it feels more natural to have the last reported output file be the file that actually runs our game.
+		let indexPath : string = path.resolve(project.output, "index.html");
+		console.log(`  [output]    ${indexPath}`);
+		if(!project.dryRun) { fs.writeFileSync(path.resolve(project.output, "index.html"), html, "utf8"); }
 	}
 
 	/**
-	 * Returns a list of all target files (md/js) in the given directory and its subdirectories
-	 * @param directory The directory to search
-	 * @return An object { markdownFiles : Array<string>, javascriptFiles : Array<string>, miscFiles : Array<string> }
+	 * Returns a list of files matching the given extension that are found in the given inputPaths.
+	 * @param inputPaths List of files and/or directories to scan. Files are gathered directly, and directories are scanned recursively.
+	 * @param extension Only gather files that match this extension. Can be '*' to gather all files.
+	 * @returns An array of paths representing every gathered file.
 	 */
-	function GatherTargetFiles(directory : string)
+	function GatherFilesFromPaths(inputPaths : Array<string>, extension : string) : Array<string>
 	{
-		let markdownFiles : Array<string> = [];
-		let javascriptFiles : Array<string> = [];
-		let miscFiles : Array<string> = [];
-
-		let files : Array<string> = fs.readdirSync(directory, "utf8");
-		for(let i = 0; i < files.length; i++)
+		let files : Array<string> = [];
+		for(let i = 0; i < inputPaths.length; i++)
 		{
-			var filePath : string = path.resolve(directory, files[i]);
-			if(!fs.existsSync(filePath)) { continue; }
-
-			var stat = fs.lstatSync(filePath);
-			if(stat.isFile())
+			let inputPath : string = inputPaths[i];
+			if(!fs.existsSync(inputPath))
 			{
-				// TODO: Apply ignore filter
-				switch(path.extname(files[i]))
-				{
-					case ".md":	{ markdownFiles.push(filePath); break; }
-					case ".js":	{ javascriptFiles.push(filePath); break; }
-					default:	{ miscFiles.push(filePath); break; }
-				}
+				console.error(`Input path "${inputPath}" doesn't exist`);
+				process.exit(1);
 			}
-			else if(stat.isDirectory())
+			if(fs.lstatSync(inputPath).isDirectory())
 			{
-				// Search recursively for source files
-				let childFiles = GatherTargetFiles(filePath);
-				markdownFiles = markdownFiles.concat(childFiles.markdownFiles);
-				javascriptFiles = javascriptFiles.concat(childFiles.javascriptFiles);
-				miscFiles = miscFiles.concat(childFiles.miscFiles);
+				let scan = function(directory : string, extension : string) : Array<string>
+				{
+					let _result : Array<string> = [];
+					let _files : Array<string> = fs.readdirSync(directory, "utf8");
+					for(let i = 0; i < _files.length; i++)
+					{
+						let file : string = path.resolve(directory, _files[i]);
+						if(fs.lstatSync(file).isDirectory())
+						{
+							_result = _result.concat(scan(file, extension));
+						}
+						else if(path.extname(file).toLowerCase() === extension.toLowerCase() || extension === "*")
+						{
+							_result = _result.concat(file);
+						}
+					}
+					return _result;
+				}
+				files = files.concat(scan(inputPath, extension));
+			}
+			else if(path.extname(inputPath).toLowerCase() === extension.toLowerCase() || extension === "*")
+			{
+				files = files.concat(inputPath);
 			}
 		}
-		
-		return { markdownFiles : markdownFiles, javascriptFiles : javascriptFiles, miscFiles : miscFiles };
+		return files;
 	}
 
 	/**
@@ -784,17 +809,12 @@ export namespace Compiler
 	export function ShowUsage()
 	{
 		console.log("Usage:");
-		console.log("  node lib/CLI.js compile <storyPath> <templateName> <bundleJavascript>");
+		console.log("  node lib/CLI.js compile [storyDirectory|configFilePath]");
 		console.log("");
-		console.log("  - storyPath: The folder path where the story source files are located");
-		console.log("  - templateName: The name of the HTML template to use");
-		console.log("  - bundleJavascript: 'true' or 'false', whether to bundle scripts in index.html");
-		console.log("");
-		console.log("  Templates are looked up in the 'templates' folder. The template name");
-		console.log("  is just the name of the file, sans extension. So 'basic.html' has a");
-		console.log("  template name of just 'basic'.");
+		console.log("    storyDirectory: The folder path where the story source files are located. Looks for fractive.json in the root.");
+		console.log("    configFilePath: If you want to build with a different config, specify the config.json path directly.");
 		console.log("");
 		console.log("Example:");
-		console.log("  node lib/CLI.js compile /Users/Desktop/MyStory templates/basic.html true");
+		console.log("  node lib/CLI.js compile /Users/Desktop/MyStory");
 	}
 }

@@ -18,6 +18,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 require("source-map-support").install();
 
+import * as fs from "fs";
+import * as path from "path";
+
 import { Compiler } from "./Compiler";
 
 /**
@@ -28,22 +31,30 @@ for(let i = 0; i < process.argv.length; i++)
 {
 	switch(process.argv[i])
 	{
-        // compile [storyDirectory] [template HTML file] [outputDirectory (default: dist)] [bundleJavascript (default: true)] [minify (default: true)]
+        // compile [storyDirectory|configFilePath]
 		case "compile":
 		{
-			if(process.argv.length < i + 3)
+			if(process.argv.length < i + 1)
 			{
 				Compiler.ShowUsage();
 				process.exit(1);
 			}
 			else
 			{
-                let storyDirectory = process.argv[i + 1];
-                let templateFile = process.argv[i + 2];
-                let outputDirectory = (process.argv.length > i + 3 ? process.argv[i + 3] : "dist");
-				let bundleJavascript = (process.argv.length > i + 4 ? JSON.parse(process.argv[i + 4]) : true);
-				let minify = (process.argv.length > i + 5 ? JSON.parse(process.argv[i + 5]) : true );
-				Compiler.Compile(storyDirectory, outputDirectory, templateFile, bundleJavascript, minify);
+				let buildPath = process.argv[i + 1];
+
+				// If we got a directory, assume we're looking for a fractive.json in its root
+				if(fs.lstatSync(buildPath).isDirectory()) { buildPath = path.join(buildPath, "fractive.json"); }
+
+				if(fs.existsSync(buildPath))
+				{
+					Compiler.Compile(buildPath);
+				}
+				else
+				{
+					console.error(`Couldn't find project config "${buildPath}"`);
+					process.exit(1);
+				}
 			}
 			break;
 		}

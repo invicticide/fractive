@@ -1,0 +1,35 @@
+{
+	"$schema": "http://json-schema.org/schema#",
+	"title": "Fractive Project",
+	"description": "",
+	"type": "object",
+	"properties": {
+		"title": { "type": "string", "description": "The game title that will be shown to players" },
+		"author": { "type": "string", "description": "The author name that will be shown to players" },
+		"description": { "type": "string", "description": "The long-form game description that will be shown to players" },
+		"website": { "type": "string", "description": "A web URL that will be shown to players" },
+		"markdown": {
+			"type": "array",
+			"items": { "type": "string" },
+			"uniqueItems": true,
+			"description": "List of files and/or folders where Markdown source files reside. These are compiled in the order in which they appear. Folders are searched recursively for files with a .md extension."
+		},
+		"javascript": {
+			"type": "array",
+			"items": { "type": "string" },
+			"uniqueItems": true,
+			"description": "List of files and/or folders where Javascript files reside. These are imported in the order in which they appear. Folders are searched recursively for files with a .js extension."
+		},
+		"assets": {
+			"type": "array",
+			"items": { "type": "string" },
+			"uniqueItems": true,
+			"description": "List of files and/or folders where additional asset files reside. These are imported in the order in which they appear. Folders are searched recursively for all files."
+		},
+		"template": { "type": "string", "description": "The HTML template file to use for the final story output" },
+		"output": { "type": "string", "description": "The folder where the final story files will be saved" },
+		"dryRun": { "type": "boolean", "description": "If true, report all build steps as normal but don't actually modify any files on disk" },
+		"minify": { "type": "boolean", "description": "If true, minify the final story HTML (reduces file size but makes the HTML source much less human-readable)" }
+	},
+	"additionalProperties": false
+}
