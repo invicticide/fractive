@@ -1,7 +1,7 @@
 #!/bin/bash
-if [[ $1 == "" ]] || [[ $2 == "" ]]  || [[ $3 == "" ]]; then
-	echo "Usage: ./publish.sh path/to/story/directory/ path/to/template.html [bundleScripts: true or false]"
+if [[ $1 == "" ]]; then
+	echo "Usage: ./publish.sh path/to/story/directory/"
 	exit 1
 fi
-node lib/CLI.js compile $1 $2 $3
+node lib/CLI.js compile $1
 exit $?

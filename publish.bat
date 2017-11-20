@@ -1,12 +1,10 @@
 @echo off
 if "%1"=="" goto MissingArgument
-if "%2"=="" goto MissingArgument
-if "%3"=="" goto MissingArgument
 
 :Compile
-node lib/CLI.js compile %1 %2 %3
+node lib/CLI.js compile %1
 exit /b %errorlevel%
 
 :MissingArgument
-echo "Usage: publish.bat path/to/story/directory/ path/to/template.html [bundleScripts: true or false]"
+echo "Usage: publish.bat path/to/story/directory/"
 exit /b 1

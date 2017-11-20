@@ -30,13 +30,39 @@ Clone the Fractive repository:
 
 (If you plan on contributing to Fractive, create a GitHub fork and clone that instead.)
 
+Build Fractive and examples:
+
+	cd fractive
+	npm run build
+
+## Fractive projects
+
+Story text is written in Markdown (.md) files, and game logic is written in Javascript (.js) files. These files, plus any additional assets (images, etc.) are kept together in a Fractive **project**. You can create a new project like this:
+
+	cd fractive
+	node lib/CLI.js create ../my-project
+	cd ../my-project
+
+In the new project folder you'll see a structure like this:
+
+	my-project
+	|- assets/
+	|- source/
+	|- fractive.json
+	|- template.html
+
+The `fractive.json` is your **project file**. It contains all your project settings, like rules for where to find source files and where builds should go. If you take a peek inside, you'll see the default rules:
+
+	markdown: [ "source/**/*.md" ],
+	javascript: [ "source/**/*.js" ],
+	assets: [ "assets/**" ],
+	ignore: [],
+	template: "template.html",
+	output: "build",
+
+These are in [glob syntax](https://github.com/isaacs/node-glob#glob-primer). Note that by default Fractive expects to find all your Markdown and Javascript files in `source`, and anything else in `assets`.
+
 ## Story basics
-
-Story text is written in Markdown (.md) files, and game logic is written in Javascript (.js) files. You'll need to create a folder somewhere to put these files in; this will be your **project folder**. (Keep it separate from your Fractive repository!)
-
-	mkdir my_story
-	touch text.md
-	touch script.js
 
 In Markdown, you'll write your story text in **sections**, each preceded by a special macro that looks like this: `{{SectionName}}`. Each section name (the part inside the double curly braces) must be unique within the story, and section names may not contain whitespace or punctuation: only letters and numbers. A simple section would look like this:
 
@@ -87,9 +113,27 @@ You can inline any of the three macro types:
 | `{#FunctionName:inline}` | Call the function and replace the link with its return value (which should be a string). |
 | `{$VariableName:inline}` | Replace the link with the contents of the variable (which should be a string). |
 
+## Adding multimedia
+
+You can add multimedia elements, like images or videos, to your Fractive stories. In most cases you'll just put those files in `assets` and then source them in your Markdown file. For example, you can place images like this:
+
+	![Image alt text](assets/image.png)
+
+Anything in `assets` gets copied over to your build output location when you publish your story, and the directory structure is preserved. (When writing asset paths in Markdown or Javascript, they should be relative to the project root, not the Markdown/Javascript file itself.)
+
+Markdown also allows raw HTML, so you could embed e.g. a YouTube video using its normal embed code. A section with a video might look like this:
+
+	{{VideoSection}}
+
+	Here's a video!
+
+	<iframe width="854" height="480" src="https://www.youtube.com/embed/dQw4w9WgXcQ" frameborder="0" gesture="media" allowfullscreen></iframe>
+
+	Pretty sweet, yeah?
+
 ## Templates
 
-You can control the visual layout and style of your story by providing a custom HTML template. A simple default can be found in `templates/basic.html`.
+You can control the visual layout and style of your story by providing a custom HTML template. When you create a new project via the Fractive CLI, a basic `template.html` is created in your project root. You can edit or replace this at your leisure.
 
 A template is a regular HTML file with a couple of special macros.
 
@@ -141,18 +185,22 @@ When you're ready to share or test your story, you need to publish it.
 On Windows:
 
 	cd fractive
-	publish.bat path/to/story templates/basic.html true
+	publish.bat path/to/story/directory
 
 On Mac/*nix:
 
 	cd fractive
-	./publish.sh path/to/story templates/basic.html true
+	./publish.sh path/to/story/directory
 
 The publish script will compile all Markdown and Javascript files in the given story folder and spit out an `index.html` in that same location. Simply open that `index.html` in a browser to test, or upload it to your web server to publish it to the world.
+
+If you specify a story directory, Fractive will look for a `fractive.json` at that location, and use the settings it finds there to build the story. If you specify a path to a .json file, Fractive will use that as the project file instead.
 
 ## Examples
 
 There's an example story in `examples/basic` which demonstrates some very basic concepts. Open the `index.html` to play the example, then check out the `text.md` and `script.js` to see how it was implemented.
+
+There's also `examples/macros` which serves as a simple test suite for and demonstration of a bunch of different kinds of story macros.
 
 ## Extending Fractive
 
@@ -160,17 +208,7 @@ Since Fractive games allow unrestricted Javascript, you have the ability to exte
 
 These kinds of extensions may add lots of additional Javascript -- much more than you'd be using for your "normal" game logic -- and that Javascript may need to be deployed in certain directory structures, utilize lazy loading, etc. These are all things that would likely break if all those scripts were embedded directly into your story's output html.
 
-In these situations you may benefit from bypassing the script embed and instead deploying all your scripts "loose" alongside your final html. To do that, just pass `false` as the final argument to the publish script:
-
-On Windows:
-
-	cd fractive
-	publish.bat path/to/story templates/basic.html false
-
-On Mac/*nix:
-
-	cd fractive
-	./publish.sh path/to/story templates/basic.html false
+In these situations you may benefit from placing those scripts in your `assets` folder instead of your `source` folder. That way, they'll simply be copied to your final build location instead of being embedded in the `index.html`. You can then edit your template with `<script>` tags to source those scripts however you need.
 
 ## Importing Fractive
 
@@ -182,59 +220,7 @@ And invoke exported API functions like this:
 
 ```fractive.Core.GotoSection("SomeSectionName");```
 
-## Alternative setup
-
-The simplest way to get set up with Fractive is to simply clone the repo, then create separate story folders outside of it. However, you might also choose to set up each story project as an npm package and install Fractive as a dependency. This might be useful if you're working on several different stories that need to target different versions of Fractive, or if different stories need to manage additional Javascript dependencies and custom extensions. 
-
-Create a folder for your story project:
-
-	mkdir my_story
-	cd my_story
-
-Generate a default npm `package.json` for your new story package:
-
-	npm init
-
-Install Fractive as a dependency:
-
-	npm install fractive --save-dev
-
-Create a subfolder for your actual story files, and init some:
-
-	mkdir src
-	cd src
-	touch story.md
-	touch script.js
-
-You should now have a directory structure that looks like this:
-
-	my_story
-	|
-	|- package.json
-	|
-	|- node_modules
-	|	|
-	|	|- fractive
-	|
-	|- story
-		|
-		|- story.md
-		|- script.js
-
-Edit your story files. Write something amazing!
-
-Once you're ready to publish, you need to build it so others can play it (or so you can test it). Open your `package.json` and edit the `scripts` section to add a `build` command like this:
-
-	"scripts": {
-	  "build": "node node_modules/fractive/lib/CLI.js compile ./src node_modules/fractive/templates/basic.html true",
-	  "test": "echo \"Error: no test specified\" && exit 1"
-	},
-
-From now on, all you need to do to build your story is:
-
-	npm run build
-
-The compiler will spit out an `index.html` alongside your story files in `src` which is a self-contained distribution of your story. Simply open that `index.html` in a browser to test, or upload it to your web server to publish it to the world.
+Currently, the npm-published version lags behind the GitHub version, and may not actually work (yet).
 
 ## Contributing
 
@@ -271,11 +257,11 @@ Then rebuild your story project.
 On Windows:
 
 	cd fractive
-	publish.bat path/to/story templates/basic.html false
+	publish.bat path/to/story
 
 On Mac/*nix:
 
 	cd fractive
-	./publish.sh path/to/story templates/basic.html false
+	./publish.sh path/to/story
 
 And finally, launch the resulting `index.html` and perform your tests.
