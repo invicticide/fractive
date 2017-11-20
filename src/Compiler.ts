@@ -39,7 +39,7 @@ import * as minifier from "html-minifier";
 import * as ajv from "ajv";
 import * as overrideJSON from "json-override";
 import { FractiveProject } from "./ProjectSchema";
-let ProjectDefaults : FractiveProject = {
+export let ProjectDefaults : FractiveProject = {
 	title: "Untitled",
 	author: "Anonymous",
 	description: "An interactive story written in Fractive",
@@ -146,12 +146,10 @@ export namespace Compiler
 			{
 				CleanDirectoryRecursive(path.resolve(targetPath, files[i]), options);
 			}
-			if(options.verbose) { LogAction(targetPath, "rmdir"); }
 			if(!options.dryRun) { fs.rmdirSync(targetPath); }
 		}
 		else
 		{
-			if(options.verbose) { LogAction(targetPath, "unlink"); }
 			if(!options.dryRun) { fs.unlinkSync(targetPath); }
 		}
 	}
@@ -219,7 +217,7 @@ export namespace Compiler
 		let html : string = "";
 		for(let i = 0; i < targets.markdownFiles.length; i++)
 		{
-			LogAction(targets.markdownFiles[i], "render");
+			if(options.verbose || options.dryRun) { LogAction(targets.markdownFiles[i], "render"); }
 			var rendered = RenderFile(path.resolve(basePath, targets.markdownFiles[i]), options);
 			if(rendered === null) { errorCount++; }
 			else { html += `<!-- ${targets.markdownFiles[i]} -->\n${rendered}\n`; }
@@ -230,7 +228,7 @@ export namespace Compiler
 		let javascript = ImportFile(path.resolve(__dirname, "Core.js"));
 		for(let i = 0; i < targets.javascriptFiles.length; i++)
 		{
-			LogAction(targets.javascriptFiles[i], "import");
+			if(options.verbose || options.dryRun) { LogAction(targets.javascriptFiles[i], "import"); }
 			javascript += `// ${targets.javascriptFiles[i]}\n${ImportFile(path.resolve(basePath, targets.javascriptFiles[i]))}\n`;
 		}
 		
@@ -244,7 +242,7 @@ export namespace Compiler
 		// Copy all our assets
 		for(let i = 0; i < targets.assetFiles.length; i++)
 		{
-			LogAction(targets.assetFiles[i], "copy");
+			if(options.verbose || options.dryRun) { LogAction(targets.assetFiles[i], "copy"); }
 			if(!options.dryRun)
 			{
 				let sourcePath = path.resolve(basePath, targets.assetFiles[i]);
@@ -258,7 +256,7 @@ export namespace Compiler
 		// Write the final index.html. We report this after copying assets, even though we actually prepared it before,
 		// because it feels more natural to have the last reported output file be the file that actually runs our game.
 		let indexPath : string = path.resolve(outputDir, "index.html");
-		LogAction(indexPath.split(path.resolve(basePath)).join(""), "output");
+		if(options.verbose || options.dryRun) { LogAction(indexPath.split(path.resolve(basePath)).join(""), "output"); }
 		if(!options.dryRun) { fs.writeFileSync(indexPath, html, "utf8"); }
 	}
 
@@ -838,6 +836,7 @@ export namespace Compiler
 	export function ShowUsage()
 	{
 		console.log(``);
+		console.log(`Usage:`);
 		console.log(`${clc.green("node lib/CLI.js compile")} ${clc.blue("<storyDirectory|configFilePath>")} ${clc.yellow("[options]")}`);
 		console.log(``);
 		console.log(`${clc.blue("storyDirectory:")} The folder path where the story source files are located. Looks for fractive.json in the root.`);

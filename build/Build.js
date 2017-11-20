@@ -24,6 +24,9 @@ var path = require("path");
 var jsonSchemaToTypescript = require("json-schema-to-typescript");
 var clc = require("cli-color");
 
+const { performance } = require("perf_hooks");
+let startTime = performance.now();
+
 /**
  * Compiles the engine files. Typings files should've been built before this.
  */
@@ -61,7 +64,7 @@ function BuildEngine()
  */
 function BuildExamples()
 {
-	console.log("Building examples...\n");
+	console.log("Building examples...");
 
 	let examples = fs.readdirSync("examples", "utf8");
 	for(let i = 0; i < examples.length; i++)
@@ -71,11 +74,15 @@ function BuildExamples()
 	}
 	for(let i = 0; i < examples.length; i++)
 	{
-		console.log(`${examples[i]} (${i + 1}/${examples.length})`);
+		console.log(`  ${examples[i]} (${i + 1}/${examples.length})`);
 
-		let cmd = `node lib/CLI.js compile examples/${examples[i]} ${process.argv.join(" ")}`;
+		let cmd = `node lib/CLI.js compile examples/${examples[i]} ${process.argv.slice(2).join(" ")}`;
 		let result = cp.spawnSync(cmd, [], { env : process.env, shell : true });
-		console.log(`${result.stdout.toString()}`);
+		if(result.stdout !== null)
+		{
+			let s = result.stdout.toString();
+			if(s.length > 0) { console.log(`${result.stdout.toString()}`); }
+		}		
 
 		if(result.status !== 0)
 		{
@@ -83,6 +90,13 @@ function BuildExamples()
 			process.exit(result.status);
 		}
 	}
+}
+
+function Finish()
+{
+	let duration = (performance.now() - startTime) / 1000;
+	let durationString = duration.toLocaleString(undefined, { useGrouping: true, maximumFractionDigits: 2 });
+	console.log(clc.green(`\nBuild finished in ${durationString} seconds\n`));
 }
 
 const schemaInput = "src/ProjectSchema.json";
@@ -95,4 +109,5 @@ jsonSchemaToTypescript.compileFromFile(schemaInput).then(ts =>
 	fs.writeFileSync(schemaOutput, ts, "utf8");
 	BuildEngine();
 	BuildExamples();
+	Finish();
 });
