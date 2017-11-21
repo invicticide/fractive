@@ -37,6 +37,12 @@ export interface FractiveProject {
    * List of glob-style patterns for files to ignore. Ignores are applied when searching for Markdown files, Javascript files, and asset files.
    */
   ignore?: string[];
+  aliases?: {
+    alias?: string;
+    replaceWith?: string;
+    end?: string;
+    [k: string]: any;
+  }[];
   /**
    * The HTML template file to use for the final story output
    */

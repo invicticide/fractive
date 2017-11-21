@@ -17,6 +17,12 @@ Non-expanding reference to a variable in a `text` element: \\{$TestVariable}
 Expand a nested function: {#Nestor.NestedFunction}
 Expand a nested variable: {$Nestor.NestedVariable}
 
+# Aliases
+
+Aliases are {TestAdjective}!
+
+Aliases can enable {red}clean inline styling{/red}!
+
 # Links
 
 [Link to a section]({@TestSection})

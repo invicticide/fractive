@@ -48,6 +48,7 @@ export let ProjectDefaults : FractiveProject = {
 	javascript: [ "source/**/*.js" ],
 	assets: [ "assets/**" ],
 	ignore: [],
+	aliases: [],
 	template: "template.html",
 	output: "build",
 	minify: true
@@ -218,7 +219,7 @@ export namespace Compiler
 		for(let i = 0; i < targets.markdownFiles.length; i++)
 		{
 			if(options.verbose || options.dryRun) { LogAction(targets.markdownFiles[i], "render"); }
-			var rendered = RenderFile(path.resolve(basePath, targets.markdownFiles[i]), options);
+			var rendered = RenderFile(project, path.resolve(basePath, targets.markdownFiles[i]), options);
 			if(rendered === null) { errorCount++; }
 			else { html += `<!-- ${targets.markdownFiles[i]} -->\n${rendered}\n`; }
 		}
@@ -434,19 +435,24 @@ export namespace Compiler
 
 	/**
 	 * Renders the given Markdown file to HTML
+	 * @param project Fractive project configuration object
 	 * @param filepath The path and filename of the Markdown file to render
 	 * @param options Compiler options blob
 	 * @return The rendered HTML, or null on error
 	 */
-	function RenderFile(filepath : string, options : CompilerOptions) : string
+	function RenderFile(project : FractiveProject, filepath : string, options : CompilerOptions) : string
 	{
 		if(!fs.existsSync(filepath))
 		{
 			console.log("File not found: " + filepath);
 			process.exit(1);
 		}
-		let ast = markdownReader.parse(fs.readFileSync(filepath, "utf8")); // Returns an Abstract Syntax Tree (AST)
 
+		// Read the Markdown source and apply alias replacements
+		let markdown = ReplaceAliases(project, fs.readFileSync(filepath, "utf8"));
+
+		// Parse the Markdown source into an Abstract Syntax Tree
+		let ast = markdownReader.parse(markdown);
 		if(options.debug)
 		{
 			console.log("\nRAW AST\n");
@@ -703,7 +709,8 @@ export namespace Compiler
 		{
 			if(node.literal[i] === '\\')
 			{
-				i++; // Skip over the next character
+				i = SkipEscapedSubstring(node.literal, i);
+				continue;
 			}
 			else if(node.literal[i] === '{')
 			{
@@ -797,6 +804,64 @@ export namespace Compiler
 	}
 
 	/**
+	 * Replaces aliases in the given Markdown source according to the "aliases" entry in the project config, and returns the new Markdown source.
+	 * @param project Fractive project configuration object
+	 * @param source The Markdown source text to parse
+	 * @returns New Markdown source text with all aliases replaced
+	 */
+	function ReplaceAliases(project : FractiveProject, source : string) : string
+	{
+		// Don't parse anything if there aren't any aliases defined
+		if(project.aliases.length < 1) { return source; }
+
+		let markdown : string = source;
+		for(let i = 0; i < markdown.length; i++)
+		{
+			if(markdown[i] === '\\')
+			{
+				i = SkipEscapedSubstring(markdown, i);
+				continue;
+			}
+			else if(markdown[i] === '{')
+			{
+				let bIsEnd : boolean = (markdown[i + 1] === '/');
+				for(let j = i + 1; j < markdown.length; j++)
+				{
+					if(markdown[j] === '{')
+					{
+						// If there's another opening brace inside the macro, then this isn't an alias, so just ignore it
+						i = j;
+						break;
+					}
+					else if(markdown[j] === '}')
+					{
+						// This is the end of the macro; see if it's an alias, or something else
+						let macro : string = markdown.substring(i, j + 1);
+						let macroName : string = macro.substring(bIsEnd ? 2 : 1, macro.length - 1);
+						let replacement: string = null;
+						for(let k = 0; k < project.aliases.length; k++)
+						{
+							if(macroName === project.aliases[k].alias)
+							{
+								replacement = (bIsEnd ? project.aliases[k].end : project.aliases[k].replaceWith);
+								break;
+							}
+						}
+						if(replacement)
+						{
+							// Replace all occurrences of this macro and jump the scan index to the end of this instance
+							markdown = markdown.split(macro).join(replacement);
+							i += replacement.length - 1;
+						}
+						break;
+					}
+				}
+			}
+		}
+		return markdown;
+	}
+
+	/**
 	 * Rewrites a link node (from a CommonMark AST) applying the data attributes in dataAttrs appropriately.
 	 * This function modifies the AST in-place by replacing the link node with an html_inline node that
 	 * explicitly formats the rewritten <a> tag.
@@ -848,5 +913,32 @@ export namespace Compiler
 		console.log(``);
 		console.log(`${clc.green("node lib/CLI.js compile /Users/Desktop/MyStory")} ${clc.yellow("--verbose")}`);
 		console.log(``);
+	}
+
+	/**
+	 * Helper function for character-wise string scanning. Given a string and the index of a \ character, skips to the
+	 * end of the escape sequence and returns the index of the last character of the escape sequence. Most useful for
+	 * skipping past escaped Fractive macros, but can also skip regular escape sequences as well.
+	 * @param s The string to scan
+	 * @param startIndex The index of the \ character which begins the escape sequence to be skipped
+	 * @returns The index of the last character of the escape sequence, or -1 on error (e.g. an unterminated Fractive macro). If the starting character isn't a \ then this just returns startIndex.
+	 */
+	function SkipEscapedSubstring(s : string, startIndex : number)
+	{
+		// This isn't an escape at all
+		if(s[startIndex] !== '\\') { return startIndex; }
+
+		// This is a regular escape sequence, so just skip the escaped character
+		if(s[startIndex + 1] !== '{') { return startIndex + 1; }
+		
+		// This is an escaped macro, so skip to the end of the macro
+		let braceCount : number = 0;
+		for(let i = startIndex + 1; i < s.length; i++)
+		{
+			if(s[i] === '{') { ++braceCount; }
+			else if(s[i] === '}' && --braceCount === 0) { return i; }
+		}
+
+		return -1;
 	}
 }

@@ -113,6 +113,49 @@ You can inline any of the three macro types:
 | `{#FunctionName:inline}` | Call the function and replace the link with its return value (which should be a string). |
 | `{$VariableName:inline}` | Replace the link with the contents of the variable (which should be a string). |
 
+## Aliases
+
+Since Markdown also accepts HTML, you could style some text like this:
+
+	In this story, some things are <span style="color:red">displayed in red</span>!
+
+While functional, this looks ugly and makes your story text harder to read. It's also a lot to type out, and if you're going to be styling things consistently, you have to copy the same HTML snippet over and over again, which creates an opportunity for bugs to arise.
+
+To solve this problem (and others like it) you can define custom macros, called **aliases**, which expand to other text or markup at compile-time. In your `fractive.json` simply add some rules to the `aliases` field, like this:
+
+	"aliases": [
+		{ "alias": "red", "replaceWith": "<span style='color:red'>", "end": "</span>" },
+		{ "alias": "blue", "replaceWith": "<span style='color:blue'>", "end": "</span>" }
+	],
+
+Then refer to the alias in your story text like this:
+
+	In this story, some things are {red}displayed in red{/red}!
+
+When you build your story, all instances of `{red}` will be replaced with `<span style='color:red'>` and all instances of `{/red}` will be replaced with `</span>`. If later you wanted to change all your red text to a more specific shade of red (for example) you could simply edit your alias like this, then rebuild your story and all existing usages of the `{red}` alias would be automatically updated:
+
+	"aliases": [
+		{ "alias": "red", "replaceWith": "<span style='color:#ff8888'>", "end": "</span>" },
+		{ "alias": "blue", "replaceWith": "<span style='color:#8888ff'>", "end": "</span>" }
+	],
+
+**Technical note:** Alias replacement happens before any other build steps take place, and is a (nearly) pure text replacement. That means you can replace aliases with macro definitions, and those macros will then be expanded normally. In other words, you could do something like this:
+
+	"aliases": [
+		{ "alias": "Home", "replaceWith": "{{Start}}" }
+	],
+
+And then in your story text do this:
+
+	{Home}
+	This is the beginning of my story, but I'm obstinate and don't want to use the normal \{{Start}} macro as my default section header.
+
+When you build this story, `{Home}` will get replaced with `{{Start}}` and then _voila_, you have a valid starting section by a different name! (This is a contrived example, but you get the idea.)
+
+Notice also that the `end` property of an alias is optional. Aliases are replaced with the `replaceWith` parameter, unless they contain a leading `/`, in which case they're replaced with their `end` parameter instead.
+
+Finally, did you notice the `\{{Start}}` in the example text above? When a macro is preceded by a `\` character it is **escaped**, which means it's not treated like a macro and is instead just rendered as-is. Escaping applies to aliases as well, so `{red}` will be replaced, but `\{red}` will not. You should only need to use this in the rare case that you have text that contains a `{` character that needs to actually be shown to the player.
+
 ## Adding multimedia
 
 You can add multimedia elements, like images or videos, to your Fractive stories. In most cases you'll just put those files in `assets` and then source them in your Markdown file. For example, you can place images like this:
