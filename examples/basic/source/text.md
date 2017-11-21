@@ -6,7 +6,7 @@ Welcome to fractive, a tool for creating hypertext fiction!
 
 Fractive stories are written in Markdown, and you can add (optional) game logic in Javascript. Stories consist of "sections", which you might think of like one page of a book. Typically a section will give you a bit of narrative and then present one or more choices to the player; each choice takes the story to a different section, and in a different direction.
 
-In Markdown, you declare the beginning of a new section by enclosing the section name (which must be unique!) in double curly braces. The section you're reading right now is called `Start` which is a special section name that indicates where the story begins.
+In Markdown, you declare the beginning of a new section by enclosing the section name (which must be unique!) in double curly braces. The section you're reading right now is called `\{{Start}}` which is a special section name that indicates where the story begins.
 
 [Link to another section]({@AnotherSection})
 
@@ -18,7 +18,7 @@ You just clicked a link that took you to another section! You create section lin
 - \# denotes a Javascript function to call
 - $ denotes a Javascript variable
 
-So if you put inside the curly braces `@Start` you'd have created a link back to the section called `Start`. If on the other hand you'd put `#Start` you'd have created a link that would call a Javascript function called `Start`.
+So if you set the URL to `\{@Start}` you'd have created a link back to the section called `Start`. If on the other hand you'd put `\{#Start}` you'd have created a link that would call a Javascript function called `Start`.
 
 [What does it look like when a link calls a Javascript function?]({#FunctionLink})
 [What happens if I set the link URL to a variable macro?]({#VariableLink})
