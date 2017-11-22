@@ -51,7 +51,8 @@ export let ProjectDefaults : FractiveProject = {
 	aliases: [],
 	template: "template.html",
 	output: "build",
-	minify: true
+	minify: true,
+	linkTooltips: false
 };
 import * as globby from "globby";
 
@@ -76,17 +77,17 @@ export interface CompilerOptions
 
 export namespace Compiler
 {
+	let project : FractiveProject = null;
 	let nextInlineID : number = 0;
 	let sectionCount : number = 0;
 
 	/**
 	 * Inserts the given story text (html) and scripts (javascript) into an html template, and returns the complete resulting html file contents
-	 * @param project Fractive project configuration object
 	 * @param html The html-formatted story text to insert into the template
 	 * @param javascript The javascript story scripts to insert into the template
 	 * @return The complete resulting html file contents
 	 */
-	function ApplyTemplate(basePath : string, project : FractiveProject, html : string, javascript : string) : string
+	function ApplyTemplate(basePath : string, html : string, javascript : string) : string
 	{
 		let templatePath : string = path.resolve(basePath, project.template);		
 		if(!fs.existsSync(templatePath))
@@ -178,7 +179,7 @@ export namespace Compiler
 			}
 			process.exit(1);
 		}
-		let project : FractiveProject = overrideJSON(ProjectDefaults, targetProject, true); // createNew
+		project = overrideJSON(ProjectDefaults, targetProject, true); // createNew
 
 		// Validate inputs and outputs
 		if(project.markdown.length < 1)
@@ -219,7 +220,7 @@ export namespace Compiler
 		for(let i = 0; i < targets.markdownFiles.length; i++)
 		{
 			if(options.verbose || options.dryRun) { LogAction(targets.markdownFiles[i], "render"); }
-			var rendered = RenderFile(project, path.resolve(basePath, targets.markdownFiles[i]), options);
+			var rendered = RenderFile(path.resolve(basePath, targets.markdownFiles[i]), options);
 			if(rendered === null) { errorCount++; }
 			else { html += `<!-- ${targets.markdownFiles[i]} -->\n${rendered}\n`; }
 		}
@@ -234,7 +235,7 @@ export namespace Compiler
 		}
 		
 		// Wrap our compiled html with a page template
-		html = ApplyTemplate(basePath, project, html, javascript);
+		html = ApplyTemplate(basePath, html, javascript);
 
 		// Create output directory
 		let outputDir = path.resolve(basePath, project.output);
@@ -435,12 +436,11 @@ export namespace Compiler
 
 	/**
 	 * Renders the given Markdown file to HTML
-	 * @param project Fractive project configuration object
 	 * @param filepath The path and filename of the Markdown file to render
 	 * @param options Compiler options blob
 	 * @return The rendered HTML, or null on error
 	 */
-	function RenderFile(project : FractiveProject, filepath : string, options : CompilerOptions) : string
+	function RenderFile(filepath : string, options : CompilerOptions) : string
 	{
 		if(!fs.existsSync(filepath))
 		{
@@ -449,7 +449,7 @@ export namespace Compiler
 		}
 
 		// Read the Markdown source and apply alias replacements
-		let markdown = ReplaceAliases(project, fs.readFileSync(filepath, "utf8"));
+		let markdown = ReplaceAliases(fs.readFileSync(filepath, "utf8"));
 
 		// Parse the Markdown source into an Abstract Syntax Tree
 		let ast = markdownReader.parse(markdown);
@@ -805,11 +805,10 @@ export namespace Compiler
 
 	/**
 	 * Replaces aliases in the given Markdown source according to the "aliases" entry in the project config, and returns the new Markdown source.
-	 * @param project Fractive project configuration object
 	 * @param source The Markdown source text to parse
 	 * @returns New Markdown source text with all aliases replaced
 	 */
-	function ReplaceAliases(project : FractiveProject, source : string) : string
+	function ReplaceAliases(source : string) : string
 	{
 		// Don't parse anything if there aren't any aliases defined
 		if(project.aliases.length < 1) { return source; }
@@ -880,14 +879,15 @@ export namespace Compiler
 		}
 
 		// Replace the link node with a new html_inline node to hold the rewritten <a> tag
-		var newNode = new commonmark.Node("html_inline", node.sourcepos);
+		let newNode = new commonmark.Node("html_inline", node.sourcepos);
+		let title = `title="${(project.linkTooltips ? node.destination.replace("%7B", "{").replace("%7D", "}") : "")}"`;
 		let attrs : string = "";
 		for(let i = 0; i < dataAttrs.length; i++)
 		{
 			attrs += ` data-${dataAttrs[i].attr}="${dataAttrs[i].value}"`;
 		}
-		if(id === null) { newNode.literal = `<a href="#"${attrs}>${linkText}</a>`; }
-		else { newNode.literal = `<a href="#" id="${id}"${attrs}>${linkText}</a>`; }
+		if(id === null) { newNode.literal = `<a href="#" ${title}${attrs}>${linkText}</a>`; }
+		else { newNode.literal = `<a href="#" id="${id}" ${title}${attrs}>${linkText}</a>`; }
 
 		node.insertBefore(newNode);
 		node.unlink();

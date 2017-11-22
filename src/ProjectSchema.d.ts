@@ -55,4 +55,8 @@ export interface FractiveProject {
    * If true, minify the final story HTML (reduces file size but makes the HTML source much less human-readable)
    */
   minify?: boolean;
+  /**
+   * If true, show a tooltip on macro links indicating the macro destination. (Useful for dev, but you probably want to disable it for release.)
+   */
+  linkTooltips?: boolean;
 }

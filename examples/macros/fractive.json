@@ -4,5 +4,6 @@
 		{ "alias": "TestAdjective", "replaceWith": "awesome" },
 		{ "alias": "red", "replaceWith": "<span style='color:#ff8888'>", "end": "</span>" }
 	],
-	"template": "../../templates/basic.html"
+	"template": "../../templates/basic.html",
+	"linkTooltips": true
 }
