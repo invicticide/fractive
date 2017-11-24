@@ -52,9 +52,9 @@ export interface FractiveProject {
    */
   output?: string;
   /**
-   * If true, minify the final story HTML (reduces file size but makes the HTML source much less human-readable)
+   * Options: 'minify' to minify the final story HTML (reduces file size but makes the HTML source much less human-readable), 'prettify' to prettify the final story HTML into human-readable HTML, 'default' for no additional processing
    */
-  minify?: boolean;
+  outputFormat?: "prettify" | "minify" | "default";
   /**
    * If true, show a tooltip on macro links indicating the macro destination. (Useful for dev, but you probably want to disable it for release.)
    */

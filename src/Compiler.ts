@@ -32,6 +32,8 @@ import * as commonmark from "commonmark";
 const markdownReader = new commonmark.Parser({smart: false});
 const markdownWriter = new commonmark.HtmlRenderer({softbreak: "<br/>"});
 
+// Beautification
+import * as beautifier from "js-beautify";
 // Minification
 import * as minifier from "html-minifier";
 
@@ -51,7 +53,7 @@ export let ProjectDefaults : FractiveProject = {
 	aliases: [],
 	template: "template.html",
 	output: "build",
-	minify: true,
+	outputFormat: "prettify",
 	linkTooltips: false
 };
 import * as globby from "globby";
@@ -107,6 +109,12 @@ export namespace Compiler
 		// Imported scripts
 		let scriptSection : string = "<script>";
 		scriptSection += "var exports = {};";	// This object holds all the TypeScript exports which are callable by story scripts
+
+    // Prettify the JavaScript if configured to do so
+		if (project.outputFormat === 'prettify') {
+			javascript = beautifier.js_beautify(javascript);
+		}
+
 		scriptSection += `${javascript}`;		// Insert all bundled scripts, including Core.js
 		scriptSection += "</script>";
 		template = template.split("<!--{script}-->").join(scriptSection);
@@ -115,7 +123,7 @@ export namespace Compiler
 		template = template.split("<!--{story}-->").join(html); // Insert html-formatted story text
 		template += "<script>Core.GotoSection(\"Start\");</script>"; // Auto-start at the "Start" section
 
-		if(project.minify)
+		if(project.outputFormat === 'minify')
 		{
 			return minifier.minify(template, {
 				collapseWhitespace: true,
@@ -128,7 +136,10 @@ export namespace Compiler
 				removeRedundantAttributes: true
 			});
 		}
-		else
+    else if (project.outputFormat === 'prettify') {
+			return beautifier.html(template);
+    }
+		else 
 		{
 			return template;
 		}
