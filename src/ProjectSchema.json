@@ -13,13 +13,17 @@
 				{
 					"type": "array",
 					"items": { "type": "string" },
-					"uniqueItems": true,
+					"uniqueItems": true
 				},
 				{
 					"type": "object",
 					"minProperties": 1,
 					"patternProperties": {
-						"^.+$": { "type": "string" }
+						"^.+$": {
+							"type": "array",
+							"items": { "type": "string" },
+							"uniqueItems": true
+						}
 					}
 				}
 			],
