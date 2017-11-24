@@ -30,10 +30,10 @@ Clone the Fractive repository:
 
 (If you plan on contributing to Fractive, create a GitHub fork and clone that instead.)
 
-Build Fractive and examples:
+Install dependencies and build Fractive:
 
 	cd fractive
-	npm run build
+	npm install
 
 ## Fractive projects
 
