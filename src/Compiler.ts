@@ -219,21 +219,49 @@ export namespace Compiler
 			nodir: true,
 			nomount: true
 		};
+
 		let targets = {
-			markdownFiles: globby.sync(project.markdown, globOptions),
 			javascriptFiles: globby.sync(project.javascript, globOptions),
-			assetFiles: globby.sync(project.assets, globOptions)
+			assetFiles: globby.sync(project.assets, globOptions),
+			markdownFiles: {}
 		};
+
+		// Retrieve markdown targets into a dictionary of language name -> file array
+
+		// If 'markdown' element is an array, there is only one language
+		if (typeof(project.markdown) === 'array') {
+			targets.markdownFiles[""] = globby.sync(project.markdown, globOptions),
+		}
+		// If 'markdown' element is an object, we have to handle localization
+		else if (typeof(project.markdown) === 'object') {
+
+			// For each Language key
+			for (var property in project.markdown) {
+				if (!project.markdown.hasOwnProperty(property)) {
+					continue;
+				}
+
+				targets.markdownFiles[property] = globby.sync(project.markdown[property], globOptions);
+			}
+		}
 		
 		// Compile all the Markdown files
 		let errorCount : number = 0;
 		let html : string = "";
-		for(let i = 0; i < targets.markdownFiles.length; i++)
-		{
-			if(options.verbose || options.dryRun) { LogAction(targets.markdownFiles[i], "render"); }
-			var rendered = RenderFile(path.resolve(basePath, targets.markdownFiles[i]), options);
-			if(rendered === null) { errorCount++; }
-			else { html += `<!-- ${targets.markdownFiles[i]} -->\n${rendered}\n`; }
+
+
+		for (var property in project.markdown) {
+			if (!project.markdown.hasOwnProperty(property)) {
+				continue;
+			}
+
+			for(let i = 0; i < targets.markdownFiles[property].length; i++)
+			{
+				if(options.verbose || options.dryRun) { LogAction(targets.markdownFiles[property][i], "render"); }
+				var rendered = RenderFile(path.resolve(basePath, targets.markdownFiles[property][i]), options, property);
+				if(rendered === null) { errorCount++; }
+				else { html += `<!-- ${targets.markdownFiles[property][i]} -->\n${rendered}\n`; }
+			}
 		}
 		if(errorCount > 0) { process.exit(1); }
 
@@ -449,9 +477,10 @@ export namespace Compiler
 	 * Renders the given Markdown file to HTML
 	 * @param filepath The path and filename of the Markdown file to render
 	 * @param options Compiler options blob
+	 * @param language The language of this file 
 	 * @return The rendered HTML, or null on error
 	 */
-	function RenderFile(filepath : string, options : CompilerOptions) : string
+	function RenderFile(filepath : string, options : CompilerOptions, language = "") : string
 	{
 		if(!fs.existsSync(filepath))
 		{
@@ -514,7 +543,7 @@ export namespace Compiler
 				case "html_inline":
 				case "html_block":
 				{
-					if(!RenderText(walker, event, filepath)) { return null; }
+					if(!RenderText(walker, event, filepath, language)) { return null; }
 					break;
 				}
 				case "image":
@@ -707,7 +736,7 @@ export namespace Compiler
 	 * @param filepath The path of the file we're currently processing (for error reporting)
 	 * @returns True on success, false on error
 	 */
-	function RenderText(walker, event, filepath : string) : boolean
+	function RenderText(walker, event, filepath : string, language = "") : boolean
 	{
 		if(!walker || !event)
 		{
@@ -758,7 +787,7 @@ export namespace Compiler
 						if(node.parent)
 						{
 							var insertedNode = new commonmark.Node("html_inline", node.sourcepos); // TODO: Real sourcepos
-							insertedNode.literal = `${sectionCount > 0 ? "</div>\n" : ""}<div id="${macro.substring(2, macro.length - 2)}" class="section" hidden="true">`;
+							insertedNode.literal = `${sectionCount > 0 ? "</div>\n" : ""}<div id="${macro.substring(2, macro.length - 2)}${language}" class="section" hidden="true">`;
 							if(node.prev)
 							{
 								LogParseError(`Section macro "${macro}" must be defined in its own paragraph/on its own line`, filepath, node, lineOffset, columnOffset);
