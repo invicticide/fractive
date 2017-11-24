@@ -51,7 +51,7 @@ export let ProjectDefaults : FractiveProject = {
 	aliases: [],
 	template: "template.html",
 	output: "build",
-	minify: true,
+	outputFormat: "prettify",
 	linkTooltips: false
 };
 import * as globby from "globby";
