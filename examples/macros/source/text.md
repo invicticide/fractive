@@ -227,3 +227,26 @@ Non-expanding reference to a variable with surrounding content in a fenced `code
 \{$TestVariable}
 // End reference
 ```
+
+# Other formatting
+
+> This is a blockquote. It expands a function ({#TestFunction}) and a variable ({$TestVariable}) and finally a section: {@TestSection}
+
+* Here is a list item expanding a function: {#TestFunction}
+* List item expanding a variable: {$TestVariable}
+	* Child item with a function: {#TestFunction}
+	* Child with a variable: {$TestVariable}
+* List item with a section (this is probably nonsense): {@TestSection}
+	* Child with a section (also nonsense): {@TestSection}
+
+## Here's a heading expanding a function: {#TestFunction}
+
+## Heading with a variable: {$TestVariable}
+
+## Heading with a section (nonsense): {@TestSection}
+
+<div>
+<p><span style="color:blue">Here's some inline HTML that expands a function: {#TestFunction}</span></p>
+<p><span style="color:red">Inline HTML that expands a variable: {$TestVariable}</span></p>
+<p><span style="color:green">Inline HTML that expands a section: {@TestSection}</span></p>
+</div>

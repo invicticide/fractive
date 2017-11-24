@@ -500,6 +500,8 @@ export namespace Compiler
 				case "text":
 				case "code":
 				case "code_block":
+				case "html_inline":
+				case "html_block":
 				{
 					if(!RenderText(walker, event, filepath)) { return null; }
 					break;
