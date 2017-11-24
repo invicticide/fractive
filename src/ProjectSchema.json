@@ -9,10 +9,21 @@
 		"description": { "type": "string", "description": "The long-form game description that will be shown to players" },
 		"website": { "type": "string", "description": "A web URL that will be shown to players" },
 		"markdown": {
-			"type": "array",
-			"items": { "type": "string" },
-			"uniqueItems": true,
-			"description": "List of glob-style patterns for locating Markdown source files. These are compiled in the order in which they appear."
+			"anyOf": [
+				{
+					"type": "array",
+					"items": { "type": "string" },
+					"uniqueItems": true,
+				},
+				{
+					"type": "object",
+					"minProperties": 1,
+					"patternProperties": {
+						"^.+$": { "type": "string" }
+					}
+				}
+			],
+      "description": "List of glob-style patterns for locating Markdown source files. These are compiled in the order in which they appear."
 		},
 		"javascript": {
 			"type": "array",
