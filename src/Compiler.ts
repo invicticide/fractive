@@ -110,10 +110,10 @@ export namespace Compiler
 		let scriptSection : string = "<script>";
 		scriptSection += "var exports = {};";	// This object holds all the TypeScript exports which are callable by story scripts
 
-        // Prettify the JavaScript if configured to do so
-        if (project.outputFormat === 'prettify') {
-            javascript = beautifier.js_beautify(javascript);
-        }
+    // Prettify the JavaScript if configured to do so
+		if (project.outputFormat === 'prettify') {
+			javascript = beautifier.js_beautify(javascript);
+		}
 
 		scriptSection += `${javascript}`;		// Insert all bundled scripts, including Core.js
 		scriptSection += "</script>";
@@ -136,16 +136,11 @@ export namespace Compiler
 				removeRedundantAttributes: true
 			});
 		}
-        else if (project.outputFormat === 'prettify') {
-            return beautifier.html(template);
-        }
+    else if (project.outputFormat === 'prettify') {
+			return beautifier.html(template);
+    }
 		else 
 		{
-            if (project.outputFormat !== 'default')
-            {
-                console.log("Warning! 'outputFormat' in build config is invalid. Applying 'default'");
-            }
-
 			return template;
 		}
 	}
