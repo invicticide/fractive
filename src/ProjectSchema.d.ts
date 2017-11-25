@@ -24,7 +24,9 @@ export interface FractiveProject {
   /**
    * List of glob-style patterns for locating Markdown source files. These are compiled in the order in which they appear.
    */
-  markdown?: string[];
+  markdown?: {
+    [k: string]: any;
+  };
   /**
    * List of glob-style patterns for locating Javascript files reside. These are imported in the order in which they appear.
    */

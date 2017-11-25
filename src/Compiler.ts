@@ -46,7 +46,8 @@ export let ProjectDefaults : FractiveProject = {
 	author: "Anonymous",
 	description: "An interactive story written in Fractive",
 	website: "fractive.io",
-	markdown: [ "source/**/*.md" ],
+	defaultLanguage: "English",
+	markdown: { "English": [ "source/**/*.md" ] },
 	javascript: [ "source/**/*.js" ],
 	assets: [ "assets/**" ],
 	ignore: [],
@@ -193,11 +194,6 @@ export namespace Compiler
 		project = overrideJSON(ProjectDefaults, targetProject, true); // createNew
 
 		// Validate inputs and outputs
-		if(project.markdown.length < 1)
-		{
-			LogError("No Markdown input patterns were given (check the 'markdown' property in your fractive.json)");
-			process.exit(1);
-		}
 		if(project.output.length < 1)
 		{
 			LogError("No output directory was given (check the 'output' property in your fractive.json)");
@@ -228,21 +224,15 @@ export namespace Compiler
 
 		// Retrieve markdown targets into a dictionary of language name -> file array
 
-		// If 'markdown' element is an array, there is only one language
-		if (typeof(project.markdown) === 'array') {
-			targets.markdownFiles[""] = globby.sync(project.markdown, globOptions),
-		}
-		// If 'markdown' element is an object, we have to handle localization
-		else if (typeof(project.markdown) === 'object') {
-
-			// For each Language key
-			for (var property in project.markdown) {
-				if (!project.markdown.hasOwnProperty(property)) {
-					continue;
-				}
-
-				targets.markdownFiles[property] = globby.sync(project.markdown[property], globOptions);
+		// For each Language key
+		for (var property in project.markdown) {
+			if (!project.markdown.hasOwnProperty(property)) {
+				continue;
 			}
+
+			console.log(property);
+
+			targets.markdownFiles[property] = globby.sync(project.markdown[property], globOptions);
 		}
 		
 		// Compile all the Markdown files
@@ -480,7 +470,7 @@ export namespace Compiler
 	 * @param language The language of this file 
 	 * @return The rendered HTML, or null on error
 	 */
-	function RenderFile(filepath : string, options : CompilerOptions, language = "") : string
+	function RenderFile(filepath : string, options : CompilerOptions, language: string) : string
 	{
 		if(!fs.existsSync(filepath))
 		{
@@ -736,7 +726,7 @@ export namespace Compiler
 	 * @param filepath The path of the file we're currently processing (for error reporting)
 	 * @returns True on success, false on error
 	 */
-	function RenderText(walker, event, filepath : string, language = "") : boolean
+	function RenderText(walker, event, filepath : string, language: string) : boolean
 	{
 		if(!walker || !event)
 		{
