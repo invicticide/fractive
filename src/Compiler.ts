@@ -193,12 +193,6 @@ export namespace Compiler
 		}
 		project = overrideJSON(ProjectDefaults, targetProject, true); // createNew
 
-		// Validate inputs and outputs
-		if(project.output.length < 1)
-		{
-			LogError("No output directory was given (check the 'output' property in your fractive.json)");
-			process.exit(1);
-		}
 		if(options.dryRun) { console.log(clc.red("\n(This is a dry run. No output files will be written.)\n")); }
 
 		// Create or clean output directory
