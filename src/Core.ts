@@ -199,7 +199,7 @@ export namespace Core
 		history.scrollTop = history.scrollHeight;
 
 		// Expand the destination section
-		let clone = ExpandSection(id);
+		let clone = ExpandSection(id + GetCurrentLanguage());
 		EnableInlineMacros(clone, true);
 		RegisterLinks(clone);
 		clone.scrollTop = 0;
@@ -288,6 +288,16 @@ export namespace Core
 				break;
 			}
 		}
+	}
+
+	export function Refresh() {
+		GotoSection("Start");
+	}
+
+	export function GetCurrentLanguage() {
+		let languageSelect : HTMLSelectElement = document.getElementById("languages") as HTMLSelectElement;
+
+		return languageSelect.options[languageSelect.selectedIndex].value;
 	}
 
 	/**

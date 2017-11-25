@@ -216,7 +216,10 @@ export namespace Compiler
 			markdownFiles: {}
 		};
 
-		// Retrieve markdown targets into a dictionary of language name -> file array
+		// Construct a language dropdown menu for the HTML
+		// that will be put in the __languages div
+		let selectHTML = "";
+		selectHTML += '<select id="languages" name="languages" onchange="Core.Refresh()">';
 
 		// For each Language key
 		for (var property in project.markdown) {
@@ -224,21 +227,29 @@ export namespace Compiler
 				continue;
 			}
 
-			console.log(property);
+			let language = property;
 
-			targets.markdownFiles[property] = globby.sync(project.markdown[property], globOptions);
+			// Retrieve markdown targets into a dictionary of language name -> file array
+			targets.markdownFiles[language] = globby.sync(project.markdown[language], globOptions);
+
+			selectHTML += '<option value="' + language + '">' + language + '</option>';
 		}
-		
-		// Compile all the Markdown files
-		let errorCount : number = 0;
+
+		selectHTML += '</select>';
+
 		let html : string = "";
+		let errorCount : number = 0;
 
+		// TODO put this in applyTemplate() and put it in the right div
+		html += selectHTML;
 
+		// For each language key
 		for (var property in project.markdown) {
 			if (!project.markdown.hasOwnProperty(property)) {
 				continue;
 			}
 
+			// Compile all the Markdown files in that language
 			for(let i = 0; i < targets.markdownFiles[property].length; i++)
 			{
 				if(options.verbose || options.dryRun) { LogAction(targets.markdownFiles[property][i], "render"); }

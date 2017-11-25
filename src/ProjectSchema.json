@@ -8,7 +8,7 @@
 		"author": { "type": "string", "description": "The author name that will be shown to players" },
 		"description": { "type": "string", "description": "The long-form game description that will be shown to players" },
 		"website": { "type": "string", "description": "A web URL that will be shown to players" },
-		"defaultLanguage": { "type": "string" }
+		"defaultLanguage": { "type": "string" },
 		"markdown": {
 			"type": "object",
 			"minProperties": 1,

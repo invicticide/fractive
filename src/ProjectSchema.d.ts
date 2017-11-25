@@ -21,6 +21,7 @@ export interface FractiveProject {
    * A web URL that will be shown to players
    */
   website?: string;
+  defaultLanguage?: string;
   /**
    * List of glob-style patterns for locating Markdown source files. These are compiled in the order in which they appear.
    */
