@@ -1,8 +1,8 @@
 {
 	"title": "localized",
-	"template": "../../templates/basic.html",
+	"template": "../../templates/localized.html",
 	"linkTooltips": true,
-  "defaultLanguage": "Zazz",
+  "defaultLanguage": "Engish",
   "markdown": {
     "English": [ "source/english/**/*.md" ],
     "Español": [ "source/spanish/**/*.md" ]

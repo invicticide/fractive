@@ -27,6 +27,10 @@
             overflow: scroll;
         }
 
+        #__languages {
+            display: none;
+        }
+
         .__disabledLink {
             color: silver;
             text-decoration: underline;
@@ -299,7 +303,6 @@
 </head>
 
 <body>
-    <select id="languages" name="languages" onchange="Core.Refresh()"><option selected="selected" value="English">English</option></select>
     <!-- source/text.md -->
     <div id="TestSectionEnglish" class="section" hidden="true">
         <p>Expanded section!</p>
@@ -490,6 +493,9 @@
 
     <div id="__history"></div>
     <div id="__currentSection"></div>
+    <div id="__languages">
+        <select id="languages" name="languages" onchange="Core.Refresh()"><option selected="selected" value="English">English</option></select>
+    </div>
 </body>
 
 </html>

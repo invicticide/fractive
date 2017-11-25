@@ -90,7 +90,7 @@ export namespace Compiler
 	 * @param javascript The javascript story scripts to insert into the template
 	 * @return The complete resulting html file contents
 	 */
-	function ApplyTemplate(basePath : string, html : string, javascript : string) : string
+	function ApplyTemplate(basePath : string, html : string, languageSelectHTML: string, javascript : string) : string
 	{
 		let templatePath : string = path.resolve(basePath, project.template);		
 		if(!fs.existsSync(templatePath))
@@ -122,6 +122,9 @@ export namespace Compiler
 
 		// Story text
 		template = template.split("<!--{story}-->").join(html); // Insert html-formatted story text
+
+		// Insert the languages selection
+		template = template.split("<!--{languages}-->").join(languageSelectHTML);
 
 		// Start the story logic
 		template += "<script>";
@@ -258,9 +261,6 @@ export namespace Compiler
 		let html : string = "";
 		let errorCount : number = 0;
 
-		// TODO put this in applyTemplate() and put it in the right div
-		html += selectHTML;
-
 		// For each language key
 		for (var property in project.markdown) {
 			if (!project.markdown.hasOwnProperty(property)) {
@@ -287,7 +287,7 @@ export namespace Compiler
 		}
 		
 		// Wrap our compiled html with a page template
-		html = ApplyTemplate(basePath, html, javascript);
+		html = ApplyTemplate(basePath, html, selectHTML, javascript);
 
 		// Create output directory
 		let outputDir = path.resolve(basePath, project.output);
