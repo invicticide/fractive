@@ -122,7 +122,11 @@ export namespace Compiler
 
 		// Story text
 		template = template.split("<!--{story}-->").join(html); // Insert html-formatted story text
-		template += "<script>Core.GotoSection(\"Start\");</script>"; // Auto-start at the "Start" section
+
+		// Start the story logic
+		template += "<script>";
+		template += 'Core.GotoSection("Start");';
+		template += "</script>"; // Auto-start at the "Start" section
 
 		if(project.outputFormat === 'minify')
 		{
@@ -191,6 +195,15 @@ export namespace Compiler
 			}
 			process.exit(1);
 		}
+
+		// TODO this is a bit hackish -- overrideJSON() will merge languages
+		// between the fractive.json and ProjectDefaults, which we don't want.
+		// Instead, if targetProject defined markdown, remove it from
+		// ProjectDefaults
+		if (targetProject.hasOwnProperty("markdown")) {
+			ProjectDefaults.markdown = undefined;
+		}
+
 		project = overrideJSON(ProjectDefaults, targetProject, true); // createNew
 
 		if(options.dryRun) { console.log(clc.red("\n(This is a dry run. No output files will be written.)\n")); }
@@ -232,7 +245,12 @@ export namespace Compiler
 			// Retrieve markdown targets into a dictionary of language name -> file array
 			targets.markdownFiles[language] = globby.sync(project.markdown[language], globOptions);
 
-			selectHTML += '<option value="' + language + '">' + language + '</option>';
+			selectHTML += '<option ';
+			if (language === project.defaultLanguage) {
+				selectHTML += 'selected="selected" ';
+			}
+			
+			selectHTML += 'value="' + language + '">' + language + '</option>';
 		}
 
 		selectHTML += '</select>';

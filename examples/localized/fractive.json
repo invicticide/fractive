@@ -2,6 +2,7 @@
 	"title": "localized",
 	"template": "../../templates/basic.html",
 	"linkTooltips": true,
+  "defaultLanguage": "Zazz",
   "markdown": {
     "English": [ "source/english/**/*.md" ],
     "Español": [ "source/spanish/**/*.md" ]
