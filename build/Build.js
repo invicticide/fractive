@@ -27,6 +27,9 @@ var clc = require("cli-color");
 const { performance } = require("perf_hooks");
 let startTime = performance.now();
 
+// True on Windows, false on Mac/Linux, for platform-specific calls
+var isWindows = /^win/.test(process.platform);
+
 /**
  * Compiles the engine files. Typings files should've been built before this.
  */
@@ -34,12 +37,27 @@ function BuildEngine()
 {
 	console.log("Building engine...");
 	
+	let result = cp.spawnSync(isWindows ? "node_modules\\.bin\\tsc" : "node_modules/.bin/tsc", [], { env : process.env });
+	
+	// If result.error is set, then node failed launching the process or the process timed out. This isn't a tsc error.
+	if(result.error)
+	{
+		console.error(clc.red(`\n${result.error}`));
+		process.exit(1); // result.status is not valid in this case
+	}
+	
+	// I've never seen tsc write to stderr, but node might, so we need to at least echo it.
+	if(result.stderr !== null)
+	{
+		let s = result.stderr.toString();
+		if(s.length > 0) { console.error(clc.red(`\n${s}`)); }
+	}
+
 	// tsc return codes: https://github.com/Microsoft/TypeScript/blob/master/src/compiler/types.ts (search `enum ExitStatus`)
-	// Currently both 0 and 2 produce outputs (0 is clean, 2 has warnings) and only 1 is actually an error result
-	let result = cp.spawnSync("node_modules/.bin/tsc", [], { env : process.env });
+	// Currently both 0 and 2 produce outputs (0 is clean, 2 has warnings) and only 1 is actually an error result.
 	if(result.status === 1)
 	{
-		// tsc doesn't write to stderr; its errors are all on stdout, because reasons
+		// tsc doesn't write to stderr; its errors are all on stdout, because... reasons?
 		if(result.stdout !== null)
 		{
 			let s = result.stdout.toString();
