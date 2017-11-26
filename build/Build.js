@@ -37,7 +37,7 @@ function BuildEngine()
 {
 	console.log("Building engine...");
 	
-	let result = cp.spawnSync(isWindows ? "node_modules\\.bin\\tsc" : "node_modules/.bin/tsc", [], { env : process.env });
+	let result = cp.spawnSync(isWindows ? "node_modules\\.bin\\tsc.cmd" : "node_modules/.bin/tsc", [], { env : process.env });
 	
 	// If result.error is set, then node failed launching the process or the process timed out. This isn't a tsc error.
 	if(result.error)
