@@ -46,7 +46,8 @@ export let ProjectDefaults : FractiveProject = {
 	author: "Anonymous",
 	description: "An interactive story written in Fractive",
 	website: "fractive.io",
-	markdown: [ "source/**/*.md" ],
+	defaultLanguage: "English",
+	markdown: { "English": [ "source/**/*.md" ] },
 	javascript: [ "source/**/*.js" ],
 	assets: [ "assets/**" ],
 	ignore: [],
@@ -89,7 +90,7 @@ export namespace Compiler
 	 * @param javascript The javascript story scripts to insert into the template
 	 * @return The complete resulting html file contents
 	 */
-	function ApplyTemplate(basePath : string, html : string, javascript : string) : string
+	function ApplyTemplate(basePath : string, html : string, languageSelectHTML: string, javascript : string) : string
 	{
 		let templatePath : string = path.resolve(basePath, project.template);		
 		if(!fs.existsSync(templatePath))
@@ -121,7 +122,14 @@ export namespace Compiler
 
 		// Story text
 		template = template.split("<!--{story}-->").join(html); // Insert html-formatted story text
-		template += "<script>Core.GotoSection(\"Start\");</script>"; // Auto-start at the "Start" section
+
+		// Insert the languages selection
+		template = template.split("<!--{languages}-->").join(languageSelectHTML);
+
+		// Start the story logic
+		template += "<script>";
+		template += 'Core.GotoSection("Start");';
+		template += "</script>"; // Auto-start at the "Start" section
 
 		if(project.outputFormat === 'minify')
 		{
@@ -190,19 +198,17 @@ export namespace Compiler
 			}
 			process.exit(1);
 		}
+
+		// TODO this is a bit hackish -- overrideJSON() will merge languages
+		// between the fractive.json and ProjectDefaults, which we don't want.
+		// Instead, if targetProject defined markdown, remove it from
+		// ProjectDefaults
+		if (targetProject.hasOwnProperty("markdown")) {
+			ProjectDefaults.markdown = undefined;
+		}
+
 		project = overrideJSON(ProjectDefaults, targetProject, true); // createNew
 
-		// Validate inputs and outputs
-		if(project.markdown.length < 1)
-		{
-			LogError("No Markdown input patterns were given (check the 'markdown' property in your fractive.json)");
-			process.exit(1);
-		}
-		if(project.output.length < 1)
-		{
-			LogError("No output directory was given (check the 'output' property in your fractive.json)");
-			process.exit(1);
-		}
 		if(options.dryRun) { console.log(clc.red("\n(This is a dry run. No output files will be written.)\n")); }
 
 		// Create or clean output directory
@@ -219,21 +225,56 @@ export namespace Compiler
 			nodir: true,
 			nomount: true
 		};
+
 		let targets = {
-			markdownFiles: globby.sync(project.markdown, globOptions),
 			javascriptFiles: globby.sync(project.javascript, globOptions),
-			assetFiles: globby.sync(project.assets, globOptions)
+			assetFiles: globby.sync(project.assets, globOptions),
+			markdownFiles: {}
 		};
-		
-		// Compile all the Markdown files
-		let errorCount : number = 0;
+
+		// Construct a language dropdown menu for the HTML
+		// that will be put in the __languages div
+		let selectHTML = "";
+		selectHTML += '<select id="languages" name="languages" onchange="Core.Refresh()">';
+
+		// For each Language key
+		for (var property in project.markdown) {
+			if (!project.markdown.hasOwnProperty(property)) {
+				continue;
+			}
+
+			let language = property;
+
+			// Retrieve markdown targets into a dictionary of language name -> file array
+			targets.markdownFiles[language] = globby.sync(project.markdown[language], globOptions);
+
+			selectHTML += '<option ';
+			if (language === project.defaultLanguage) {
+				selectHTML += 'selected="selected" ';
+			}
+			
+			selectHTML += 'value="' + language + '">' + language + '</option>';
+		}
+
+		selectHTML += '</select>';
+
 		let html : string = "";
-		for(let i = 0; i < targets.markdownFiles.length; i++)
-		{
-			if(options.verbose || options.dryRun) { LogAction(targets.markdownFiles[i], "render"); }
-			var rendered = RenderFile(path.resolve(basePath, targets.markdownFiles[i]), options);
-			if(rendered === null) { errorCount++; }
-			else { html += `<!-- ${targets.markdownFiles[i]} -->\n${rendered}\n`; }
+		let errorCount : number = 0;
+
+		// For each language key
+		for (var property in project.markdown) {
+			if (!project.markdown.hasOwnProperty(property)) {
+				continue;
+			}
+
+			// Compile all the Markdown files in that language
+			for(let i = 0; i < targets.markdownFiles[property].length; i++)
+			{
+				if(options.verbose || options.dryRun) { LogAction(targets.markdownFiles[property][i], "render"); }
+				var rendered = RenderFile(path.resolve(basePath, targets.markdownFiles[property][i]), options, property);
+				if(rendered === null) { errorCount++; }
+				else { html += `<!-- ${targets.markdownFiles[property][i]} -->\n${rendered}\n`; }
+			}
 		}
 		if(errorCount > 0) { process.exit(1); }
 
@@ -246,7 +287,7 @@ export namespace Compiler
 		}
 		
 		// Wrap our compiled html with a page template
-		html = ApplyTemplate(basePath, html, javascript);
+		html = ApplyTemplate(basePath, html, selectHTML, javascript);
 
 		// Create output directory
 		let outputDir = path.resolve(basePath, project.output);
@@ -449,9 +490,10 @@ export namespace Compiler
 	 * Renders the given Markdown file to HTML
 	 * @param filepath The path and filename of the Markdown file to render
 	 * @param options Compiler options blob
+	 * @param language The language of this file 
 	 * @return The rendered HTML, or null on error
 	 */
-	function RenderFile(filepath : string, options : CompilerOptions) : string
+	function RenderFile(filepath : string, options : CompilerOptions, language: string) : string
 	{
 		if(!fs.existsSync(filepath))
 		{
@@ -514,7 +556,7 @@ export namespace Compiler
 				case "html_inline":
 				case "html_block":
 				{
-					if(!RenderText(walker, event, filepath)) { return null; }
+					if(!RenderText(walker, event, filepath, language)) { return null; }
 					break;
 				}
 				case "image":
@@ -707,7 +749,7 @@ export namespace Compiler
 	 * @param filepath The path of the file we're currently processing (for error reporting)
 	 * @returns True on success, false on error
 	 */
-	function RenderText(walker, event, filepath : string) : boolean
+	function RenderText(walker, event, filepath : string, language: string) : boolean
 	{
 		if(!walker || !event)
 		{
@@ -758,7 +800,7 @@ export namespace Compiler
 						if(node.parent)
 						{
 							var insertedNode = new commonmark.Node("html_inline", node.sourcepos); // TODO: Real sourcepos
-							insertedNode.literal = `${sectionCount > 0 ? "</div>\n" : ""}<div id="${macro.substring(2, macro.length - 2)}" class="section" hidden="true">`;
+							insertedNode.literal = `${sectionCount > 0 ? "</div>\n" : ""}<div id="${macro.substring(2, macro.length - 2)}${language}" class="section" hidden="true">`;
 							if(node.prev)
 							{
 								LogParseError(`Section macro "${macro}" must be defined in its own paragraph/on its own line`, filepath, node, lineOffset, columnOffset);

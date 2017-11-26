@@ -1,0 +1,10 @@
+{
+	"title": "localized",
+	"template": "../../templates/localized.html",
+	"linkTooltips": true,
+  "defaultLanguage": "Engish",
+  "markdown": {
+    "English": [ "source/english/**/*.md" ],
+    "Español": [ "source/spanish/**/*.md" ]
+  }
+}
