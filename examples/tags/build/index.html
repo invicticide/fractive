@@ -1,0 +1,329 @@
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet"></link>
+    <style>
+        #__history {
+            color: silver !important;
+            position: absolute;
+            left: 2%;
+            width: 47%;
+            max-height: 100%;
+            overflow: scroll;
+        }
+
+        #__history .__inlineMacro {
+            animation: none;
+            color: silver;
+        }
+
+        #__currentSection {
+            color: black;
+            animation: 2s textFadeIn;
+            position: absolute;
+            left: 51%;
+            width: 47%;
+            max-height: 100%;
+            overflow: scroll;
+        }
+
+        .__disabledLink {
+            color: silver;
+            text-decoration: underline;
+        }
+
+        .__inlineMacro {
+            animation: 2s inlineMacroFadeIn;
+            color: blue;
+        }
+
+        @keyframes textFadeIn {
+            from {
+                color: white;
+            }
+            to {
+                color: black;
+            }
+        }
+
+        @keyframes inlineMacroFadeIn {
+            from {
+                color: white;
+            }
+            to {
+                color: blue;
+            }
+        }
+    </style>
+    <script>
+        var exports = {};
+        "use strict";
+        Object.defineProperty(exports, "__esModule", {
+            value: true
+        });
+        var Core;
+        (function(Core) {
+            function EnableInlineMacros(root, tf) {
+                if (tf === void 0) {
+                    tf = true;
+                }
+                if (tf && root.id.search("_inline\-") > -1) {
+                    root.id = root.id.substring(1);
+                } else if (!tf && root.id.search("inline\-") > -1) {
+                    root.id = "_" + root.id;
+                }
+                for (var i = 0; i < root.children.length; i++) {
+                    EnableInlineMacros(root.children[i], tf);
+                }
+            }
+
+            function ExpandMacro(macro) {
+                switch (macro[0]) {
+                    case '@':
+                        {
+                            var sectionName = macro.substring(1);
+                            if (!document.getElementById(sectionName)) {
+                                return "{section \"" + sectionName + "\" is not declared}";
+                            } else {
+                                return ExpandSection(macro.substring(1)).innerHTML;
+                            }
+                        }
+                    case '#':
+                        {
+                            var targetObject = null;
+                            var tokens = macro.substring(1).split('.');
+                            for (var i = 0; i < tokens.length; i++) {
+                                if (i === 0) {
+                                    targetObject = window[tokens[0]];
+                                } else {
+                                    targetObject = targetObject[tokens[i]];
+                                }
+                            }
+                            if (targetObject === undefined) {
+                                return "{function \"" + macro.substring(1) + "\" is not declared}";
+                            } else {
+                                return targetObject().toString();
+                            }
+                        }
+                    case '$':
+                        {
+                            var targetObject = null;
+                            var tokens = macro.substring(1).split('.');
+                            for (var i = 0; i < tokens.length; i++) {
+                                if (i === 0) {
+                                    targetObject = window[tokens[0]];
+                                } else {
+                                    targetObject = targetObject[tokens[i]];
+                                }
+                            }
+                            if (targetObject === undefined) {
+                                return "{variable \"" + macro.substring(1) + "\" is not declared}";
+                            } else {
+                                return targetObject.toString();
+                            }
+                        }
+                    default:
+                        {
+                            return "{unknown metacharacter in macro \"" + macro + "\"";
+                        }
+                }
+            }
+            Core.ExpandMacro = ExpandMacro;
+
+            function ExpandSection(id) {
+                var source = document.getElementById(id);
+                if (source === null) {
+                    console.log("Section " + id + " doesn't exist");
+                    return null;
+                }
+                var sectionInstance = source.cloneNode(true);
+                sectionInstance.removeAttribute("hidden");
+                var scan = function(element) {
+                    for (var i = 0; i < element.attributes.length; i++) {
+                        var expanded = false;
+                        switch (element.attributes[i].name) {
+                            case "data-expand-macro":
+                                {
+                                    if (element.parentElement) {
+                                        var newElement = document.createElement("span");
+                                        newElement.innerHTML = ExpandMacro(element.attributes[i].value);
+                                        element.parentElement.replaceChild(newElement, element);
+                                        expanded = true;
+                                    }
+                                    break;
+                                }
+                            case "data-image-source-macro":
+                                {
+                                    var source_1 = ExpandMacro(element.attributes[i].value);
+                                    console.log("Expanding " + element.tagName + " with src attribute " + element.attributes[i].value + " to \"" + source_1 + "\"");
+                                    element.setAttribute("src", ExpandMacro(element.attributes[i].value));
+                                    expanded = true;
+                                }
+                        }
+                        if (expanded) {
+                            break;
+                        }
+                    }
+                    if (element.hasChildNodes) {
+                        for (var i = 0; i < element.children.length; i++) {
+                            scan(element.children[i]);
+                        }
+                    }
+                };
+                scan(sectionInstance);
+                return sectionInstance;
+            }
+
+            function GotoSection(id) {
+                var history = document.getElementById("__history");
+                var currentSection = document.getElementById("__currentSection");
+                var links = currentSection.getElementsByTagName("a");
+                for (var i = 0; i < links.length;) {
+                    var contents = links[i].outerHTML.substring(links[i].outerHTML.indexOf(">") + 1, links[i].outerHTML.indexOf("</a>"));
+                    links[i].outerHTML = "<span class=\"__disabledLink\">" + contents + "</span>";
+                }
+                history.innerHTML += currentSection.innerHTML;
+                history.scrollTop = history.scrollHeight;
+                var clone = ExpandSection(id);
+                EnableInlineMacros(clone, true);
+                RegisterLinks(clone);
+                clone.scrollTop = 0;
+                clone.id = "__currentSection";
+                currentSection.parentElement.replaceChild(clone, currentSection);
+            }
+            Core.GotoSection = GotoSection;
+
+            function RegisterLinks(element) {
+                if (element.tagName == "A") {
+                    var _loop_1 = function(i) {
+                        switch (element.attributes[i].name) {
+                            case "data-goto-section":
+                                {
+                                    element.addEventListener("click", function() {
+                                        Core.GotoSection(element.attributes[i].value);
+                                    });
+                                    break;
+                                }
+                            case "data-call-function":
+                                {
+                                    element.addEventListener("click", window[element.attributes[i].value]);
+                                    break;
+                                }
+                            case "data-replace-with":
+                                {
+                                    element.addEventListener("click", function() {
+                                        Core.ReplaceActiveElement(element.id, ExpandMacro(element.attributes[i].value));
+                                    });
+                                    break;
+                                }
+                        }
+                    };
+                    for (var i = 0; i < element.attributes.length; i++) {
+                        _loop_1(i);
+                    }
+                }
+                if (element.hasChildNodes) {
+                    for (var i = 0; i < element.children.length; i++) {
+                        RegisterLinks(element.children[i]);
+                    }
+                }
+            }
+            Core.RegisterLinks = RegisterLinks;
+
+            function ReplaceActiveElement(id, html) {
+                for (var element = document.getElementById(id); element; element = document.getElementById(id)) {
+                    if (!element) {
+                        continue;
+                    }
+                    var bIsActive = false;
+                    for (var parent_1 = element.parentElement; parent_1; parent_1 = parent_1.parentElement) {
+                        if (parent_1.id === "__currentSection") {
+                            bIsActive = true;
+                            break;
+                        }
+                    }
+                    if (bIsActive) {
+                        var replacement = document.createElement("span");
+                        replacement.className = "__inlineMacro";
+                        replacement.innerHTML = html;
+                        EnableInlineMacros(replacement, true);
+                        RegisterLinks(replacement);
+                        element.parentNode.replaceChild(replacement, element);
+                        break;
+                    }
+                }
+            }
+            Core.ReplaceActiveElement = ReplaceActiveElement;
+
+            function ShowHistory(tf) {
+                var history = document.getElementById("__history");
+                history.hidden = !tf;
+            }
+            Core.ShowHistory = ShowHistory;
+        })(Core = exports.Core || (exports.Core = {}));
+        //# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiQ29yZS5qcyIsInNvdXJjZVJvb3QiOiIiLCJzb3VyY2VzIjpbIi4uL3NyYy9Db3JlLnRzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiI7O0FBc0JBLElBQWlCLElBQUksQ0F1UnBCO0FBdlJELFdBQWlCLElBQUk7SUFTcEIsNEJBQTRCLElBQWMsRUFBRSxFQUFtQjtRQUFuQixtQkFBQSxFQUFBLFNBQW1CO1FBSTlELEVBQUUsQ0FBQSxDQUFDLEVBQUUsSUFBSSxJQUFJLENBQUMsRUFBRSxDQUFDLE1BQU0sQ0FBQyxXQUFXLENBQUMsR0FBRyxDQUFDLENBQUMsQ0FBQyxDQUFDLENBQUM7WUFBQyxJQUFJLENBQUMsRUFBRSxHQUFHLElBQUksQ0FBQyxFQUFFLENBQUMsU0FBUyxDQUFDLENBQUMsQ0FBQyxDQUFDO1FBQUMsQ0FBQztRQUM5RSxJQUFJLENBQUMsRUFBRSxDQUFBLENBQUMsQ0FBQyxFQUFFLElBQUksSUFBSSxDQUFDLEVBQUUsQ0FBQyxNQUFNLENBQUMsVUFBVSxDQUFDLEdBQUcsQ0FBQyxDQUFDLENBQUMsQ0FBQyxDQUFDO1lBQUMsSUFBSSxDQUFDLEVBQUUsR0FBRyxNQUFJLElBQUksQ0FBQyxFQUFJLENBQUM7UUFBQyxDQUFDO1FBRzVFLEdBQUcsQ0FBQSxDQUFDLElBQUksQ0FBQyxHQUFHLENBQUMsRUFBRSxDQUFDLEdBQUcsSUFBSSxDQUFDLFFBQVEsQ0FBQyxNQUFNLEVBQUUsQ0FBQyxFQUFFLEVBQzVDLENBQUM7WUFDQSxrQkFBa0IsQ0FBQyxJQUFJLENBQUMsUUFBUSxDQUFDLENBQUMsQ0FBQyxFQUFFLEVBQUUsQ0FBQyxDQUFDO1FBQzFDLENBQUM7SUFDRixDQUFDO0lBVUQscUJBQTRCLEtBQWM7UUFFekMsTUFBTSxDQUFBLENBQUMsS0FBSyxDQUFDLENBQUMsQ0FBQyxDQUFDLENBQ2hCLENBQUM7WUFDQSxLQUFLLEdBQUc7Z0JBQ1IsQ0FBQztvQkFDQSxJQUFJLFdBQVcsR0FBRyxLQUFLLENBQUMsU0FBUyxDQUFDLENBQUMsQ0FBQyxDQUFD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// source/script.js
+        function HideHistory() {
+            Core.ShowHistory(false);
+        }
+
+        function FunctionLink() {
+            alert("This link does something without changing the text.");
+        }
+
+        function InlineExpansionFunction() {
+            return "Inline functions get the inline tag, too. Because the inline tag is meant to tell the player nothing major will change when the link is clicked, you should be careful not to do anything crazy in an inline function.";
+        }
+
+        var InlineExpansionVariable = "variable (a string which will replace the link)";
+    </script>
+</head>
+
+<body>
+    <!-- source/text.md -->
+    <div id="Start" class="section" hidden="true">
+        <h1>The joy of tagging links!</h1>
+        <p>You may have noticed in the previous examples, links to external websites were marked with a special symbol. That symbol comes from<br/><a title="http://fontawesome.io/" target="_blank" href="http://fontawesome.io/">Font Awesome.&nbsp;<i class="fa fa-external-link" aria-hidden="true"></i></a>            (There it is again!)</p>
+        <p>You can actually customize what appears next to any link in your story by defining a link tag. These are defined in your story's <code>fractive.json</code> file under the name <code>linkTags</code>.</p>
+        <pre><code>{
+  ...
+  &quot;linkTags&quot;: {
+    &quot;external&quot;: &quot;[any HTML]&quot;,
+    &quot;inline&quot;: &quot;[any HTML]&quot;,
+    &quot;section&quot;: &quot;[any HTML]&quot;,
+    &quot;function&quot;: &quot;[any HTML]&quot;
+  }
+}
+</code></pre>
+        <p>This example story defines all of the link tags. Take a look:</p>
+        <p><a title="http://balladofthespacebard.com/" target="_blank" href="http://balladofthespacebard.com/">Some External Link&nbsp;<i class="fa fa-external-link" aria-hidden="true"></i></a><br/><a title="{$InlineExpansionVariable:inline}" href="#" data-replace-with="$InlineExpansionVariable"
+                id="_inline-0">Some Inline Link&nbsp;<i class="fa fa-exclamation" aria-hidden="true"></i></a><br/><a title="{#FunctionLink}" href="#" data-call-function="FunctionLink">Some Function Link&nbsp;<i class="fa fa-bolt" aria-hidden="true"></i></a><br/>
+            <a
+                title="{#InlineExpansionFunction:inline}" href="#" data-replace-with="#InlineExpansionFunction" id="_inline-1">Some Inline Function Link&nbsp;<i class="fa fa-exclamation" aria-hidden="true"></i></a><br/><a title="{@Start}" href="#" data-goto-section="Start">Some Section Link&nbsp;<i class="fa fa-arrow-right" aria-hidden="true"></i></a></p>
+        <p><strong>More info</strong>:<br/><a title="{@FontAwesome}" href="#" data-goto-section="FontAwesome">Customizing tag appearance.&nbsp;<i class="fa fa-arrow-right" aria-hidden="true"></i></a><br/><a title="{@WhenTags}" href="#" data-goto-section="WhenTags">When and why to use tags.&nbsp;<i class="fa fa-arrow-right" aria-hidden="true"></i></a></p>
+    </div>
+    <div id="FontAwesome" class="section" hidden="true">
+        <p>We've chosen to use icons from Font Awesome for each of the link tags, but you can think bigger. For example, you might use an <code>&lt;img&gt;</code> tag to use your own icon as a tag:</p>
+        <pre><code>{
+  ...
+  &quot;linkTags&quot;: {
+    &quot;external&quot;: &quot;&lt;img src=&quot;assets/externalLink.png&quot;&gt;&lt;/img&gt;&quot;
+  }
+}
+</code></pre>
+        <p>Remember to mark quotation marks inside the link definition with a <code></code> to avoid errors.</p>
+    </div>
+    <div id="WhenTags" class="section" hidden="true">
+        <p>Tags are useful for helping the player know what to expect before they click on a link. Some players want to experience everything they can in a section before moving on to the next one, making the section tag especially useful.</p>
+        <p>However, an excess of tags can visually clutter your story. We recommend you only define the most important ones depending on the way you structure your story. For example, if you use a lot of inline links, you might want to tag only the external
+            links and section links.</p>
+    </div>
+
+    <div id="__history"></div>
+    <div id="__currentSection"></div>
+</body>
+
+</html>
+<script>
+    Core.GotoSection("Start");
+</script>
