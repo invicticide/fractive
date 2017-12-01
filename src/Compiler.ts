@@ -691,7 +691,7 @@ export namespace Compiler
 			{
 				// Prepending _ to the id makes this :inline macro disabled by default. It gets enabled when it's moved
 				// into the __currentSection div.
-				if(!RewriteLinkNode(event.node, [{ attr: "replace-with", value: url }], GetLinkText(event.node), false, `_inline-${nextInlineID++}`)) { return false; }
+				if(!RewriteLinkNode(event.node, [{ attr: "data-replace-with", value: url }], GetLinkText(event.node), false, `_inline-${nextInlineID++}`)) { return false; }
 				break;
 			}
 			default:
@@ -700,12 +700,12 @@ export namespace Compiler
 				{
 					case "@": // Section link: navigate to the section
 					{
-						if(!RewriteLinkNode(event.node, [ { attr: "goto-section", value: url.substring(1) } ], GetLinkText(event.node), false, null)) { return false; }
+						if(!RewriteLinkNode(event.node, [ { attr: "data-goto-section", value: url.substring(1) } ], GetLinkText(event.node), false, null)) { return false; }
 						break;
 					}
 					case "#": // Function link: call the function
 					{
-						if(!RewriteLinkNode(event.node, [{ attr: "call-function", value: url.substring(1) }], GetLinkText(event.node), false, null)) { return false; }
+						if(!RewriteLinkNode(event.node, [{ attr: "data-call-function", value: url.substring(1) }], GetLinkText(event.node), false, null)) { return false; }
 						break;
 					}
 					case "$": // Variable link: behavior undefined
@@ -924,12 +924,7 @@ export namespace Compiler
 
 		for(let i = 0; i < dataAttrs.length; i++)
 		{
-			attrs += ' ';
-			// For macro links, attributes become data attributes
-			if (!hasExternalUrl) {
-				attrs += 'data-';
-			}
-			attrs += `${dataAttrs[i].attr}="${dataAttrs[i].value}"`;
+			attrs += ` ${dataAttrs[i].attr}="${dataAttrs[i].value}"`;
 		}
 
 		newNode.literal = '<a ';
