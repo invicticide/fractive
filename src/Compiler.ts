@@ -690,14 +690,14 @@ export namespace Compiler
 		url = tokens[0];
 		let modifier : string = (tokens.length > 1 ? tokens[1] : "");
 		// Several styles of link will set href to #, so reuse this as a parameter:
-		let internalLinkUrl : object = { attr: "href", value: "#"};
+		let internalLinkUrl : { attr, value } = { attr: "href", value: "#"};
 		switch(modifier)
 		{
 			case "inline":
 			{
 				// Prepending _ to the id makes this :inline macro disabled by default. It gets enabled when it's moved
 				// into the __currentSection div.
-				if(!RewriteLinkNode(event.node, [ internalLinkUrl, { attr: "data-replace-with", value: url }], GetLinkText(event.node), `_inline-${nextInlineID++}`)) { return false; }
+				if(!RewriteLinkNode(event.node, [ internalLinkUrl, { attr: "data-replace-with", value: url }], project.linkTags.inline, `_inline-${nextInlineID++}`)) { return false; }
 				break;
 			}
 			default:
@@ -706,12 +706,12 @@ export namespace Compiler
 				{
 					case "@": // Section link: navigate to the section
 					{
-						if(!RewriteLinkNode(event.node, [ internalLinkUrl, { attr: "data-goto-section", value: url.substring(1) } ], GetLinkText(event.node), null)) { return false; }
+						if(!RewriteLinkNode(event.node, [ internalLinkUrl, { attr: "data-goto-section", value: url.substring(1) } ], project.linkTags.section, null)) { return false; }
 						break;
 					}
 					case "#": // Function link: call the function
 					{
-						if(!RewriteLinkNode(event.node, [ internalLinkUrl, { attr: "data-call-function", value: url.substring(1) }], GetLinkText(event.node), null)) { return false; }
+						if(!RewriteLinkNode(event.node, [ internalLinkUrl, { attr: "data-call-function", value: url.substring(1) }], project.linkTags.function, null)) { return false; }
 						break;
 					}
 					case "$": // Variable link: behavior undefined
@@ -915,7 +915,7 @@ export namespace Compiler
 	 * @param id The element id to assign
 	 * @returns True on success, false on error
 	 */
-	function RewriteLinkNode(node, attributess : [{ attr : string, value : string }], linkText : string, id : string) : boolean
+	function RewriteLinkNode(node, attributes : [{ attr : string, value : string }], linkTag : string, id : string) : boolean
 	{
 		if(node.type != "link")
 		{
@@ -940,7 +940,7 @@ export namespace Compiler
 		}
 
 		// All links have link text
-		newNode.literal += `>${linkText}</a>`;
+		newNode.literal += `>${GetLinkText(node)}${linkTag}</a>`;
 
 		// Remove the accidental newlines
 		newNode.literal = newNode.literal.split('\n').join('');
@@ -958,13 +958,10 @@ export namespace Compiler
 	*/
 	function RewriteExternalLinkNode(node)
 	{
-		let linkText : string = GetLinkText(node);
-		linkText += project.externalLinkHTML; // TODO get this from fractive.json
-
 		return RewriteLinkNode(node, [
 			{ "attr": "target", "value": "_blank"}, // Open links in a new window
 			{ "attr": "href", "value": node.destination }
-		], linkText, null);
+		], project.linkTags.external, null);
 	}
 
 	/**

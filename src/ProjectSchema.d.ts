@@ -68,13 +68,17 @@ export interface FractiveProject {
      */
     external?: string;
     /**
-     * Tag for inline links.
+     * Tag for links that expand inline.
      */
     inline?: string;
     /**
      * Tag for links between sections.
      */
     section?: string;
+    /**
+     * Tag for links that execute funcitons.
+     */
+    function?: string;
     [k: string]: any;
   };
   /**
