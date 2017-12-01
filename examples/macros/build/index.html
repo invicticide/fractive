@@ -2,6 +2,7 @@
 
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet"></link>
     <style>
         #__history {
             color: silver !important;
@@ -303,7 +304,10 @@
         <p>Aliases can enable <span style='color:#ff8888'>clean inline styling</span>!</p>
         <h1>Links</h1>
         <p><a href="#" title="{@TestSection}" data-goto-section="TestSection">Link to a section</a><br/><a href="#" title="{#LinkedFunction}" data-call-function="LinkedFunction">Link to a function</a></p>
-        <p><a href="#">Link with a section in the label: <span data-expand-macro="@TestSection"></span></a><br/><a href="#">Link with a function in the label: <span data-expand-macro="#TestFunction"></span></a><br/><a href="#">Link with a variable in the label: <span data-expand-macro="$TestVariable"></span></a></p>
+        <p><a title="#" target="_blank" href="#">Link with a section in the label: <span data-expand-macro="@TestSection"></span><i class="fa fa-external-link" aria-hidden="true"></i></a><br/><a title="#" target="_blank" href="#">Link with a function in the label: <span data-expand-macro="#TestFunction"></span><i class="fa fa-external-link" aria-hidden="true"></i></a><br/>
+            <a
+                title="#" target="_blank" href="#">Link with a variable in the label: <span data-expand-macro="$TestVariable"></span><i class="fa fa-external-link" aria-hidden="true"></i></a>
+        </p>
         <h1>Images</h1>
         <p><img src="assets/avatar.png" alt="Image with a direct url" title="Image with a direct url"><br/><img data-image-source-macro="#ImageFunction" src="#" alt="Image with a function url" title="Image with a function url"><br/><img data-image-source-macro="$ImageVariable"
                 src="#" alt="Image with a variable url" title="Image with a variable url"></p>
@@ -479,6 +483,7 @@
     <div id="__history"></div>
     <div id="__currentSection"></div>
 </body>
+<script type="text/javascript" src="//cdn.rawgit.com/icons8/bower-webicon/v0.10.7/jquery-webicon.min.js"></script>
 
 </html>
 <script>
