@@ -306,7 +306,7 @@ and something different if they don't.";
             then present one or more choices to the player; each choice takes the story to a different section, and in a different direction.</p>
         <p>In Markdown, you declare the beginning of a new section by enclosing the section name (which must be unique!) in double curly braces. The section you're reading right now is called <code>{{Start}}</code> which is a special section name that indicates
             where the story begins.</p>
-        <p><a title="{@AnotherSection}" href="#" data-goto-section="AnotherSection">Link to another section&nbsp;<i class="fa fa-arrow-right" aria-hidden="true"></i></a></p>
+        <p><a title="{@AnotherSection}" href="#" data-goto-section="AnotherSection">Link to another section</a></p>
     </div>
     <div id="AnotherSection" class="section" hidden="true">
         <p>You just clicked a link that took you to another section! You create section links just like any ol' Markdown link, but in place of the URL you put a special <em>macro</em> enclosed in single curly braces. There are three types of macros, each
@@ -318,11 +318,12 @@ and something different if they don't.";
         </ul>
         <p>So if you set the URL to <code>{@Start}</code> you'd have created a link back to the section called <code>Start</code>. If on the other hand you'd put <code>{#Start}</code> you'd have created a link that would call a Javascript function called
             <code>Start</code>.</p>
-        <p><a title="{#FunctionLink}" href="#" data-call-function="FunctionLink">What does it look like when a link calls a Javascript function?&nbsp;<i class="fa fa-bolt" aria-hidden="true"></i></a><br/><a title="{#VariableLink}" href="#" data-call-function="VariableLink">What happens if I set the link URL to a variable macro?&nbsp;<i class="fa fa-bolt" aria-hidden="true"></i></a><br/>
+        <p><a title="{#FunctionLink}" href="#" data-call-function="FunctionLink">What does it look like when a link calls a Javascript function?</a><br/><a title="{#VariableLink}" href="#" data-call-function="VariableLink">What happens if I set the link URL to a variable macro?</a><br/>
             <a
-                title="{@InlineMacros}" href="#" data-goto-section="InlineMacros">What else can I use macros for?&nbsp;<i class="fa fa-arrow-right" aria-hidden="true"></i></a>
+                title="{@InlineMacros}" href="#" data-goto-section="InlineMacros">What else can I use macros for?</a>
         </p>
-        <p>(P.S. Notice that the first section is still displayed above. That's because we keep track of your play history in a scrollback. You can <a title="{#HideHistory}" href="#" data-call-function="HideHistory">hide the history&nbsp;<i class="fa fa-bolt" aria-hidden="true"></i></a>            if you like. The UX for this is still going to need some work.)</p>
+        <p>(P.S. Notice that the first section is still displayed above. That's because we keep track of your play history in a scrollback. You can <a title="{#HideHistory}" href="#" data-call-function="HideHistory">hide the history</a> if you like. The
+            UX for this is still going to need some work.)</p>
     </div>
     <div id="InlineMacros" class="section" hidden="true">
         <p>Macros aren't only for links; you can also use them to add dynamic text to your sections.</p>
@@ -337,10 +338,10 @@ and something different if they don't.";
         <p>The inlined function and section above are indented, but that's only because I prefaced them with the Markdown blockquote indicator for clarity. Inlines don't inherently get any special styling, so you can inline things totally seamlessly and
             your players will never know the difference.</p>
         <p>Finally, you can create links which expand to text in-place, which is commonly used in e.g. <a title="https://twinery.org/2/" target="_blank" href="https://twinery.org/2/">Twine&nbsp;<i class="fa fa-external-link" aria-hidden="true"></i></a> games
-            for artistic effect. You can link to a <a title="{$InlineExpansionVariable:inline}" href="#" data-replace-with="$InlineExpansionVariable" id="_inline-0">variable&nbsp;<i class="fa fa-exclamation" aria-hidden="true"></i></a>, or to the return
-            value of a <a title="{#InlineExpansionFunction:inline}" href="#" data-replace-with="#InlineExpansionFunction" id="_inline-1">function&nbsp;<i class="fa fa-exclamation" aria-hidden="true"></i></a>, and they'll expand in-place.</p>
-        <p><a title="{@InlineExpansionSection:inline}" href="#" data-replace-with="@InlineExpansionSection" id="_inline-2">You can also do this with a section&nbsp;<i class="fa fa-exclamation" aria-hidden="true"></i></a></p>
-        <p><a title="{@AboutFormatting}" href="#" data-goto-section="AboutFormatting">Can I use Markdown styling?&nbsp;<i class="fa fa-arrow-right" aria-hidden="true"></i></a></p>
+            for artistic effect. You can link to a <a title="{$InlineExpansionVariable:inline}" href="#" data-replace-with="$InlineExpansionVariable" id="_inline-0">variable</a>, or to the return value of a <a title="{#InlineExpansionFunction:inline}"
+                href="#" data-replace-with="#InlineExpansionFunction" id="_inline-1">function</a>, and they'll expand in-place.</p>
+        <p><a title="{@InlineExpansionSection:inline}" href="#" data-replace-with="@InlineExpansionSection" id="_inline-2">You can also do this with a section</a></p>
+        <p><a title="{@AboutFormatting}" href="#" data-goto-section="AboutFormatting">Can I use Markdown styling?</a></p>
     </div>
     <div id="InlineSection" class="section" hidden="true">
         <p>This paragraph was written in an entirely different section, but it appears as part of the section you're already reading. This might be useful if you have some boilerplate text that needs to follow the player around from place to place; you could
@@ -349,7 +350,7 @@ and something different if they don't.";
     <div id="InlineExpansionSection" class="section" hidden="true">
         <p>Sections are kind of special though, in that they don't actually appear inline <em>per se</em>, because they're block-level elements (i.e. their own paragraphs) which means they'll put a paragraph break where they appear. They still replace their
             :inline macro link though, just like with variables and functions. When inline-expanding a section, you can still have paragraph breaks, <em>additional</em> <strong>formatting</strong>, and so on. And you can even inline sections which themselves
-            contain <a title="{#RaiseAlert}" href="#" data-call-function="RaiseAlert">macros&nbsp;<i class="fa fa-bolt" aria-hidden="true"></i></a>!</p>
+            contain <a title="{#RaiseAlert}" href="#" data-call-function="RaiseAlert">macros</a>!</p>
     </div>
     <div id="AboutFormatting" class="section" hidden="true">
         <p>Story text is written in Markdown, which means we have access to <em>all kinds</em> of <strong>formatting</strong>, including:</p>
@@ -358,12 +359,12 @@ and something different if they don't.";
         <ul>
             <li>Unordered lists (like this one)</li>
             <li>Ordered lists (1, 2, 3, 4...)</li>
-            <li>Links can also <a title="{#RaiseAlert}" href="#" data-call-function="RaiseAlert"><em>contain</em> <strong>formatting</strong>&nbsp;<i class="fa fa-bolt" aria-hidden="true"></i></a></li>
+            <li>Links can also <a title="{#RaiseAlert}" href="#" data-call-function="RaiseAlert"><em>contain</em> <strong>formatting</strong></a></li>
         </ul>
         <p>Basically, anything Markdown can do, you can do in your story text! You can even inline <span style="color:#ff0000">raw HTML</span> which means you could do video embeds, HTML5 canvas, and all kinds of other fancy stuff.</p>
         <p>And of course, because fractive games are ultimately HTML in the end, you can create your own HTML template with whatever layout you want, and style it with CSS. For example, you could surround your game with a header and footer, or create a sidebar
             which (along with some custom Javascript) tracks your player's inventory and stats as they move through the story.</p>
-        <p><a title="{@LongStories}" href="#" data-goto-section="LongStories">How does fractive handle long/complicated stories?&nbsp;<i class="fa fa-arrow-right" aria-hidden="true"></i></a></p>
+        <p><a title="{@LongStories}" href="#" data-goto-section="LongStories">How does fractive handle long/complicated stories?</a></p>
     </div>
     <div id="LongStories" class="section" hidden="true">
         <p>Fractive's main goal is to be the best tool for writing complex, dynamic hypertext fiction that has lots of branches and genuinely consequential choices. What you're reading right now is produced by a <em>very</em> eary version of the tool, so
@@ -374,9 +375,9 @@ and something different if they don't.";
         <p>In the future I'll be exploring additional tools and visualizations to help authors understand, trace, and debug the complexity of large, deeply-branching narratives. Those tools and visualizers will likely be the most experimental, and pivotal,
             aspects of fractive's development.</p>
         <p>Anything you'd like to review?</p>
-        <p><a title="{#FunctionLink}" href="#" data-call-function="FunctionLink">What does it look like when a link calls a Javascript function?&nbsp;<i class="fa fa-bolt" aria-hidden="true"></i></a><br/><a title="{#VariableLink}" href="#" data-call-function="VariableLink">What happens if I set the link URL to a variable macro?&nbsp;<i class="fa fa-bolt" aria-hidden="true"></i></a><br/>
+        <p><a title="{#FunctionLink}" href="#" data-call-function="FunctionLink">What does it look like when a link calls a Javascript function?</a><br/><a title="{#VariableLink}" href="#" data-call-function="VariableLink">What happens if I set the link URL to a variable macro?</a><br/>
             <a
-                title="{@InlineMacros}" href="#" data-goto-section="InlineMacros">What else can I use macros for?&nbsp;<i class="fa fa-arrow-right" aria-hidden="true"></i></a><br/><a title="{@AboutFormatting}" href="#" data-goto-section="AboutFormatting">Can I use Markdown styling?&nbsp;<i class="fa fa-arrow-right" aria-hidden="true"></i></a></p>
+                title="{@InlineMacros}" href="#" data-goto-section="InlineMacros">What else can I use macros for?</a><br/><a title="{@AboutFormatting}" href="#" data-goto-section="AboutFormatting">Can I use Markdown styling?</a></p>
     </div>
 
     <div id="__history"></div>

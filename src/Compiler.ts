@@ -58,7 +58,8 @@ export let ProjectDefaults : FractiveProject = {
 	linkTags: {
 		external: "",
 		inline: "",
-		section: ""
+		section: "",
+		function: ""
 	},
 	backButtonHTML: ""
 };
