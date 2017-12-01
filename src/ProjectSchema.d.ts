@@ -60,9 +60,23 @@ export interface FractiveProject {
    */
   linkTooltips?: boolean;
   /**
-   * Raw HTML that will be inserted following the text of external links in the story.
+   * Raw HTML to be inserted at the end of different Fractive link types.
    */
-  externalLinkHTML?: string;
+  linkTags?: {
+    /**
+     * Tag for external links.
+     */
+    external?: string;
+    /**
+     * Tag for inline links.
+     */
+    inline?: string;
+    /**
+     * Tag for links between sections.
+     */
+    section?: string;
+    [k: string]: any;
+  };
   /**
    * Raw HTML inserted in the place where the back button is defined to be.
    */

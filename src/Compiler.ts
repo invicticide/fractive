@@ -55,7 +55,11 @@ export let ProjectDefaults : FractiveProject = {
 	output: "build",
 	outputFormat: "prettify",
 	linkTooltips: false,
-	externalLinkHTML: "",
+	linkTags: {
+		external: "",
+		inline: "",
+		section: ""
+	},
 	backButtonHTML: ""
 };
 import * as globby from "globby";
@@ -685,13 +689,15 @@ export namespace Compiler
 		let tokens : Array<string> = url.substring(1, url.length - 1).split(":");
 		url = tokens[0];
 		let modifier : string = (tokens.length > 1 ? tokens[1] : "");
+		// Several styles of link will set href to #, so reuse this as a parameter:
+		let internalLinkUrl : object = { attr: "href", value: "#"};
 		switch(modifier)
 		{
 			case "inline":
 			{
 				// Prepending _ to the id makes this :inline macro disabled by default. It gets enabled when it's moved
 				// into the __currentSection div.
-				if(!RewriteLinkNode(event.node, [{ attr: "data-replace-with", value: url }], GetLinkText(event.node), false, `_inline-${nextInlineID++}`)) { return false; }
+				if(!RewriteLinkNode(event.node, [ internalLinkUrl, { attr: "data-replace-with", value: url }], GetLinkText(event.node), `_inline-${nextInlineID++}`)) { return false; }
 				break;
 			}
 			default:
@@ -700,12 +706,12 @@ export namespace Compiler
 				{
 					case "@": // Section link: navigate to the section
 					{
-						if(!RewriteLinkNode(event.node, [ { attr: "data-goto-section", value: url.substring(1) } ], GetLinkText(event.node), false, null)) { return false; }
+						if(!RewriteLinkNode(event.node, [ internalLinkUrl, { attr: "data-goto-section", value: url.substring(1) } ], GetLinkText(event.node), null)) { return false; }
 						break;
 					}
 					case "#": // Function link: call the function
 					{
-						if(!RewriteLinkNode(event.node, [{ attr: "data-call-function", value: url.substring(1) }], GetLinkText(event.node), false, null)) { return false; }
+						if(!RewriteLinkNode(event.node, [ internalLinkUrl, { attr: "data-call-function", value: url.substring(1) }], GetLinkText(event.node), null)) { return false; }
 						break;
 					}
 					case "$": // Variable link: behavior undefined
@@ -904,12 +910,12 @@ export namespace Compiler
 	 * This function modifies the AST in-place by replacing the link node with an html_inline node that
 	 * explicitly formats the rewritten <a> tag.
 	 * @param node The AST link node to replace
-	 * @param dataAttrs Data attributes to append, as {attr, value} where attr is the name of the data attribute sans the data- part. So {"my-attr", "somevalue"} becomes "data-my-attr='somevalue'"
+	 * @param attributes Attributes to append, as {attr, value}
 	 * @param linkText The text to place inside the <a></a> tags
 	 * @param id The element id to assign
 	 * @returns True on success, false on error
 	 */
-	function RewriteLinkNode(node, dataAttrs : [{ attr : string, value : string }], linkText : string, hasExternalUrl : boolean, id : string) : boolean
+	function RewriteLinkNode(node, attributess : [{ attr : string, value : string }], linkText : string, id : string) : boolean
 	{
 		if(node.type != "link")
 		{
@@ -922,17 +928,12 @@ export namespace Compiler
 		let title = `title="${(project.linkTooltips ? node.destination.replace("%7B", "{").replace("%7D", "}") : "")}"`;
 		let attrs : string = "";
 
-		for(let i = 0; i < dataAttrs.length; i++)
+		for(let i = 0; i < attributes.length; i++)
 		{
-			attrs += ` ${dataAttrs[i].attr}="${dataAttrs[i].value}"`;
+			attrs += ` ${attributes[i].attr}="${attributes[i].value}"`;
 		}
 
-		newNode.literal = '<a ';
-		// Macro links override href
-		if (!hasExternalUrl) {
-			newNode.literal += 'href="#" ';
-		}
-		newNode.literal += `${title}${attrs}`;
+		newNode.literal = `<a ${title}${attrs}`;
 		// If an ID is provided, add it
 		if(id !== null) {
 			newNode.literal += `id="${id}"`;
@@ -963,7 +964,7 @@ export namespace Compiler
 		return RewriteLinkNode(node, [
 			{ "attr": "target", "value": "_blank"}, // Open links in a new window
 			{ "attr": "href", "value": node.destination }
-		], linkText, true, null);
+		], linkText, null);
 	}
 
 	/**
