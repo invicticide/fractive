@@ -54,8 +54,9 @@
 			"description": "Raw HTML to be inserted at the end of different Fractive link types.",
 			"properties": {
 				"external": { "type": "string", "description": "Tag for external links." },
-				"inline": { "type": "string", "description": "Tag for inline links." },
-				"section": { "type": "string", "description": "Tag for links between sections." }
+				"inline": { "type": "string", "description": "Tag for links that expand inline." },
+				"section": { "type": "string", "description": "Tag for links between sections." },
+				"function": { "type": "string", "description": "Tag for links that execute funcitons." }
 			}
 		},
 		"backButtonHTML": { "type": "string", "description": "Raw HTML inserted in the place where the back button is defined to be." }

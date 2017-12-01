@@ -5,6 +5,7 @@
 	"linkTags": {
 		"external": " <i class=\"fa fa-external-link\" aria-hidden=\"true\"></i>",
 		"inline": "<i class=\"fa fa-exclamation\" aria-hidden=\"true\"></i>",
-		"section": "<i class=\"fa fa-arrow-right\" aria-hidden=\"true\"></i>"
+		"section": "<i class=\"fa fa-arrow-right\" aria-hidden=\"true\"></i>",
+		"function": "<i class=\"fa fa-bolt\" aria-hidden=\"true\"></i>"
 	}
 }
