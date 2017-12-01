@@ -54,7 +54,9 @@ export let ProjectDefaults : FractiveProject = {
 	template: "template.html",
 	output: "build",
 	outputFormat: "prettify",
-	linkTooltips: false
+	linkTooltips: false,
+	externalLinkHTML: "",
+	backButtonHTML: ""
 };
 import * as globby from "globby";
 
@@ -665,7 +667,7 @@ export namespace Compiler
 		// but it may still be an external link.
 		if(url[0] !== "{") {
 			if (IsExternalLink(url)) {
-				return RewriteExternalLinkNode(event.node, );
+				return RewriteExternalLinkNode(event.node);
 			}
 			else {
 				return true;
@@ -946,7 +948,7 @@ export namespace Compiler
 
 		// Remove the accidental newlines
 		newNode.literal = newNode.literal.split('\n').join('');
-		console.log(newNode.literal);
+		// console.log(newNode.literal);
 
 		node.insertBefore(newNode);
 		node.unlink();
@@ -954,13 +956,14 @@ export namespace Compiler
 		return true;
 	}
 
-	// TODO document
+	/**
+	* Rewrites an external link node so it opens in a new tab and
+	* its text is followed by the external link marker defined in externalLinkHTML.
+	*/
 	function RewriteExternalLinkNode(node)
 	{
-		console.log('rewriting an external link node');
-
 		let linkText : string = GetLinkText(node);
-		linkText += '<i class="fa fa-external-link" aria-hidden="true"></i>'; // TODO get this from fractive.json
+		linkText += project.externalLinkHTML; // TODO get this from fractive.json
 
 		return RewriteLinkNode(node, [
 			{ "attr": "target", "value": "_blank"}, // Open links in a new window

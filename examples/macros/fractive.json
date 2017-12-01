@@ -5,5 +5,6 @@
 		{ "alias": "red", "replaceWith": "<span style='color:#ff8888'>", "end": "</span>" }
 	],
 	"template": "../../templates/basic.html",
-	"linkTooltips": true
+	"linkTooltips": true,
+	"externalLinkHTML": " <i class=\"fa fa-external-link\" aria-hidden=\"true\"></i>"
 }

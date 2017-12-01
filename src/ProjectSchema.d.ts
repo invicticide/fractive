@@ -59,4 +59,12 @@ export interface FractiveProject {
    * If true, show a tooltip on macro links indicating the macro destination. (Useful for dev, but you probably want to disable it for release.)
    */
   linkTooltips?: boolean;
+  /**
+   * Raw HTML that will be inserted following the text of external links in the story.
+   */
+  externalLinkHTML?: string;
+  /**
+   * Raw HTML inserted in the place where the back button is defined to be.
+   */
+  backButtonHTML?: string;
 }

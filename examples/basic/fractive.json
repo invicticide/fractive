@@ -1,5 +1,6 @@
 {
 	"title": "basic",
 	"template": "../../templates/basic.html",
-	"linkTooltips": true
+	"linkTooltips": true,
+	"externalLinkHTML": " <i class=\"fa fa-external-link\" aria-hidden=\"true\"></i>"
 }

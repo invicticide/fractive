@@ -48,7 +48,9 @@
 		"template": { "type": "string", "description": "The HTML template file to use for the final story output" },
 		"output": { "type": "string", "description": "The folder where the final story files will be saved" },
 		"outputFormat": { "enum": [ "prettify", "minify", "default" ], "description": "Options: 'minify' to minify the final story HTML (reduces file size but makes the HTML source much less human-readable), 'prettify' to prettify the final story HTML into human-readable HTML, 'default' for no additional processing"  },
-		"linkTooltips": { "type": "boolean", "description": "If true, show a tooltip on macro links indicating the macro destination. (Useful for dev, but you probably want to disable it for release.)" }
+		"linkTooltips": { "type": "boolean", "description": "If true, show a tooltip on macro links indicating the macro destination. (Useful for dev, but you probably want to disable it for release.)" },
+		"externalLinkHTML": { "type": "string", "description": "Raw HTML that will be inserted following the text of external links in the story." },
+		"backButtonHTML": { "type": "string", "description": "Raw HTML inserted in the place where the back button is defined to be." }
 	},
 	"additionalProperties": false
 }
