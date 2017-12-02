@@ -811,7 +811,7 @@ export namespace Compiler
 		
 		// We skipped over escape sequences while parsing, but now we need to strip the backslashes entirely
 		// so they don't get rendered out to the html as `\\`
-		node.literal = node.literal.split('\\').join('');
+		node.literal = node.literal.split('\\{').join('{');
 
 		return true;
 	}
