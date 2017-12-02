@@ -283,7 +283,7 @@
     <!-- source/text.md -->
     <div id="Start" class="section" hidden="true">
         <h1>The joy of tagging links!</h1>
-        <p>You may have noticed in the previous examples, links to external websites were marked with a special symbol. That symbol comes from<br/><a title="http://fontawesome.io/" target="_blank" href="http://fontawesome.io/">Font Awesome.&nbsp;<i class="fa fa-external-link" aria-hidden="true"></i></a>            (There it is again!)</p>
+        <p>You may have noticed in the previous examples, links to external websites were marked with a special symbol. That symbol comes from <a title="http://fontawesome.io/" target="_blank" href="http://fontawesome.io/">Font Awesome.&nbsp;<i class="fa fa-external-link" aria-hidden="true"></i></a>            (There it is again!)</p>
         <p>You can actually customize what appears next to any link in your story by defining a link tag. These are defined in your story's <code>fractive.json</code> file under the name <code>linkTags</code>.</p>
         <pre><code>{
   ...
@@ -307,16 +307,19 @@
         <pre><code>{
   ...
   &quot;linkTags&quot;: {
-    &quot;external&quot;: &quot;&lt;img src=&quot;assets/externalLink.png&quot;&gt;&lt;/img&gt;&quot;
+    &quot;external&quot;: &quot;&lt;img src='assets/externalLink.png'&gt;&lt;/img&gt;&quot;
   }
 }
 </code></pre>
-        <p>Remember to mark quotation marks inside the link definition with a <code></code> to avoid errors.</p>
+        <p>Because the tag value itself is enclosed in double-quotes, you won't be able to also use double-quotes to wrap your tag's attribute values. You can either omit them (to the extent HTML allows), use single-quotes instead, or escape them like this:
+            <code>\&quot;</code>.</p>
+        <p><strong>More info</strong>:<br/><a title="{@WhenTags}" href="#" data-goto-section="WhenTags">When and why to use tags.&nbsp;<i class="fa fa-arrow-right" aria-hidden="true"></i></a></p>
     </div>
     <div id="WhenTags" class="section" hidden="true">
         <p>Tags are useful for helping the player know what to expect before they click on a link. Some players want to experience everything they can in a section before moving on to the next one, making the section tag especially useful.</p>
         <p>However, an excess of tags can visually clutter your story. We recommend you only define the most important ones depending on the way you structure your story. For example, if you use a lot of inline links, you might want to tag only the external
             links and section links.</p>
+        <p><strong>More info</strong>:<br/><a title="{@FontAwesome}" href="#" data-goto-section="FontAwesome">Customizing tag appearance.&nbsp;<i class="fa fa-arrow-right" aria-hidden="true"></i></a></p>
     </div>
 
     <div id="__history"></div>
