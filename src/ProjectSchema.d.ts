@@ -76,7 +76,7 @@ export interface FractiveProject {
      */
     section?: string;
     /**
-     * Tag for links that execute funcitons.
+     * Tag for links that execute functions.
      */
     function?: string;
     [k: string]: any;
