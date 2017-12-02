@@ -1,0 +1,11 @@
+{
+	"title": "basic",
+	"template": "../../templates/basic.html",
+	"linkTooltips": true,
+	"linkTags": {
+		"external": "&nbsp;<i class=\"fa fa-external-link\" aria-hidden=\"true\"></i>",
+		"inline": "&nbsp;<i class=\"fa fa-exclamation\" aria-hidden=\"true\"></i>",
+		"section": "&nbsp;<i class=\"fa fa-arrow-right\" aria-hidden=\"true\"></i>",
+		"function": "&nbsp;<i class=\"fa fa-bolt\" aria-hidden=\"true\"></i>"
+	}
+}
