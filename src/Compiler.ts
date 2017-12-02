@@ -117,18 +117,19 @@ export namespace Compiler
 		let scriptSection : string = "<script>";
 		scriptSection += "var exports = {};";	// This object holds all the TypeScript exports which are callable by story scripts
 
-    // Prettify the JavaScript if configured to do so
-		if (project.outputFormat === 'prettify') {
-			javascript = beautifier.js_beautify(javascript);
-		}
+		// Prettify the JavaScript if configured to do so
+		if(project.outputFormat === 'prettify') { javascript = beautifier.js_beautify(javascript); }
 
-		scriptSection += `${javascript}`;		// Insert all bundled scripts, including Core.js
+		// Insert all bundled scripts, including Core.js
+		scriptSection += `${javascript}`;
 		scriptSection += "</script>";
 		template = template.split("<!--{script}-->").join(scriptSection);
 
-		// Story text
-		template = template.split("<!--{story}-->").join(html); // Insert html-formatted story text
-		template += "<script>Core.GotoSection(\"Start\");</script>"; // Auto-start at the "Start" section
+		// Insert html-formatted story text
+		template = template.split("<!--{story}-->").join(html);
+		
+		// Auto-start at the "Start" section
+		template += "<script>Core.GotoSection(\"Start\");</script>";
 
 		if(project.outputFormat === 'minify')
 		{
@@ -143,9 +144,10 @@ export namespace Compiler
 				removeRedundantAttributes: true
 			});
 		}
-    else if (project.outputFormat === 'prettify') {
+		else if (project.outputFormat === 'prettify')
+		{
 			return beautifier.html(template);
-    }
+		}
 		else
 		{
 			return template;
@@ -355,13 +357,11 @@ export namespace Compiler
 				htmlNode.literal = `<code><span${attrs}></span></code>`;
 				break;
 			}
-
 			case "code_block":
 			{
 				htmlNode.literal = `<pre><code><span${attrs}></span></code></pre>`;
 				break;
 			}
-
 			default:
 			{
 				htmlNode.literal = `<span${attrs}></span>`;
@@ -630,6 +630,7 @@ export namespace Compiler
 	* with the external link mark defined in fractive.json
 	* @param url
 	*/
+	// @ts-ignore Unused function argument, until this stub gets expanded
 	function IsExternalLink(url: string)
 	{
 		// TODO I imagine if the user wants to link to pages on their own site,
@@ -637,8 +638,7 @@ export namespace Compiler
 		// future, we could define a glob expression for urls that are internal
 		// to the game, and filter those out. For now, everything is considered
 		// external.
-		return (url.length > 0) ? true : false;
-		// Can't just return true without compile error for unused parameter url
+		return true;
 	}
 
 	/**
@@ -668,15 +668,11 @@ export namespace Compiler
 		let url : string = event.node.destination;
 		url = url.replace("%7B", "{").replace("%7D", "}");
 
-		// This link doesn't have a macro as its destination,
-		// but it may still be an external link.
-		if(url[0] !== "{") {
-			if (IsExternalLink(url)) {
-				return RewriteExternalLinkNode(event.node);
-			}
-			else {
-				return true;
-			}
+		// This link doesn't have a macro as its destination, but it may still be an external link
+		if(url[0] !== "{")
+		{
+			if (IsExternalLink(url)) { return RewriteExternalLinkNode(event.node); }
+			else { return true; }
 		}
 
 		if(url[url.length - 1] !== "}")
@@ -928,24 +924,13 @@ export namespace Compiler
 		let newNode = new commonmark.Node("html_inline", node.sourcepos);
 		let title = `title="${(project.linkTooltips ? node.destination.replace("%7B", "{").replace("%7D", "}") : "")}"`;
 		let attrs : string = "";
-
 		for(let i = 0; i < attributes.length; i++)
 		{
 			attrs += ` ${attributes[i].attr}="${attributes[i].value}"`;
 		}
-
 		newNode.literal = `<a ${title}${attrs}`;
-		// If an ID is provided, add it
-		if(id !== null) {
-			newNode.literal += `id="${id}"`;
-		}
-
-		// All links have link text
+		if(id !== null) { newNode.literal += ` id="${id}"`; }
 		newNode.literal += `>${GetLinkText(node)}${linkTag}</a>`;
-
-		// Remove the accidental newlines
-		newNode.literal = newNode.literal.split('\n').join('');
-		// console.log(newNode.literal);
 
 		node.insertBefore(newNode);
 		node.unlink();
