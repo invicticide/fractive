@@ -59,4 +59,30 @@ export interface FractiveProject {
    * If true, show a tooltip on macro links indicating the macro destination. (Useful for dev, but you probably want to disable it for release.)
    */
   linkTooltips?: boolean;
+  /**
+   * Raw HTML to be inserted at the end of different Fractive link types.
+   */
+  linkTags?: {
+    /**
+     * Tag for external links.
+     */
+    external?: string;
+    /**
+     * Tag for links that expand inline.
+     */
+    inline?: string;
+    /**
+     * Tag for links between sections.
+     */
+    section?: string;
+    /**
+     * Tag for links that execute funcitons.
+     */
+    function?: string;
+    [k: string]: any;
+  };
+  /**
+   * Raw HTML inserted in the place where the back button is defined to be.
+   */
+  backButtonHTML?: string;
 }
