@@ -14,3 +14,4 @@ function InlineExpansionFunction()
 }
 
 var InlineExpansionVariable = "variable (a string which will replace the link)";
+var TagVariable = "!";

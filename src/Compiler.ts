@@ -661,18 +661,34 @@ export namespace Compiler
 			return false;
 		}
 
-		// Links are containers; we can't rewrite them until we're finished rendering the whole
-		// container, because we need to preserve their children.
-		if(event.entering) { return true; }
-
 		let url : string = event.node.destination;
 		url = url.replace("%7B", "{").replace("%7D", "}");
 
 		// This link doesn't have a macro as its destination, but it may still be an external link
 		if(url[0] !== "{")
 		{
-			if (IsExternalLink(url)) { return RewriteExternalLinkNode(event.node); }
-			else { return true; }
+			if(IsExternalLink(url))
+			{
+				if(event.entering)
+				{
+					// Add link tag before we enter the link's subtree, so the tag gets processed like any other text node
+					let newNode = new commonmark.Node("html_inline", event.node.sourcepos);
+					newNode.literal = project.linkTags.external;
+					event.node.appendChild(newNode);
+					return true;
+				}
+				else
+				{
+					return RewriteLinkNode(event.node, [
+						{ "attr": "target", "value": "_blank"}, // Open links in a new window
+						{ "attr": "href", "value": event.node.destination }
+					], null);
+				}
+			}
+			else
+			{
+				return true;
+			}
 		}
 
 		if(url[url.length - 1] !== "}")
@@ -686,16 +702,28 @@ export namespace Compiler
 		let tokens : Array<string> = url.substring(1, url.length - 1).split(":");
 		url = tokens[0];
 		let modifier : string = (tokens.length > 1 ? tokens[1] : "");
-		// Several styles of link will set href to #, so reuse this as a parameter:
-		let internalLinkUrl : { attr, value } = { attr: "href", value: "#"};
 		switch(modifier)
 		{
 			case "inline":
 			{
-				// Prepending _ to the id makes this :inline macro disabled by default. It gets enabled when it's moved
-				// into the __currentSection div.
-				if(!RewriteLinkNode(event.node, [ internalLinkUrl, { attr: "data-replace-with", value: url }], project.linkTags.inline, `_inline-${nextInlineID++}`)) { return false; }
-				break;
+				if(event.entering)
+				{
+					// Add link tag before we enter the link's subtree, so the tag gets processed like any other text node
+					let newNode = new commonmark.Node("html_inline", event.node.sourcepos);
+					newNode.literal = project.linkTags.inline;
+					event.node.appendChild(newNode);
+					return true;
+				}
+				else
+				{
+					// Prepending _ to the id makes this :inline macro disabled by default. It gets enabled when it's moved
+					// into the __currentSection div.
+					let attrs = [
+						{ attr: "href", value: "#" },
+						{ attr: "data-replace-with", value: url }
+					];
+					return RewriteLinkNode(event.node, attrs, `_inline-${nextInlineID++}`);
+				}
 			}
 			default:
 			{
@@ -703,13 +731,41 @@ export namespace Compiler
 				{
 					case "@": // Section link: navigate to the section
 					{
-						if(!RewriteLinkNode(event.node, [ internalLinkUrl, { attr: "data-goto-section", value: url.substring(1) } ], project.linkTags.section, null)) { return false; }
-						break;
+						if(event.entering)
+						{
+							// Add link tag before we enter the link's subtree, so the tag gets processed like any other text node
+							let newNode = new commonmark.Node("html_inline", event.node.sourcepos);
+							newNode.literal = project.linkTags.section;
+							event.node.appendChild(newNode);
+							return true;
+						}
+						else
+						{
+							let attrs = [
+								{ attr: "href", value: "#" },
+								{ attr: "data-goto-section", value: url.substring(1) }
+							];
+							return RewriteLinkNode(event.node, attrs, null);
+						}
 					}
 					case "#": // Function link: call the function
 					{
-						if(!RewriteLinkNode(event.node, [ internalLinkUrl, { attr: "data-call-function", value: url.substring(1) }], project.linkTags.function, null)) { return false; }
-						break;
+						if(event.entering)
+						{
+							// Add link tag before we enter the link's subtree, so the tag gets processed like any other text node
+							let newNode = new commonmark.Node("html_inline", event.node.sourcepos);
+							newNode.literal = project.linkTags.function;
+							event.node.appendChild(newNode);
+							return true;
+						}
+						else
+						{
+							let attrs = [
+								{ attr: "href", value: "#" },
+								{ attr: "data-call-function", value: url.substring(1) }
+							];
+							return RewriteLinkNode(event.node, attrs, null);
+						}
 					}
 					case "$": // Variable link: behavior undefined
 					{
@@ -722,11 +778,8 @@ export namespace Compiler
 						return false;
 					}
 				}
-				break;
 			}
 		}
-
-		return true;
 	}
 
 	/**
@@ -912,7 +965,7 @@ export namespace Compiler
 	 * @param id The element id to assign
 	 * @returns True on success, false on error
 	 */
-	function RewriteLinkNode(node, attributes : [{ attr : string, value : string }], linkTag : string, id : string) : boolean
+	function RewriteLinkNode(node, attributes : { attr : string, value : string }[], id : string) : boolean
 	{
 		if(node.type != "link")
 		{
@@ -930,24 +983,12 @@ export namespace Compiler
 		}
 		newNode.literal = `<a ${title}${attrs}`;
 		if(id !== null) { newNode.literal += ` id="${id}"`; }
-		newNode.literal += `>${GetLinkText(node)}${linkTag}</a>`;
+		newNode.literal += `>${GetLinkText(node)}</a>`;
 
 		node.insertBefore(newNode);
 		node.unlink();
 
 		return true;
-	}
-
-	/**
-	* Rewrites an external link node so it opens in a new tab and
-	* its text is followed by the external link marker defined in externalLinkHTML.
-	*/
-	function RewriteExternalLinkNode(node)
-	{
-		return RewriteLinkNode(node, [
-			{ "attr": "target", "value": "_blank"}, // Open links in a new window
-			{ "attr": "href", "value": node.destination }
-		], project.linkTags.external, null);
 	}
 
 	/**
