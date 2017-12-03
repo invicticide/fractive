@@ -34,6 +34,8 @@ Aliases can enable {red}clean inline styling{/red}!
 [Link with a function in the label: {#TestFunction}](#)
 [Link with a variable in the label: {$TestVariable}](#)
 
+[Link with an expanded macro ({$TestVariable}) in its label]({@TestSection})
+
 # Images
 
 ![Image with a direct url](assets/avatar.png)
