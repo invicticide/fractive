@@ -3,6 +3,8 @@
 	"template": "../../templates/basic.html",
 	"linkTooltips": true,
 	"linkTags": {
-		"external": "&nbsp;<i class=\"fa fa-external-link\" aria-hidden=\"true\"></i>"
+		"external": {
+			"html": "&nbsp;<i class=\"fa fa-external-link\" aria-hidden=\"true\"></i>"
+		}
 	}
 }

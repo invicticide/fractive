@@ -56,10 +56,22 @@ export let ProjectDefaults : FractiveProject = {
 	outputFormat: "prettify",
 	linkTooltips: false,
 	linkTags: {
-		external: "",
-		inline: "",
-		section: "",
-		function: ""
+		external: {
+			html: "",
+			prepend: false
+		},
+		inline: {
+			html: "",
+			prepend: false
+		},
+		section: {
+			html: "",
+			prepend: false
+		},
+		function: {
+			html: "",
+			prepend: false
+		}
 	},
 	backButtonHTML: ""
 };
@@ -673,8 +685,16 @@ export namespace Compiler
 				{
 					// Add link tag before we enter the link's subtree, so the tag gets processed like any other text node
 					let newNode = new commonmark.Node("html_inline", event.node.sourcepos);
-					newNode.literal = project.linkTags.external;
-					event.node.appendChild(newNode);
+					newNode.literal = project.linkTags.external.html;
+					if(project.linkTags.external.prepend)
+					{
+						event.node.prependChild(newNode);
+						walker.resumeAt(newNode);
+					}
+					else
+					{
+						event.node.appendChild(newNode);
+					}
 					return true;
 				}
 				else
@@ -710,9 +730,17 @@ export namespace Compiler
 				{
 					// Add link tag before we enter the link's subtree, so the tag gets processed like any other text node
 					let newNode = new commonmark.Node("html_inline", event.node.sourcepos);
-					newNode.literal = project.linkTags.inline;
-					event.node.appendChild(newNode);
-					return true;
+					newNode.literal = project.linkTags.inline.html;
+					if(project.linkTags.inline.prepend)
+					{
+						event.node.prependChild(newNode);
+						walker.resumeAt(newNode);
+					}
+					else
+					{
+						event.node.appendChild(newNode);
+					}
+			return true;
 				}
 				else
 				{
@@ -735,8 +763,16 @@ export namespace Compiler
 						{
 							// Add link tag before we enter the link's subtree, so the tag gets processed like any other text node
 							let newNode = new commonmark.Node("html_inline", event.node.sourcepos);
-							newNode.literal = project.linkTags.section;
-							event.node.appendChild(newNode);
+							newNode.literal = project.linkTags.section.html;
+							if(project.linkTags.section.prepend)
+							{
+								event.node.prependChild(newNode);
+								walker.resumeAt(newNode);
+							}
+							else
+							{
+								event.node.appendChild(newNode);
+							}
 							return true;
 						}
 						else
@@ -754,8 +790,16 @@ export namespace Compiler
 						{
 							// Add link tag before we enter the link's subtree, so the tag gets processed like any other text node
 							let newNode = new commonmark.Node("html_inline", event.node.sourcepos);
-							newNode.literal = project.linkTags.function;
-							event.node.appendChild(newNode);
+							newNode.literal = project.linkTags.function.html;
+							if(project.linkTags.function.prepend)
+							{
+								event.node.prependChild(newNode);
+								walker.resumeAt(newNode);
+							}
+							else
+							{
+								event.node.appendChild(newNode);
+							}
 							return true;
 						}
 						else
@@ -893,7 +937,7 @@ export namespace Compiler
 
 		// We skipped over escape sequences while parsing, but now we need to strip the backslashes entirely
 		// so they don't get rendered out to the html as `\\`
-		node.literal = node.literal.split('\\{').join('{');
+		if(node.literal) { node.literal = node.literal.split('\\{').join('{'); }
 
 		return true;
 	}

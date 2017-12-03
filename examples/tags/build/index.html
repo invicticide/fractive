@@ -298,12 +298,12 @@
 </code></pre>
         <p>This example story defines all of the link tags. Take a look:</p>
         <p><a title="http://balladofthespacebard.com/" target="_blank" href="http://balladofthespacebard.com/">Some External Link&nbsp;<i class="fa fa-external-link" aria-hidden="true"></i> (<span data-expand-macro="$TagVariable"></span>)</a><br/><a title="{$InlineExpansionVariable:inline}"
-                href="#" data-replace-with="$InlineExpansionVariable" id="_inline-0">Some Inline Link&nbsp;<i class="fa fa-exclamation" aria-hidden="true"></i> (<span data-expand-macro="$TagVariable"></span>)</a><br/><a title="{#FunctionLink}" href="#" data-call-function="FunctionLink">Some Function Link&nbsp;<i class="fa fa-bolt" aria-hidden="true"></i> (<span data-expand-macro="$TagVariable"></span>)</a><br/>
+                href="#" data-replace-with="$InlineExpansionVariable" id="_inline-0">Some Inline Link&nbsp;<i class="fa fa-exclamation" aria-hidden="true"></i> (<span data-expand-macro="$TagVariable"></span>)</a><br/><a title="{#FunctionLink}" href="#" data-call-function="FunctionLink">&nbsp;<i class="fa fa-bolt" aria-hidden="true"></i> (<span data-expand-macro="$TagVariable"></span>)Some Function Link</a><br/>
             <a
-                title="{#InlineExpansionFunction:inline}" href="#" data-replace-with="#InlineExpansionFunction" id="_inline-1">Some Inline Function Link&nbsp;<i class="fa fa-exclamation" aria-hidden="true"></i> (<span data-expand-macro="$TagVariable"></span>)</a><br/><a title="{@Start}" href="#" data-goto-section="Start">Some Section Link&nbsp;<i class="fa fa-arrow-right" aria-hidden="true"></i> (<span data-expand-macro="$TagVariable"></span>)</a></p>
-        <p><strong>More info</strong>:<br/><a title="{@FontAwesome}" href="#" data-goto-section="FontAwesome">Customizing tag appearance.&nbsp;<i class="fa fa-arrow-right" aria-hidden="true"></i> (<span data-expand-macro="$TagVariable"></span>)</a><br/>
+                title="{#InlineExpansionFunction:inline}" href="#" data-replace-with="#InlineExpansionFunction" id="_inline-1">Some Inline Function Link&nbsp;<i class="fa fa-exclamation" aria-hidden="true"></i> (<span data-expand-macro="$TagVariable"></span>)</a><br/><a title="{@Start}" href="#" data-goto-section="Start">&nbsp;<i class="fa fa-arrow-right" aria-hidden="true"></i> (<span data-expand-macro="$TagVariable"></span>)Some Section Link</a></p>
+        <p><strong>More info</strong>:<br/><a title="{@FontAwesome}" href="#" data-goto-section="FontAwesome">&nbsp;<i class="fa fa-arrow-right" aria-hidden="true"></i> (<span data-expand-macro="$TagVariable"></span>)Customizing tag appearance.</a><br/>
             <a
-                title="{@WhenTags}" href="#" data-goto-section="WhenTags">When and why to use tags.&nbsp;<i class="fa fa-arrow-right" aria-hidden="true"></i> (<span data-expand-macro="$TagVariable"></span>)</a>
+                title="{@WhenTags}" href="#" data-goto-section="WhenTags">&nbsp;<i class="fa fa-arrow-right" aria-hidden="true"></i> (<span data-expand-macro="$TagVariable"></span>)When and why to use tags.</a>
         </p>
     </div>
     <div id="FontAwesome" class="section" hidden="true">
@@ -317,13 +317,13 @@
 </code></pre>
         <p>Because the tag value itself is enclosed in double-quotes, you won't be able to also use double-quotes to wrap your tag's attribute values. You can either omit them (to the extent HTML allows), use single-quotes instead, or escape them like this:
             <code>\&quot;</code>.</p>
-        <p><strong>More info</strong>:<br/><a title="{@WhenTags}" href="#" data-goto-section="WhenTags">When and why to use tags.&nbsp;<i class="fa fa-arrow-right" aria-hidden="true"></i> (<span data-expand-macro="$TagVariable"></span>)</a></p>
+        <p><strong>More info</strong>:<br/><a title="{@WhenTags}" href="#" data-goto-section="WhenTags">&nbsp;<i class="fa fa-arrow-right" aria-hidden="true"></i> (<span data-expand-macro="$TagVariable"></span>)When and why to use tags.</a></p>
     </div>
     <div id="WhenTags" class="section" hidden="true">
         <p>Tags are useful for helping the player know what to expect before they click on a link. Some players want to experience everything they can in a section before moving on to the next one, making the section tag especially useful.</p>
         <p>However, an excess of tags can visually clutter your story. We recommend you only define the most important ones depending on the way you structure your story. For example, if you use a lot of inline links, you might want to tag only the external
             links and section links.</p>
-        <p><strong>More info</strong>:<br/><a title="{@FontAwesome}" href="#" data-goto-section="FontAwesome">Customizing tag appearance.&nbsp;<i class="fa fa-arrow-right" aria-hidden="true"></i> (<span data-expand-macro="$TagVariable"></span>)</a></p>
+        <p><strong>More info</strong>:<br/><a title="{@FontAwesome}" href="#" data-goto-section="FontAwesome">&nbsp;<i class="fa fa-arrow-right" aria-hidden="true"></i> (<span data-expand-macro="$TagVariable"></span>)Customizing tag appearance.</a></p>
     </div>
 
     <div id="__history"></div>
