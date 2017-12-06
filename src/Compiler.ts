@@ -54,7 +54,26 @@ export let ProjectDefaults : FractiveProject = {
 	template: "template.html",
 	output: "build",
 	outputFormat: "prettify",
-	linkTooltips: false
+	linkTooltips: false,
+	linkTags: {
+		external: {
+			html: "",
+			prepend: false
+		},
+		inline: {
+			html: "",
+			prepend: false
+		},
+		section: {
+			html: "",
+			prepend: false
+		},
+		function: {
+			html: "",
+			prepend: false
+		}
+	},
+	backButtonHTML: ""
 };
 import * as globby from "globby";
 
@@ -91,7 +110,7 @@ export namespace Compiler
 	 */
 	function ApplyTemplate(basePath : string, html : string, javascript : string) : string
 	{
-		let templatePath : string = path.resolve(basePath, project.template);		
+		let templatePath : string = path.resolve(basePath, project.template);
 		if(!fs.existsSync(templatePath))
 		{
 			console.log(`Template file not found: "${templatePath}"`);
@@ -110,18 +129,19 @@ export namespace Compiler
 		let scriptSection : string = "<script>";
 		scriptSection += "var exports = {};";	// This object holds all the TypeScript exports which are callable by story scripts
 
-    // Prettify the JavaScript if configured to do so
-		if (project.outputFormat === 'prettify') {
-			javascript = beautifier.js_beautify(javascript);
-		}
+		// Prettify the JavaScript if configured to do so
+		if(project.outputFormat === 'prettify') { javascript = beautifier.js_beautify(javascript); }
 
-		scriptSection += `${javascript}`;		// Insert all bundled scripts, including Core.js
+		// Insert all bundled scripts, including Core.js
+		scriptSection += `${javascript}`;
 		scriptSection += "</script>";
 		template = template.split("<!--{script}-->").join(scriptSection);
 
-		// Story text
-		template = template.split("<!--{story}-->").join(html); // Insert html-formatted story text
-		template += "<script>Core.GotoSection(\"Start\");</script>"; // Auto-start at the "Start" section
+		// Insert html-formatted story text
+		template = template.split("<!--{story}-->").join(html);
+		
+		// Auto-start at the "Start" section
+		template += "<script>Core.GotoSection(\"Start\");</script>";
 
 		if(project.outputFormat === 'minify')
 		{
@@ -136,10 +156,11 @@ export namespace Compiler
 				removeRedundantAttributes: true
 			});
 		}
-    else if (project.outputFormat === 'prettify') {
+		else if (project.outputFormat === 'prettify')
+		{
 			return beautifier.html(template);
-    }
-		else 
+		}
+		else
 		{
 			return template;
 		}
@@ -224,7 +245,7 @@ export namespace Compiler
 			javascriptFiles: globby.sync(project.javascript, globOptions),
 			assetFiles: globby.sync(project.assets, globOptions)
 		};
-		
+
 		// Compile all the Markdown files
 		let errorCount : number = 0;
 		let html : string = "";
@@ -244,7 +265,7 @@ export namespace Compiler
 			if(options.verbose || options.dryRun) { LogAction(targets.javascriptFiles[i], "import"); }
 			javascript += `// ${targets.javascriptFiles[i]}\n${ImportFile(path.resolve(basePath, targets.javascriptFiles[i]))}\n`;
 		}
-		
+
 		// Wrap our compiled html with a page template
 		html = ApplyTemplate(basePath, html, javascript);
 
@@ -348,13 +369,11 @@ export namespace Compiler
 				htmlNode.literal = `<code><span${attrs}></span></code>`;
 				break;
 			}
-
 			case "code_block":
 			{
 				htmlNode.literal = `<pre><code><span${attrs}></span></code></pre>`;
 				break;
 			}
-
 			default:
 			{
 				htmlNode.literal = `<span${attrs}></span>`;
@@ -362,7 +381,7 @@ export namespace Compiler
 			}
 		}
 		rootNode.insertAfter(htmlNode);
-		
+
 		// Clean up empty pre node now that we've attached the insert to the tree
 		if(rootNode.literal === "") { rootNode.unlink(); }
 
@@ -493,7 +512,7 @@ export namespace Compiler
 			console.log("\nCONSOLIDATED AST\n");
 			LogAST(ast);
 		}
-		
+
 		// Custom AST manipulation before rendering. When we're done, there should be no functional {macros} left in
 		// the tree; they should all be rewritten to html tags with data-attributes describing their function.
 		sectionCount = 0;
@@ -619,6 +638,22 @@ export namespace Compiler
 	}
 
 	/**
+	* Check if a URL is considered external and its link should be marked
+	* with the external link mark defined in fractive.json
+	* @param url
+	*/
+	// @ts-ignore Unused function argument, until this stub gets expanded
+	function IsExternalLink(url: string)
+	{
+		// TODO I imagine if the user wants to link to pages on their own site,
+		// the external link icon will be unwanted. To account for this in the
+		// future, we could define a glob expression for urls that are internal
+		// to the game, and filter those out. For now, everything is considered
+		// external.
+		return true;
+	}
+
+	/**
 	 * Rewrite a link node with data-attributes that indicate the link type and macro destination
 	 * @param walker The current AST iterator state
 	 * @param event The AST event to process (this should be a link node)
@@ -637,16 +672,44 @@ export namespace Compiler
 			LogError(`RenderLink received a ${event.node.type} node, which is illegal`);
 			return false;
 		}
-		
-		// Links are containers; we can't rewrite them until we're finished rendering the whole
-		// container, because we need to preserve their children.
-		if(event.entering) { return true; }
-		
+
 		let url : string = event.node.destination;
 		url = url.replace("%7B", "{").replace("%7D", "}");
-		
-		// This link doesn't have a macro as its destination, so we don't need to rewrite it
-		if(url[0] !== "{") { return true; }
+
+		// This link doesn't have a macro as its destination, but it may still be an external link
+		if(url[0] !== "{")
+		{
+			if(IsExternalLink(url))
+			{
+				if(event.entering)
+				{
+					// Add link tag before we enter the link's subtree, so the tag gets processed like any other text node
+					let newNode = new commonmark.Node("html_inline", event.node.sourcepos);
+					newNode.literal = project.linkTags.external.html;
+					if(project.linkTags.external.prepend)
+					{
+						event.node.prependChild(newNode);
+						walker.resumeAt(newNode);
+					}
+					else
+					{
+						event.node.appendChild(newNode);
+					}
+					return true;
+				}
+				else
+				{
+					return RewriteLinkNode(event.node, [
+						{ "attr": "target", "value": "_blank"}, // Open links in a new window
+						{ "attr": "href", "value": event.node.destination }
+					], null);
+				}
+			}
+			else
+			{
+				return true;
+			}
+		}
 
 		if(url[url.length - 1] !== "}")
 		{
@@ -663,10 +726,32 @@ export namespace Compiler
 		{
 			case "inline":
 			{
-				// Prepending _ to the id makes this :inline macro disabled by default. It gets enabled when it's moved
-				// into the __currentSection div.
-				if(!RewriteLinkNode(event.node, [{ attr: "replace-with", value: url }], GetLinkText(event.node), `_inline-${nextInlineID++}`)) { return false; }
-				break;
+				if(event.entering)
+				{
+					// Add link tag before we enter the link's subtree, so the tag gets processed like any other text node
+					let newNode = new commonmark.Node("html_inline", event.node.sourcepos);
+					newNode.literal = project.linkTags.inline.html;
+					if(project.linkTags.inline.prepend)
+					{
+						event.node.prependChild(newNode);
+						walker.resumeAt(newNode);
+					}
+					else
+					{
+						event.node.appendChild(newNode);
+					}
+			return true;
+				}
+				else
+				{
+					// Prepending _ to the id makes this :inline macro disabled by default. It gets enabled when it's moved
+					// into the __currentSection div.
+					let attrs = [
+						{ attr: "href", value: "#" },
+						{ attr: "data-replace-with", value: url }
+					];
+					return RewriteLinkNode(event.node, attrs, `_inline-${nextInlineID++}`);
+				}
 			}
 			default:
 			{
@@ -674,13 +759,57 @@ export namespace Compiler
 				{
 					case "@": // Section link: navigate to the section
 					{
-						if(!RewriteLinkNode(event.node, [ { attr: "goto-section", value: url.substring(1) } ], GetLinkText(event.node), null)) { return false; }
-						break;
+						if(event.entering)
+						{
+							// Add link tag before we enter the link's subtree, so the tag gets processed like any other text node
+							let newNode = new commonmark.Node("html_inline", event.node.sourcepos);
+							newNode.literal = project.linkTags.section.html;
+							if(project.linkTags.section.prepend)
+							{
+								event.node.prependChild(newNode);
+								walker.resumeAt(newNode);
+							}
+							else
+							{
+								event.node.appendChild(newNode);
+							}
+							return true;
+						}
+						else
+						{
+							let attrs = [
+								{ attr: "href", value: "#" },
+								{ attr: "data-goto-section", value: url.substring(1) }
+							];
+							return RewriteLinkNode(event.node, attrs, null);
+						}
 					}
 					case "#": // Function link: call the function
 					{
-						if(!RewriteLinkNode(event.node, [{ attr: "call-function", value: url.substring(1) }], GetLinkText(event.node), null)) { return false; }
-						break;
+						if(event.entering)
+						{
+							// Add link tag before we enter the link's subtree, so the tag gets processed like any other text node
+							let newNode = new commonmark.Node("html_inline", event.node.sourcepos);
+							newNode.literal = project.linkTags.function.html;
+							if(project.linkTags.function.prepend)
+							{
+								event.node.prependChild(newNode);
+								walker.resumeAt(newNode);
+							}
+							else
+							{
+								event.node.appendChild(newNode);
+							}
+							return true;
+						}
+						else
+						{
+							let attrs = [
+								{ attr: "href", value: "#" },
+								{ attr: "data-call-function", value: url.substring(1) }
+							];
+							return RewriteLinkNode(event.node, attrs, null);
+						}
 					}
 					case "$": // Variable link: behavior undefined
 					{
@@ -693,11 +822,8 @@ export namespace Compiler
 						return false;
 					}
 				}
-				break;
 			}
 		}
-
-		return true;
 	}
 
 	/**
@@ -805,13 +931,13 @@ export namespace Compiler
 				lineOffset++;
 				columnOffset = -1;
 			}
-			
+
 			columnOffset++;
 		}
-		
+
 		// We skipped over escape sequences while parsing, but now we need to strip the backslashes entirely
 		// so they don't get rendered out to the html as `\\`
-		node.literal = node.literal.split('\\').join('');
+		if(node.literal) { node.literal = node.literal.split('\\{').join('{'); }
 
 		return true;
 	}
@@ -878,12 +1004,12 @@ export namespace Compiler
 	 * This function modifies the AST in-place by replacing the link node with an html_inline node that
 	 * explicitly formats the rewritten <a> tag.
 	 * @param node The AST link node to replace
-	 * @param dataAttrs Data attributes to append, as {attr, value} where attr is the name of the data attribute sans the data- part. So {"my-attr", "somevalue"} becomes "data-my-attr='somevalue'"
+	 * @param attributes Attributes to append, as {attr, value}
 	 * @param linkText The text to place inside the <a></a> tags
 	 * @param id The element id to assign
 	 * @returns True on success, false on error
 	 */
-	function RewriteLinkNode(node, dataAttrs : [{ attr : string, value : string }], linkText : string, id : string) : boolean
+	function RewriteLinkNode(node, attributes : { attr : string, value : string }[], id : string) : boolean
 	{
 		if(node.type != "link")
 		{
@@ -895,12 +1021,13 @@ export namespace Compiler
 		let newNode = new commonmark.Node("html_inline", node.sourcepos);
 		let title = `title="${(project.linkTooltips ? node.destination.replace("%7B", "{").replace("%7D", "}") : "")}"`;
 		let attrs : string = "";
-		for(let i = 0; i < dataAttrs.length; i++)
+		for(let i = 0; i < attributes.length; i++)
 		{
-			attrs += ` data-${dataAttrs[i].attr}="${dataAttrs[i].value}"`;
+			attrs += ` ${attributes[i].attr}="${attributes[i].value}"`;
 		}
-		if(id === null) { newNode.literal = `<a href="#" ${title}${attrs}>${linkText}</a>`; }
-		else { newNode.literal = `<a href="#" id="${id}" ${title}${attrs}>${linkText}</a>`; }
+		newNode.literal = `<a ${title}${attrs}`;
+		if(id !== null) { newNode.literal += ` id="${id}"`; }
+		newNode.literal += `>${GetLinkText(node)}</a>`;
 
 		node.insertBefore(newNode);
 		node.unlink();
@@ -943,7 +1070,7 @@ export namespace Compiler
 
 		// This is a regular escape sequence, so just skip the escaped character
 		if(s[startIndex + 1] !== '{') { return startIndex + 1; }
-		
+
 		// This is an escaped macro, so skip to the end of the macro
 		let braceCount : number = 0;
 		for(let i = startIndex + 1; i < s.length; i++)

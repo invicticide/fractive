@@ -1,0 +1,23 @@
+{
+	"title": "basic",
+	"template": "../../templates/basic.html",
+	"linkTooltips": true,
+	"linkTags": {
+		"external": {
+			"html": "&nbsp;<i class=\"fa fa-external-link\" aria-hidden=\"true\"></i> ({$TagVariable})",
+			"prepend": false
+		},
+		"inline": {
+			"html": "&nbsp;<i class=\"fa fa-exclamation\" aria-hidden=\"true\"></i> ({$TagVariable})",
+			"prepend": false
+		},
+		"section": {
+			"html": "&nbsp;<i class=\"fa fa-arrow-right\" aria-hidden=\"true\"></i> ({$TagVariable})",
+			"prepend": true
+		},
+		"function": {
+			"html": "&nbsp;<i class=\"fa fa-bolt\" aria-hidden=\"true\"></i> ({$TagVariable})",
+			"prepend": true
+		}
+	}
+}

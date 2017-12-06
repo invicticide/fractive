@@ -14,6 +14,8 @@ Non-expanding reference to a section in a `text` element: \\{@TestSection}
 Non-expanding reference to a function in a `text` element: \\{#TestFunction}
 Non-expanding reference to a variable in a `text` element: \\{$TestVariable}
 
+Display a backslash: \\
+
 Expand a nested function: {#Nestor.NestedFunction}
 Expand a nested variable: {$Nestor.NestedVariable}
 
@@ -31,6 +33,8 @@ Aliases can enable {red}clean inline styling{/red}!
 [Link with a section in the label: {@TestSection}](#)
 [Link with a function in the label: {#TestFunction}](#)
 [Link with a variable in the label: {$TestVariable}](#)
+
+[Link with an expanded macro ({$TestVariable}) in its label]({@TestSection})
 
 # Images
 

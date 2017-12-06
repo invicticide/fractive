@@ -1,5 +1,10 @@
 {
 	"title": "basic",
 	"template": "../../templates/basic.html",
-	"linkTooltips": true
+	"linkTooltips": true,
+	"linkTags": {
+		"external": {
+			"html": "&nbsp;<i class=\"fa fa-external-link\" aria-hidden=\"true\"></i>"
+		}
+	}
 }
