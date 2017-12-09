@@ -1,0 +1,58 @@
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet"></link>
+		<style>
+			#__history
+			{
+				color: silver !important;
+				position: absolute;
+				left: 2%;
+				width: 47%;
+				max-height: 100%;
+				overflow: scroll;
+			}
+			#__history .__inlineMacro
+			{
+				animation: none;
+				color: silver;
+			}
+			#__currentSection
+			{
+				color: black;
+				animation: 2s textFadeIn;
+				position: absolute;
+				left: 51%;
+				width: 47%;
+				max-height: 100%;
+				overflow: scroll;
+			}
+			.__disabledLink
+			{
+				color: silver;
+				text-decoration: underline;
+			}
+			.__inlineMacro
+			{
+				animation: 2s inlineMacroFadeIn;
+				color: blue;
+			}
+			@keyframes textFadeIn
+			{
+				from { color: white; }
+				to { color: black; }
+			}
+			@keyframes inlineMacroFadeIn
+			{
+				from { color: white; }
+				to { color: blue; }
+			}
+		</style>
+		<!--{script}-->
+	</head>
+	<body>
+		<!--{story}-->
+		<div id="__history"></div>
+		<div id="__currentSection"></div>
+	</body>
+</html>

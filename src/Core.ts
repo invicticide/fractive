@@ -23,6 +23,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 export namespace Core
 {
 	/**
+	 * Assign a user-defined function to be called whenever the current section changes
+	 * @param id The id attribute of the new section
+	 * @param element The raw DOM element for the new section
+	 * @param tags Array of tags associated with the new section
+	 */
+	export let OnGotoSection : (id : string, element : Element, tags : string[]) => void;
+
+	/**
 	 * Enable or disable :inline macros within the document subtree starting at the given root element.
 	 * Nothing is returned, as the elements are modified in place. Disabled :inline macros simply have
 	 * a _ prepended to their id attribute.
@@ -208,6 +216,9 @@ export namespace Core
 		// Replace the div so as to restart CSS animations (just replacing innerHTML does not do this!)
 		clone.id = "__currentSection";
 		currentSection.parentElement.replaceChild(clone, currentSection);
+
+		// Notify user script
+		if(OnGotoSection) { OnGotoSection(id, clone, []); }
 	}
 
 	/**
