@@ -218,17 +218,17 @@ This call enables or disables the history display. This might be useful if e.g. 
 
 ## Story events
 
-Fractive also exposes events you can subscribe to, for when you want some code to be notified that something happened. To assign an event, declare a Javascript function in your story script using the event signature, like this:
+Fractive also exposes events you can subscribe to, for when you want some code to be notified that something happened. To assign an event, declare a Javascript function in your story script and pass it to `Core.AddEventListener` like this:
 
 	// MyScript.js
-	Core.OnGotoSection = function(id, element, tags)
+	Core.AddEventListener("OnGotoSection", function(id, element, tags)
 	{
 		// Handle the event here
-	}
+	});
 
-`Core.OnGotoSection(id, element, tags)`
+`OnGotoSection(id, element, tags)`
 
-Assign a function to this and it'll be called whenever the current section changes. You'll receive the ID (section name) of the target section, the HTML Element representing it (this will be the new state of the `__currentSection` div), and an array of tags (strings). Tags are not currently used, but in the future you'll be able to assign them to sections and then do whatever you want with them.
+Assign a function to this event and it'll be called whenever the current section changes. You'll receive the ID (section name) of the target section, the HTML Element representing it (this will be the new state of the `__currentSection` div), and an array of tags (strings). Tags are not currently used, but in the future you'll be able to assign them to sections and then do whatever you want with them.
 
 ## Publishing
 

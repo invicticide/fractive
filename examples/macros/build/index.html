@@ -1,59 +1,173 @@
 <html>
 
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Type" contentDiv="text/html; charset=utf-8" />
     <link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet"></link>
     <style>
-        #__history {
-            color: silver !important;
-            position: absolute;
-            left: 2%;
-            width: 47%;
-            max-height: 100%;
-            overflow: scroll;
+        #__controls {
+            position: fixed;
+            top: 0px;
+            left: 0px;
+            width: calc(100% - 80px);
+            height: 75px;
+            padding: 0px 40px;
+            background-color: #333333;
+            color: #BBBBBB;
+            text-align: right;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 13pt;
+        }
+
+        #__controls a {
+            color: #FAFAFA;
+        }
+
+        #__historyContainer {
+            position: fixed;
+            top: 75px;
+            left: 0px;
+            height: 400px;
+            width: 100%;
+            overflow: auto;
+            background-color: #333333;
+        }
+
+        #__history * {
+            max-width: 750px !important;
+            margin-left: auto !important;
+            margin-right: auto !important;
+            color: #777777 !important;
+            font-family: Arial, Helvetica, sans-serif !important;
+            font-size: 13pt !important;
         }
 
         #__history .__inlineMacro {
             animation: none;
-            color: silver;
-        }
-
-        #__currentSection {
-            color: black;
-            animation: 2s textFadeIn;
-            position: absolute;
-            left: 51%;
-            width: 47%;
-            max-height: 100%;
-            overflow: scroll;
+            color: #777777;
         }
 
         .__disabledLink {
-            color: silver;
+            color: #777777;
             text-decoration: underline;
         }
 
-        .__inlineMacro {
-            animation: 2s inlineMacroFadeIn;
-            color: blue;
+        #__content {
+            position: absolute;
+            top: 75px;
+            left: 0px;
+            width: 100%;
+            overflow: auto;
+        }
+
+        #__currentSection {
+            color: #555555;
+            animation: 1s textFadeIn;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         @keyframes textFadeIn {
             from {
-                color: white;
+                color: #FAFAFA;
             }
             to {
-                color: black;
+                color: #555555;
             }
+        }
+
+        .__inlineMacro {
+            animation: 1s inlineMacroFadeIn;
+            color: #a7826a;
         }
 
         @keyframes inlineMacroFadeIn {
             from {
-                color: white;
+                color: #FAFAFA;
             }
             to {
-                color: blue;
+                color: #a7826a;
             }
+        }
+
+        h1 {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 56pt;
+            margin-top: 28pt;
+            margin-bottom: -4pt;
+            line-height: 0.9em;
+        }
+
+        h2 {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 38pt;
+            margin-top: 19pt;
+            margin-bottom: -12pt;
+        }
+
+        h3 {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 22pt;
+            text-transform: uppercase;
+            margin-top: 11pt;
+            margin-bottom: -8pt;
+        }
+
+        body {
+            background-color: #FAFAFA;
+        }
+
+        p {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 16pt;
+            line-height: 1.5em;
+        }
+
+        a:link,
+        a:visited {
+            color: #6666FF;
+        }
+
+        a:active,
+        a:hover {
+            color: #FF6666;
+        }
+
+        li {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 16pt;
+            line-height: 1.5em;
+            margin-left: 20px;
+        }
+
+        blockquote p {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 16pt;
+            font-style: italic;
+            line-height: 1.5em;
+        }
+
+        pre {
+            font-family: "Courier New", "Courier", monospace;
+            font-size: 14pt;
+            background-color: #333333;
+            color: #BBBBBB;
+            line-height: 1.5em;
+            padding: 10px 20px;
+            max-height: 600px;
+            overflow: auto;
+        }
+
+        img {
+            margin: 20px 0px;
+        }
+
+        hr {
+            border: 0;
+            height: 1px;
+            background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0));
+            margin-top: 36pt;
+            margin-bottom: 36pt;
         }
     </style>
     <script>
@@ -64,6 +178,24 @@
         });
         var Core;
         (function(Core) {
+            Core.OnGotoSection = [];
+
+            function AddEventListener(eventName, handler) {
+                switch (eventName) {
+                    case "OnGotoSection":
+                        {
+                            Core.OnGotoSection = Core.OnGotoSection.concat(handler);
+                            break;
+                        }
+                    default:
+                        {
+                            console.error("Core.AddEventListener: \"" + eventName + "\" is not a valid event");
+                            break;
+                        }
+                }
+            }
+            Core.AddEventListener = AddEventListener;
+
             function EnableInlineMacros(root, tf) {
                 if (tf === void 0) {
                     tf = true;
@@ -191,8 +323,8 @@
                 clone.scrollTop = 0;
                 clone.id = "__currentSection";
                 currentSection.parentElement.replaceChild(clone, currentSection);
-                if (Core.OnGotoSection) {
-                    Core.OnGotoSection(id, clone, []);
+                for (var i = 0; i < Core.OnGotoSection.length; i++) {
+                    Core.OnGotoSection[i](id, clone, []);
                 }
             }
             Core.GotoSection = GotoSection;
@@ -265,7 +397,7 @@
             }
             Core.ShowHistory = ShowHistory;
         })(Core = exports.Core || (exports.Core = {}));
-        //# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiQ29yZS5qcyIsInNvdXJjZVJvb3QiOiIiLCJzb3VyY2VzIjpbIi4uL3NyYy9Db3JlLnRzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiI7O0FBc0JBLElBQWlCLElBQUksQ0FrU3BCO0FBbFNELFdBQWlCLElBQUk7SUFpQnBCLDRCQUE0QixJQUFjLEVBQUUsRUFBbUI7UUFBbkIsbUJBQUEsRUFBQSxTQUFtQjtRQUk5RCxFQUFFLENBQUEsQ0FBQyxFQUFFLElBQUksSUFBSSxDQUFDLEVBQUUsQ0FBQyxNQUFNLENBQUMsV0FBVyxDQUFDLEdBQUcsQ0FBQyxDQUFDLENBQUMsQ0FBQyxDQUFDO1lBQUMsSUFBSSxDQUFDLEVBQUUsR0FBRyxJQUFJLENBQUMsRUFBRSxDQUFDLFNBQVMsQ0FBQyxDQUFDLENBQUMsQ0FBQztRQUFDLENBQUM7UUFDOUUsSUFBSSxDQUFDLEVBQUUsQ0FBQSxDQUFDLENBQUMsRUFBRSxJQUFJLElBQUksQ0FBQyxFQUFFLENBQUMsTUFBTSxDQUFDLFVBQVUsQ0FBQyxHQUFHLENBQUMsQ0FBQyxDQUFDLENBQUMsQ0FBQztZQUFDLElBQUksQ0FBQyxFQUFFLEdBQUcsTUFBSSxJQUFJLENBQUMsRUFBSSxDQUFDO1FBQUMsQ0FBQztRQUc1RSxHQUFHLENBQUEsQ0FBQyxJQUFJLENBQUMsR0FBRyxDQUFDLEVBQUUsQ0FBQyxHQUFHLElBQUksQ0FBQyxRQUFRLENBQUMsTUFBTSxFQUFFLENBQUMsRUFBRSxFQUM1QyxDQUFDO1lBQ0Esa0JBQWtCLENBQUMsSUFBSSxDQUFDLFFBQVEsQ0FBQyxDQUFDLENBQUMsRUFBRSxFQUFFLENBQUMsQ0FBQztRQUMxQyxDQUFDO0lBQ0YsQ0FBQztJQVVELHFCQUE0QixLQUFjO1FBRXpDLE1BQU0sQ0FBQSxDQUFDLEtBQUssQ0FBQyxDQUFDLENBQUMsQ0FBQyxDQUNoQixDQUFDO1lBQ0EsS0FBSyxHQUFHO2dCQUNSLENBQUM7b0JBQ0EsSUFBSSxXQUFXLEdBQUcsS0FBSyxDQUFDLFNBQVMsQ0FBQyxDQUFDLENBQUMsQ0FB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// source/script.js
+        //# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiQ29yZS5qcyIsInNvdXJjZVJvb3QiOiIiLCJzb3VyY2VzIjpbIi4uL3NyYy9Db3JlLnRzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiI7O0FBc0JBLElBQWlCLElBQUksQ0F3VHBCO0FBeFRELFdBQWlCLElBQUk7SUFRVCxrQkFBYSxHQUFzRSxFQUFFLENBQUM7SUFPakcsMEJBQWlDLFNBQWtCLEVBQUUsT0FBb0I7UUFFeEUsTUFBTSxDQUFBLENBQUMsU0FBUyxDQUFDLENBQ2pCLENBQUM7WUFDQSxLQUFLLGVBQWU7Z0JBQ3BCLENBQUM7b0JBQ0EsSUFBSSxDQUFDLGFBQWEsR0FBRyxJQUFJLENBQUMsYUFBYSxDQUFDLE1BQU0sQ0FBQyxPQUFPLENBQUMsQ0FBQztvQkFDeEQsS0FBSyxDQUFDO2dCQUNQLENBQUM7WUFDRDtnQkFDQSxDQUFDO29CQUNBLE9BQU8sQ0FBQyxLQUFLLENBQUMsOEJBQTJCLFNBQVMsNEJBQXdCLENBQUMsQ0FBQztvQkFDNUUsS0FBSyxDQUFDO2dCQUNQLENBQUM7UUFDRixDQUFDO0lBQ0YsQ0FBQztJQWZlLHFCQUFnQixtQkFlL0IsQ0FBQTtJQVNELDRCQUE0QixJQUFjLEVBQUUsRUFBbUI7UUFBbkIsbUJBQUEsRUFBQSxTQUFtQjtRQUk5RCxFQUFFLENBQUEsQ0FBQyxFQUFFLElBQUksSUFBSSxDQUFDLEVBQUUsQ0FBQyxNQUFNLENBQUMsV0FBVyxDQUFDLEdBQUcsQ0FBQyxDQUFDLENBQUMsQ0FBQyxDQUFDO1lBQUMsSUFBSSxDQUFDLEVBQUUsR0FBRyxJQUFJLENBQUMsRUFBRSxDQUFDLFNBQVMsQ0FBQyxDQUFDLENBQUMsQ0FBQztRQUFDLENBQUM7UUFDOUUsSUFBSSxDQUFDLEVBQUUsQ0FBQSxDQUFDLENBQUMsRUFBRSxJQUFJLElBQUksQ0FBQyxFQUFFLENBQUMsTUFBTSxDQUFDLFVBQVUsQ0FBQyxHQUFHLENBQUMsQ0FBQyxDQUFDLENBQUMsQ0FBQztZQUFDLElBQUksQ0FBQyxFQUFFLEdBQUcsTUFBSSxJQUFJLENBQUMsRUFBSSxDQUFDO1FBQUMsQ0FBQztRQUc1RSxHQUFHLENBQUEsQ0FBQyxJQUFJLENBQUMsR0FBRyxDQUFDLEVBQUUsQ0FBQyxHQUFHLElBQUksQ0FBQyxRQUFRLENBQUMsTUFBTSxFQUFFLENBQUMsRUFBRSxFQUM1QyxDQUFDO1lBQ0Esa0JBQWtCLENBQUMsSUFBSSxDQUFDLFFBQVEsQ0FBQyxDQUFDLENBQUMsRUFBRSxFQUFFLENBQUMsQ0FBQztRQUMxQyxDQUFDO0lBQ0YsQ0FBQztJQVVELHFCQUE0QixLQUFjO1FBRXpDLE1BQU0sQ0FBQSxDQUFDLEtBQUssQ0FBQyxDQUFDLENBQUMsQ0FBQyxDQUNoQixDQUFDO1lBQ0EsS0FBSyxHQUFHO2dCQUNSLENBQUM7b0JBQ0EsSUFBSSxXQUFXLEdBQUcsS0FBSyxDQUFDLFNBQVMsQ0FBQyxDQUFDLENBQUMsQ0FBQztvQkFDckMsRUFBRSxDQUFBLENBQUMsQ0FBQyxRQUFRLENBQUMsY0FBYyxDQUFDLFdBQVcsQ0FBQyxDQUFDLENBQ3pDLENBQUM7d0JBQ0EsTUFBTSxDQUFDLGdCQUFhLFdBQVcsd0JBQW9CLENBQUM7b0JBQ3JELENBQUM7b0JBQ0QsSUFBSSxDQUNKLENBQUM7d0JBQ0EsTUFBTSxDQUFDLGFBQWEsQ0FBQyxLQUFLLENBQUMsU0FBUyxDQUFDLENBQUMsQ0FBQyxDQUFDLENBQUMsU0FBUyxDQUFDO29CQUNwRCxDQUFDO2dCQUNGLENBQUM7WUFDRCxLQUFLLEdBQUc7Z0JBQ1IsQ0FBQztvQkFFQSxJQUFJLFlBQVksR0FBRyxJQUFJLENBQUM7b0JBQ3hCLElBQUksTUFBTSxHQUFHLEtBQUssQ0FBQyxTQUFTLENBQUMsQ0FBQyxDQUFDLENBQUMsS0FBSyxDQUFDLEdBQUcsQ0FBQyxDQUFDO29CQUMzQyxHQUFHLENBQUEsQ0FBQyxJQUFJLENBQUMsR0FBRyxDQUFDLEVBQUUsQ0FBQyxHQUFHLE1BQU0sQ0FBQyxNQUFNLEVBQUUsQ0FBQyxFQUFFLEVBQ3JDLENBQUM7d0JBQ0EsRUFBRSxDQUFBLENBQUMsQ0FBQyxLQUFLLENBQUMsQ0FBQyxDQUFDLENBQUM7NEJBQUMsWUFBWSxHQUFHLE1BQU0sQ0FBQyxNQUFNLENBQUMsQ0FBQyxDQUFDLENBQUMsQ0FBQzt3QkFBQyxDQUFDO3dCQUNqRCxJQUFJLENBQUMsQ0FBQzs0QkFBQyxZQUFZLEdBQUcsWUFBWSxDQUFDLE1BQU0sQ0FBQyxDQUFDLENBQUMsQ0FBQyxDQUFDO3dCQUFDLENBQUM7b0JBQ2pELENBQUM7b0JBQ0QsRUFBRSxDQUFBLENBQUMsWUFBWSxLQUFLLFNBQVMsQ0FBQyxDQUM5QixDQUFDO3dCQUNBLE1BQU0sQ0FBQyxpQkFBYyxLQUFLLENBQUMsU0FBUyxDQUFDLENBQUMsQ0FBQyx3QkFBb0IsQ0FBQztvQkFDN0QsQ0FBQztvQkFDRCxJQUFJLENBQ0osQ0FBQzt3QkFDQSxNQUFNLENBQUMsWUFBWSxFQUFFLENBQUMsUUFBUSxFQUFFLENBQUM7b0JBQ2xDLENBQUM7Z0JBQ0YsQ0FBQztZQUNELEtBQUssR0FBRztnQkFDUixDQUFDO29CQUVBLElBQUksWUFBWSxHQUFHLElBQUksQ0FBQztvQkFDeEIsSUFBSSxNQUFNLEdBQUcsS0FBSyxDQUFDLFNBQVMsQ0FBQyxDQUFDLENBQUMsQ0FBQyxLQUFLLENBQUMsR0FBRyxDQUFDLENBQUM7b0JBQzNDLEdBQUcsQ0FBQSxDQUFDLElBQUksQ0FBQyxHQUFHLENBQUMsRUFBRSxDQUFDLEdBQUcsTUFBTSxDQUFDLE1BQU0sRUFBRSxDQUFDLEVBQUUsRUFDckMsQ0FBQzt3QkFDQSxFQUFFLENBQUEsQ0FBQyxDQUFDLEtBQUssQ0FBQyxDQUFDLENBQUMsQ0FBQzs0QkFBQyxZQUFZLEdBQUcsTUFBTSxDQUFDLE1BQU0sQ0FBQyxDQUFDLENBQUMsQ0FBQyxDQUFDO3dCQUFDLENBQUM7d0JBQ2pELElBQUksQ0FBQyxDQUFDOzRCQUFDLFlBQVksR0FBRyxZQUFZLENBQUMsTUFBTSxDQUFDLENBQUMsQ0FBQyxDQUFDLENBQUM7d0JBQUMsQ0FBQztvQkFDakQsQ0FBQztvQkFDRCxFQUFFLENBQUEsQ0FBQyxZQUFZLEtBQUssU0FBUyxDQUFDLENBQzlCLENBQUM7d0JBQ0EsTUFBTSxDQUFDLGlCQUFjLEtBQUssQ0FBQyxTQUFTLENBQUMsQ0FBQyxDQUFDLHdCQUFvQixDQUFDO29CQUM3RCxDQUFDO29CQUNELElBQUksQ0FDSixDQUFDO3dCQUNBLE1BQU0sQ0FBQyxZQUFZLENBQUMsUUFBUSxFQUFFLENBQUM7b0JBQ2hDLENBQUM7Z0JBQ0YsQ0FBQztZQUNEO2dCQUNBLENBQUM7b0JBQ0EsTUFBTSxDQUFDLHVDQUFvQyxLQUFLLE9BQUcsQ0FBQztnQkFDckQsQ0FBQztRQUNGLENBQUM7SUFDRixDQUFDO0lBM0RlLGdCQUFXLGNBMkQxQixDQUFBO0lBT0QsdUJBQXVCLEVBQVc7UUFFakMsSUFBSSxNQUFNLEdBQUcsUUFBUSxDQUFDLGNBQWMsQ0FBQyxFQUFFLENBQUMsQ0FBQztRQUN6QyxFQUFFLENBQUEsQ0FBQyxNQUFNLEtBQUssSUFBSSxDQUFDLENBQ25CLENBQUM7WUFDQSxPQUFPLENBQUMsR0FBRyxDQUFDLFVBQVUsR0FBRyxFQUFFLEdBQUcsZ0JBQWdCLENBQUMsQ0FBQztZQUNoRCxNQUFNLENBQUMsSUFBSSxDQUFDO1FBQ2IsQ0FBQztRQUVELElBQUksZUFBZSxHQUFHLE1BQU0sQ0FBQyxTQUFTLENBQUMsSUFBSSxDQUFZLENBQUM7UUFDeEQsZUFBZSxDQUFDLGVBQWUsQ0FBQyxRQUFRLENBQUMsQ0FBQztRQUUxQyxJQUFJLElBQUksR0FBRyxVQUFTLE9BQWlCO1lBRXBDLEdBQUcsQ0FBQSxDQUFDLElBQUksQ0FBQyxHQUFHLENBQUMsRUFBRSxDQUFDLEdBQUcsT0FBTyxDQUFDLFVBQVUsQ0FBQyxNQUFNLEVBQUUsQ0FBQyxFQUFFLEVBQ2pELENBQUM7Z0JBQ0EsSUFBSSxRQUFRLEdBQWEsS0FBSyxDQUFDO2dCQUMvQixNQUFNLENBQUEsQ0FBQyxPQUFPLENBQUMsVUFBVSxDQUFDLENBQUMsQ0FBQyxDQUFDLElBQUksQ0FBQyxDQUNsQyxDQUFDO29CQUNBLEtBQUssbUJBQW1CO3dCQUN4QixDQUFDOzRCQUNBLEVBQUUsQ0FBQSxDQUFDLE9BQU8sQ0FBQyxhQUFhLENBQUMsQ0FDekIsQ0FBQztnQ0FDQSxJQUFJLFVBQVUsR0FBRyxRQUFRLENBQUMsYUFBYSxDQUFDLE1BQU0sQ0FBQyxDQUFDO2dDQUNoRCxVQUFVLENBQUMsU0FBUyxHQUFHLFdBQVcsQ0FBQyxPQUFPLENBQUMsVUFBVSxDQUFDLENBQUMsQ0FBQyxDQUFDLEtBQUssQ0FBQyxDQUFDO2dDQUNoRSxPQUFPLENBQUMsYUFBYSxDQUFDLFlBQVksQ0FBQyxVQUFVLEVBQUUsT0FBTyxDQUFDLENBQUM7Z0NBQ3hELFFBQVEsR0FBRyxJQUFJLENBQUM7NEJBQ2pCLENBQUM7NEJBQ0QsS0FBSyxDQUFDO3dCQUNQLENBQUM7b0JBQ0QsS0FBSyx5QkFBeUI7d0JBQzlCLENBQUM7NEJBQ0EsSUFBSSxRQUFNLEdBQUcsV0FBVyxDQUFDLE9BQU8sQ0FBQyxVQUFVLENBQUMsQ0FBQyxDQUFDLENBQUMsS0FBSyxDQUFDLENBQUM7NEJBQ3RELE9BQU8sQ0FBQyxHQUFHLENBQUMsZUFBYSxPQUFPLENBQUMsT0FBTyw0QkFBdUIsT0FBTyxDQUFDLFVBQVUsQ0FBQyxDQUFDLENBQUMsQ0FBQyxLQUFLLGNBQVEsUUFBTSxPQUFHLENBQUMsQ0FBQzs0QkFDN0csT0FBTyxDQUFDLFlBQVksQ0FBQyxLQUFLLEVBQUUsV0FBVyxDQUFDLE9BQU8sQ0FBQyxVQUFVLENBQUMsQ0FBQyxDQUFDLENBQUMsS0FBSyxDQUFDLENBQUMsQ0FBQzs0QkFDdEUsUUFBUSxHQUFHLElBQUksQ0FBQzt3QkFDakIsQ0FBQztnQkFDRixDQUFDO2dCQUlELEVBQUUsQ0FBQSxDQUFDLFFBQVEsQ0FBQyxDQUFDLENBQUM7b0JBQUMsS0FBSyxDQUFDO2dCQUFDLENBQUM7WUFDeEIsQ0FBQztZQUNELEVBQUUsQ0FBQSxDQUFDLE9BQU8sQ0FBQyxhQUFhLENBQUMsQ0FDekIsQ0FBQztnQkFDQSxHQUFHLENBQUEsQ0FBQyxJQUFJLENBQUMsR0FBRyxDQUFDLEVBQUUsQ0FBQyxHQUFHLE9BQU8sQ0FBQyxRQUFRLENBQUMsTUFBTSxFQUFFLENBQUMsRUFBRSxFQUMvQyxDQUFDO29CQUNBLElBQUksQ0FBQyxPQUFPLENBQUMsUUFBUSxDQUFDLENBQUMsQ0FBQyxDQUFDLENBQUM7Z0JBQzNCLENBQUM7WUFDRixDQUFDO1FBQ0YsQ0FBQyxDQUFDO1FBQ0YsSUFBSSxDQUFDLGVBQWUsQ0FBQyxDQUFDO1FBRXRCLE1BQU0sQ0FBQyxlQUFlLENBQUM7SUFDeEIsQ0FBQztJQU1ELHFCQUE0QixFQUFXO1FBRXRDLElBQUksT0FBTyxHQUFHLFFBQVEsQ0FBQyxjQUFjLENBQUMsV0FBVyxDQUFDLENBQUM7UUFDbkQsSUFBSSxjQUFjLEdBQUcsUUFBUSxDQUFDLGNBQWMsQ0FBQyxrQkFBa0IsQ0FBQyxDQUFDO1FBSWpFLElBQUksS0FBSyxHQUFHLGNBQWMsQ0FBQyxvQkFBb0IsQ0FBQyxHQUFHLENBQUMsQ0FBQztRQUNyRCxHQUFHLENBQUEsQ0FBQyxJQUFJLENBQUMsR0FBRyxDQUFDLEVBQUUsQ0FBQyxHQUFHLEtBQUssQ0FBQyxNQUFNLEdBQy9CLENBQUM7WUFDQSxJQUFJLFFBQVEsR0FBWSxLQUFLLENBQUMsQ0FBQyxDQUFDLENBQUMsU0FBUyxDQUFDLFNBQVMsQ0FDbkQsS0FBSyxDQUFDLENBQUMsQ0FBQyxDQUFDLFNBQVMsQ0FBQyxPQUFPLENBQUMsR0FBRyxDQUFDLEdBQUcsQ0FBQyxFQUNuQyxLQUFLLENBQUMsQ0FBQyxDQUFDLENBQUMsU0FBUyxDQUFDLE9BQU8sQ0FBQyxNQUFNLENBQUMsQ0FDbEMsQ0FBQztZQUNGLEtBQUssQ0FBQyxDQUFDLENBQUMsQ0FBQyxTQUFTLEdBQUcsb0NBQWdDLFFBQVEsWUFBUyxDQUFDO1FBQ3hFLENBQUM7UUFHRCxPQUFPLENBQUMsU0FBUyxJQUFJLGNBQWMsQ0FBQyxTQUFTLENBQUM7UUFDOUMsT0FBTyxDQUFDLFNBQVMsR0FBRyxPQUFPLENBQUMsWUFBWSxDQUFDO1FBR3pDLElBQUksS0FBSyxHQUFHLGFBQWEsQ0FBQyxFQUFFLENBQUMsQ0FBQztRQUM5QixrQkFBa0IsQ0FBQyxLQUFLLEVBQUUsSUFBSSxDQUFDLENBQUM7UUFDaEMsYUFBYSxDQUFDLEtBQUssQ0FBQyxDQUFDO1FBQ3JCLEtBQUssQ0FBQyxTQUFTLEdBQUcsQ0FBQyxDQUFDO1FBSXBCLEtBQUssQ0FBQyxFQUFFLEdBQUcsa0JBQWtCLENBQUM7UUFDOUIsY0FBYyxDQUFDLGFBQWEsQ0FBQyxZQUFZLENBQUMsS0FBSyxFQUFFLGNBQWMsQ0FBQyxDQUFDO1FBR2pFLEdBQUcsQ0FBQSxDQUFDLElBQUksQ0FBQyxHQUFHLENBQUMsRUFBRSxDQUFDLEdBQUcsS0FBQSxhQUFhLENBQUMsTUFBTSxFQUFFLENBQUMsRUFBRSxFQUFFLENBQUM7WUFBQyxLQUFBLGFBQWEsQ0FBQyxDQUFDLENBQUMsQ0FBQyxFQUFFLEVBQUUsS0FBSyxFQUFFLEVBQUUsQ0FBQyxDQUFDO1FBQUMsQ0FBQztJQUNuRixDQUFDO0lBbENlLGdCQUFXLGNBa0MxQixDQUFBO0lBT0QsdUJBQThCLE9BQWlCO1FBRTlDLEVBQUUsQ0FBQSxDQUFDLE9BQU8sQ0FBQyxPQUFPLElBQUksR0FBRyxDQUFDLENBQzFCLENBQUM7b0NBQ1EsQ0FBQztnQkFFUixNQUFNLENBQUEsQ0FBQyxPQUFPLENBQUMsVUFBVSxDQUFDLENBQUMsQ0FBQyxDQUFDLElBQUksQ0FBQyxDQUNsQyxDQUFDO29CQUNBLEtBQUssbUJBQW1CO3dCQUN4QixDQUFDOzRCQUNBLE9BQU8sQ0FBQyxnQkFBZ0IsQ0FBQyxPQUFPLEVBQUU7Z0NBQ2pDLElBQUksQ0FBQyxXQUFXLENBQUMsT0FBTyxDQUFDLFVBQVUsQ0FBQyxDQUFDLENBQUMsQ0FBQyxLQUFLLENBQUMsQ0FBQzs0QkFDL0MsQ0FBQyxDQUFDLENBQUM7NEJBQ0gsS0FBSyxDQUFDO3dCQUNQLENBQUM7b0JBQ0QsS0FBSyxvQkFBb0I7d0JBQ3pCLENBQUM7NEJBQ0EsT0FBTyxDQUFDLGdCQUFnQixDQUFDLE9BQU8sRUFBRSxNQUFNLENBQUMsT0FBTyxDQUFDLFVBQVUsQ0FBQyxDQUFDLENBQUMsQ0FBQyxLQUFLLENBQUMsQ0FBQyxDQUFDOzRCQUN2RSxLQUFLLENBQUM7d0JBQ1AsQ0FBQztvQkFDRCxLQUFLLG1CQUFtQjt3QkFDeEIsQ0FBQzs0QkFDQSxPQUFPLENBQUMsZ0JBQWdCLENBQUMsT0FBTyxFQUFFO2dDQUNqQyxJQUFJLENBQUMsb0JBQW9CLENBQUMsT0FBTyxDQUFDLEVBQUUsRUFBRSxXQUFXLENBQUMsT0FBTyxDQUFDLFVBQVUsQ0FBQyxDQUFDLENBQUMsQ0FBQyxLQUFLLENBQUMsQ0FBQyxDQUFDOzRCQUNqRixDQUFDLENBQUMsQ0FBQzs0QkFDSCxLQUFLLENBQUM7d0JBQ1AsQ0FBQztnQkFDRixDQUFDO1lBQ0YsQ0FBQztZQXhCRCxHQUFHLENBQUEsQ0FBQyxJQUFJLENBQUMsR0FBRyxDQUFDLEVBQUUsQ0FBQyxHQUFHLE9BQU8sQ0FBQyxVQUFVLENBQUMsTUFBTSxFQUFFLENBQUMsRUFBRTt3QkFBekMsQ0FBQzthQXdCUjtRQUNGLENBQUM7UUFDRCxFQUFFLENBQUEsQ0FBQyxPQUFPLENBQUMsYUFBYSxDQUFDLENBQ3pCLENBQUM7WUFDQSxHQUFHLENBQUEsQ0FBQyxJQUFJLENBQUMsR0FBRyxDQUFDLEVBQUUsQ0FBQyxHQUFHLE9BQU8sQ0FBQyxRQUFRLENBQUMsTUFBTSxFQUFFLENBQUMsRUFBRSxFQUMvQyxDQUFDO2dCQUNBLGFBQWEsQ0FBQyxPQUFPLENBQUMsUUFBUSxDQUFDLENBQUMsQ0FBQyxDQUFDLENBQUM7WUFDcEMsQ0FBQztRQUNGLENBQUM7SUFDRixDQUFDO0lBckNlLGtCQUFhLGdCQXFDNUIsQ0FBQTtJQVFELDhCQUFxQyxFQUFXLEVBQUUsSUFBYTtRQUU5RCxHQUFHLENBQUEsQ0FBQyxJQUFJLE9BQU8sR0FBRyxRQUFRLENBQUMsY0FBYyxDQUFDLEVBQUUsQ0FBQyxFQUFFLE9BQU8sRUFBRSxPQUFPLEdBQUcsUUFBUSxDQUFDLGNBQWMsQ0FBQyxFQUFFLENBQUMsRUFDN0YsQ0FBQztZQUNBLEVBQUUsQ0FBQSxDQUFDLENBQUMsT0FBTyxDQUFDLENBQUMsQ0FBQztnQkFBQyxRQUFRLENBQUM7WUFBQyxDQUFDO1lBSTFCLElBQUksU0FBUyxHQUFhLEtBQUssQ0FBQztZQUNoQyxHQUFHLENBQUEsQ0FBQyxJQUFJLFFBQU0sR0FBRyxPQUFPLENBQUMsYUFBYSxFQUFFLFFBQU0sRUFBRSxRQUFNLEdBQUcsUUFBTSxDQUFDLGFBQWEsRUFDN0UsQ0FBQztnQkFDQSxFQUFFLENBQUEsQ0FBQyxRQUFNLENBQUMsRUFBRSxLQUFLLGtCQUFrQixDQUFDLENBQ3BDLENBQUM7b0JBQ0EsU0FBUyxHQUFHLElBQUksQ0FBQztvQkFDakIsS0FBSyxDQUFDO2dCQUNQLENBQUM7WUFDRixDQUFDO1lBQ0QsRUFBRSxDQUFBLENBQUMsU0FBUyxDQUFDLENBQ2IsQ0FBQztnQkFDQSxJQUFJLFdBQVcsR0FBRyxRQUFRLENBQUMsYUFBYSxDQUFDLE1BQU0sQ0FBQyxDQUFDO2dCQUNqRCxXQUFXLENBQUMsU0FBUyxHQUFHLGVBQWUsQ0FBQztnQkFDeEMsV0FBVyxDQUFDLFNBQVMsR0FBRyxJQUFJLENBQUM7Z0JBQzdCLGtCQUFrQixDQUFDLFdBQVcsRUFBRSxJQUFJLENBQUMsQ0FBQztnQkFDdEMsYUFBYSxDQUFDLFdBQVcsQ0FBQyxDQUFDO2dCQUMzQixPQUFPLENBQUMsVUFBVSxDQUFDLFlBQVksQ0FBQyxXQUFXLEVBQUUsT0FBTyxDQUFDLENBQUM7Z0JBQ3RELEtBQUssQ0FBQztZQUNQLENBQUM7UUFDRixDQUFDO0lBQ0YsQ0FBQztJQTVCZSx5QkFBb0IsdUJBNEJuQyxDQUFBO0lBTUQscUJBQTRCLEVBQVk7UUFFdkMsSUFBSSxPQUFPLEdBQUcsUUFBUSxDQUFDLGNBQWMsQ0FBQyxXQUFXLENBQUMsQ0FBQztRQUNuRCxPQUFPLENBQUMsTUFBTSxHQUFHLENBQUMsRUFBRSxDQUFDO0lBQ3RCLENBQUM7SUFKZSxnQkFBVyxjQUkxQixDQUFBO0FBQ0YsQ0FBQyxFQXhUZ0IsSUFBSSxHQUFKLFlBQUksS0FBSixZQUFJLFFBd1RwQiJ9// source/script.js
         var TestVariable = "Expanded variable!";
 
         function TestFunction() {
@@ -289,204 +421,259 @@
             NestedVariable: "Nested variable!"
         };
     </script>
+    <script>
+        function __Restart() {
+            location.reload();
+        }
+
+        function __ToggleHistory() {
+            var historyContainerDiv = document.getElementById("__historyContainer");
+            if (!historyContainerDiv) {
+                return;
+            }
+
+            var historyDiv = document.getElementById("__history");
+            if (!historyDiv) {
+                return;
+            }
+
+            var contentDiv = document.getElementById("__content");
+            if (!contentDiv) {
+                return;
+            }
+
+            // Toggle history visibility
+            historyContainerDiv.hidden = !historyContainerDiv.hidden;
+            historyDiv.hidden = historyContainerDiv.hidden;
+
+            // Scroll to bottom of history
+            historyContainerDiv.scrollTop = historyContainerDiv.scrollHeight;
+
+            // Adjust content position relative to history panel
+            var contentTop = 75 + (historyContainerDiv.hidden ? 0 : 425);
+            contentDiv.style.setProperty("top", contentTop);
+            contentDiv.style.setProperty("height", window.innerHeight - contentTop);
+        }
+        Core.AddEventListener("OnGotoSection", function(id, element, tags) {
+            // Scroll to bottom of history
+            var historyContainerDiv = document.getElementById("__historyContainer");
+            if (historyContainerDiv) {
+                historyContainerDiv.scrollTop = historyContainerDiv.scrollHeight;
+            }
+
+            // Scroll to top of new content
+            var contentDiv = document.getElementById("__content");
+            if (contentDiv) {
+                contentDiv.scrollTop = 0;
+            }
+        });
+    </script>
 </head>
 
 <body>
-    <!-- source/text.md -->
-    <div id="TestSection" class="section" hidden="true">
-        <p>Expanded section!</p>
-    </div>
-    <div id="Start" class="section" hidden="true">
-        <h1>Text</h1>
-        <p>Expand a section in a <code>text</code> element: <span data-expand-macro="@TestSection"></span><br/>Expand a function in a <code>text</code> element: <span data-expand-macro="#TestFunction"></span><br/>Expand a variable in a <code>text</code>            element: <span data-expand-macro="$TestVariable"></span></p>
-        <p>Non-expanding reference to a section in a <code>text</code> element: {@TestSection}<br/>Non-expanding reference to a function in a <code>text</code> element: {#TestFunction}<br/>Non-expanding reference to a variable in a <code>text</code> element:
-            {$TestVariable}</p>
-        <p>Display a backslash: \</p>
-        <p>Expand a nested function: <span data-expand-macro="#Nestor.NestedFunction"></span><br/>Expand a nested variable: <span data-expand-macro="$Nestor.NestedVariable"></span></p>
-        <h1>Aliases</h1>
-        <p>Aliases are awesome!</p>
-        <p>Aliases can enable <span style='color:#ff8888'>clean inline styling</span>!</p>
-        <h1>Links</h1>
-        <p><a title="{@TestSection}" href="#" data-goto-section="TestSection">Link to a section</a><br/><a title="{#LinkedFunction}" href="#" data-call-function="LinkedFunction">Link to a function</a></p>
-        <p><a title="#" target="_blank" href="#">Link with a section in the label: <span data-expand-macro="@TestSection"></span>&nbsp;<i class="fa fa-external-link" aria-hidden="true"></i></a><br/><a title="#" target="_blank" href="#">Link with a function in the label: <span data-expand-macro="#TestFunction"></span>&nbsp;<i class="fa fa-external-link" aria-hidden="true"></i></a><br/>
-            <a
-                title="#" target="_blank" href="#">Link with a variable in the label: <span data-expand-macro="$TestVariable"></span>&nbsp;<i class="fa fa-external-link" aria-hidden="true"></i></a>
-        </p>
-        <p><a title="{@TestSection}" href="#" data-goto-section="TestSection">Link with an expanded macro (<span data-expand-macro="$TestVariable"></span>) in its label</a></p>
-        <h1>Images</h1>
-        <p><img src="assets/avatar.png" alt="Image with a direct url" title="Image with a direct url"><br/><img data-image-source-macro="#ImageFunction" src="#" alt="Image with a function url" title="Image with a function url"><br/><img data-image-source-macro="$ImageVariable"
-                src="#" alt="Image with a variable url" title="Image with a variable url"></p>
-        <h1>Emphasis</h1>
-        <p>Expand a section in an <code>emph</code> element: <em><span data-expand-macro="@TestSection"></span></em><br/>Expand a function in an <code>emph</code> element: <em><span data-expand-macro="#TestFunction"></span></em><br/>Expand a variable in
-            an <code>emph</code> element: <em><span data-expand-macro="$TestVariable"></span></em></p>
-        <p>Non-expanding reference to a section in an <code>emph</code> element: <em>{@TestSection}</em><br/>Non-expanding reference to a function in an <code>emph</code> element: <em>{#TestFunction}</em><br/>Non-expanding reference to a variable in an <code>emph</code>            element: <em>{$TestVariable}</em></p>
-        <p>Expand a section with surrounding content in an <code>emph</code> element: <em>reference &gt; <span data-expand-macro="@TestSection"></span> &lt; reference</em><br/>Expand a function with surrounding content in an <code>emph</code> element: <em>reference &gt; <span data-expand-macro="#TestFunction"></span> &lt; reference</em><br/>Expand
-            a variable with surrounding content in an <code>emph</code> element: <em>reference &gt; <span data-expand-macro="$TestVariable"></span> &lt; reference</em></p>
-        <p>Non-expanding reference to a section with surrounding content in an <code>emph</code> element: <em>reference &gt; {@TestSection} &lt; reference</em><br/>Non-expanding reference to a function with surrounding content in an <code>emph</code> element:
-            <em>reference &gt; {#TestFunction} &lt; reference</em><br/>Non-expanding reference to a variable with surrounding content in an <code>emph</code> element: <em>reference &gt; {$TestVariable} &lt; reference</em></p>
-        <h1>Strong</h1>
-        <p>Expand a section in a <code>strong</code> element: <strong><span data-expand-macro="@TestSection"></span></strong><br/>Expand a function in a <code>strong</code> element: <strong><span data-expand-macro="#TestFunction"></span></strong><br/>Expand
-            a variable in a <code>strong</code> element: <strong><span data-expand-macro="$TestVariable"></span></strong></p>
-        <p>Non-expanding reference to a section in a <code>strong</code> element: <strong>{@TestSection}</strong><br/>Non-expanding reference to a function in a <code>strong</code> element: <strong>{#TestFunction}</strong><br/>Non-expanding reference to
-            a variable in a <code>strong</code> element: <strong>{$TestVariable}</strong></p>
-        <p>Expand a section with surrounding content in a <code>strong</code> element: <strong>reference &gt; <span data-expand-macro="@TestSection"></span> &lt; reference</strong><br/>Expand a function with surrounding content in a <code>strong</code> element:
-            <strong>reference &gt; <span data-expand-macro="#TestFunction"></span> &lt; reference</strong><br/>Expand a variable with surrounding content in a <code>strong</code> element: <strong>reference &gt; <span data-expand-macro="$TestVariable"></span> &lt; reference</strong></p>
-        <p>Non-expanding reference to a section with surrounding content in a <code>strong</code> element: <strong>reference &gt; {@TestSection} &lt; reference</strong><br/>Non-expanding reference to a function with surrounding content in a <code>strong</code>            element: <strong>reference &gt; {#TestFunction} &lt; reference</strong><br/>Non-expanding reference to a variable with surrounding content in a <code>strong</code> element: <strong>reference &gt; {$TestVariable} &lt; reference</strong></p>
-        <h1>Code</h1>
-        <p>Expand a section in an inline <code>code</code> element: <code><span data-expand-macro="@TestSection"></span></code><br/>Expand a function in an inline <code>code</code> element: <code><span data-expand-macro="#TestFunction"></span></code><br/>Expand
-            a variable in an inline <code>code</code> element: <code><span data-expand-macro="$TestVariable"></span></code></p>
-        <p>Expand a section with surrounding content in an inline <code>code</code> element: <code>reference &gt; </code><code><span data-expand-macro="@TestSection"></span></code><code> &lt; reference</code><br/>Expand a function with surrounding content
-            in an inline <code>code</code> element: <code>reference &gt; </code><code><span data-expand-macro="#TestFunction"></span></code><code> &lt; reference</code><br/>Expand a variable with surrounding content in an inline <code>code</code> element:
-            <code>reference &gt; </code><code><span data-expand-macro="$TestVariable"></span></code><code> &lt; reference</code></p>
-        <p>Non-expanding reference to a section in an inline <code>code</code> element: <code>{@TestSection}</code><br/>Non-expanding reference to a function in an inline <code>code</code> element: <code>{#TestFunction}</code><br/>Non-expanding reference
-            to a variable in an inline <code>code</code> element: <code>{$TestVariable}</code></p>
-        <p>Non-expanding reference to a section with surrounding content in an inline <code>code</code> element: <code>reference &gt; {@TestSection} &lt; reference</code><br/>Non-expanding reference to a function with surrounding content in an inline <code>code</code>            element: <code>reference &gt; {#TestFunction} &lt; reference</code><br/>Non-expanding reference to a variable with surrounding content in an inline <code>code</code> element: <code>reference &gt; {$TestVariable} &lt; reference</code></p>
-        <h1>Code block</h1>
-        <p>Expand a section in an indented <code>code_block</code>:</p>
-        <pre><code><span data-expand-macro="@TestSection"></span></code></pre>
-        <pre><code>
-</code></pre>
-        <p>Expand a function in an indented <code>code_block</code>:</p>
-        <pre><code><span data-expand-macro="#TestFunction"></span></code></pre>
-        <pre><code>
-</code></pre>
-        <p>Expand a variable in an indented <code>code_block</code>:</p>
-        <pre><code><span data-expand-macro="$TestVariable"></span></code></pre>
-        <pre><code>
-</code></pre>
-        <p>Expand a section with surrounding content in an indented <code>code_block</code>:</p>
-        <pre><code>// Begin reference
-</code></pre>
-        <pre><code><span data-expand-macro="@TestSection"></span></code></pre>
-        <pre><code>
-// End reference
-</code></pre>
-        <p>Expand a function with surrounding content in an indented <code>code_block</code>:</p>
-        <pre><code>// Begin reference
-</code></pre>
-        <pre><code><span data-expand-macro="#TestFunction"></span></code></pre>
-        <pre><code>
-// End reference
-</code></pre>
-        <p>Expand a variable with surrounding content in an indented <code>code_block</code>:</p>
-        <pre><code>// Begin reference
-</code></pre>
-        <pre><code><span data-expand-macro="$TestVariable"></span></code></pre>
-        <pre><code>
-// End reference
-</code></pre>
-        <p>Non-expanding reference to a section in an indented <code>code_block</code>:</p>
-        <pre><code>{@TestSection}
-</code></pre>
-        <p>Non-expanding reference to a function in an indented <code>code_block</code>:</p>
-        <pre><code>{#TestFunction}
-</code></pre>
-        <p>Non-expanding reference to a variable in an indented <code>code_block</code>:</p>
-        <pre><code>{$TestVariable}
-</code></pre>
-        <p>Non-expanding reference to a section with surrounding content in an indented <code>code_block</code>:</p>
-        <pre><code>// Begin reference
-{@TestSection}
-// End reference
-</code></pre>
-        <p>Non-expanding reference to a function with surrounding content in an indented <code>code_block</code>:</p>
-        <pre><code>// Begin reference
-{#TestFunction}
-// End reference
-</code></pre>
-        <p>Non-expanding reference to a variable with surrounding content in an indented <code>code_block</code>:</p>
-        <pre><code>// Begin reference
-{$TestVariable}
-// End reference
-</code></pre>
-        <h1>Code fence</h1>
-        <p>Expand a section in a fenced <code>code_block</code>:</p>
-        <p><code><span data-expand-macro="@TestSection"></span></code></p>
-        <p>Expand a function in a fenced <code>code_block</code>:</p>
-        <p><code><span data-expand-macro="#TestFunction"></span></code></p>
-        <p>Expand a variable in a fenced <code>code_block</code>:</p>
-        <p><code><span data-expand-macro="$TestVariable"></span></code></p>
-        <p>Expand a section with surrounding content in a fenced <code>code_block</code>:</p>
-        <pre><code>// Begin reference
-</code></pre>
-        <pre><code><span data-expand-macro="@TestSection"></span></code></pre>
-        <pre><code>
-// End reference
-</code></pre>
-        <p>Expand a function with surrounding content in a fenced <code>code_block</code>:</p>
-        <pre><code>// Begin reference
-</code></pre>
-        <pre><code><span data-expand-macro="#TestFunction"></span></code></pre>
-        <pre><code>
-// End reference
-</code></pre>
-        <p>Expand a variable with surrounding content in a fenced <code>code_block</code>:</p>
-        <pre><code>// Begin reference
-</code></pre>
-        <pre><code><span data-expand-macro="$TestVariable"></span></code></pre>
-        <pre><code>
-// End reference
-</code></pre>
-        <p>Non-expanding reference to a section in a fenced <code>code_block</code>:</p>
-        <p><code>{@TestSection}</code></p>
-        <p>Non-expanding reference to a function in a fenced <code>code_block</code>:</p>
-        <p><code>{#TestFunction}</code></p>
-        <p>Non-expanding reference to a variable in a fenced <code>code_block</code>:</p>
-        <p><code>{$TestVariable}</code></p>
-        <p>Non-expanding reference to a section with surrounding content in a fenced <code>code_block</code>:</p>
-        <pre><code>// Begin reference
-{@TestSection}
-// End reference
-</code></pre>
-        <p>Non-expanding reference to a function with surrounding content in a fenced <code>code_block</code>:</p>
-        <pre><code>// Begin reference
-{#TestFunction}
-// End reference
-</code></pre>
-        <p>Non-expanding reference to a variable with surrounding content in a fenced <code>code_block</code>:</p>
-        <pre><code>// Begin reference
-{$TestVariable}
-// End reference
-</code></pre>
-        <h1>Other formatting</h1>
-        <blockquote>
-            <p>This is a blockquote. It expands a function (<span data-expand-macro="#TestFunction"></span>) and a variable (<span data-expand-macro="$TestVariable"></span>) and finally a section: <span data-expand-macro="@TestSection"></span></p>
-        </blockquote>
-        <ul>
-            <li>Here is a list item expanding a function: <span data-expand-macro="#TestFunction"></span></li>
-            <li>List item expanding a variable: <span data-expand-macro="$TestVariable"></span>
-                <ul>
-                    <li>Child item with a function: <span data-expand-macro="#TestFunction"></span></li>
-                    <li>Child with a variable: <span data-expand-macro="$TestVariable"></span></li>
-                </ul>
-            </li>
-            <li>List item with a section (this is probably nonsense): <span data-expand-macro="@TestSection"></span>
-                <ul>
-                    <li>Child with a section (also nonsense): <span data-expand-macro="@TestSection"></span></li>
-                </ul>
-            </li>
-        </ul>
-        <h2>Here's a heading expanding a function: <span data-expand-macro="#TestFunction"></span></h2>
-        <h2>Heading with a variable: <span data-expand-macro="$TestVariable"></span></h2>
-        <h2>Heading with a section (nonsense): <span data-expand-macro="@TestSection"></span></h2>
-        <div>
-            <p><span style="color:blue">Here's some inline HTML that expands a function: 
-<span data-expand-macro="#TestFunction"></span>
-                </span>
-            </p>
-            <p><span style="color:red">Inline HTML that expands a variable: 
-<span data-expand-macro="$TestVariable"></span>
-                </span>
-            </p>
-            <p><span style="color:green">Inline HTML that expands a section: 
-<span data-expand-macro="@TestSection"></span>
-                </span>
-            </p>
+    <div id="__content">
+        <!-- source/text.md -->
+        <div id="TestSection" class="section" hidden="true">
+            <p>Expanded section!</p>
         </div>
-    </div>
+        <div id="Start" class="section" hidden="true">
+            <h1>Text</h1>
+            <p>Expand a section in a <code>text</code> element: <span data-expand-macro="@TestSection"></span><br/>Expand a function in a <code>text</code> element: <span data-expand-macro="#TestFunction"></span><br/>Expand a variable in a <code>text</code>                element: <span data-expand-macro="$TestVariable"></span></p>
+            <p>Non-expanding reference to a section in a <code>text</code> element: {@TestSection}<br/>Non-expanding reference to a function in a <code>text</code> element: {#TestFunction}<br/>Non-expanding reference to a variable in a <code>text</code>                element: {$TestVariable}</p>
+            <p>Display a backslash: \</p>
+            <p>Expand a nested function: <span data-expand-macro="#Nestor.NestedFunction"></span><br/>Expand a nested variable: <span data-expand-macro="$Nestor.NestedVariable"></span></p>
+            <h1>Aliases</h1>
+            <p>Aliases are awesome!</p>
+            <p>Aliases can enable <span style='color:#ff8888'>clean inline styling</span>!</p>
+            <h1>Links</h1>
+            <p><a title="{@TestSection}" href="#" data-goto-section="TestSection">Link to a section</a><br/><a title="{#LinkedFunction}" href="#" data-call-function="LinkedFunction">Link to a function</a></p>
+            <p><a title="#" target="_blank" href="#">Link with a section in the label: <span data-expand-macro="@TestSection"></span>&nbsp;<i class="fa fa-external-link" aria-hidden="true"></i></a><br/><a title="#" target="_blank" href="#">Link with a function in the label: <span data-expand-macro="#TestFunction"></span>&nbsp;<i class="fa fa-external-link" aria-hidden="true"></i></a><br/>
+                <a
+                    title="#" target="_blank" href="#">Link with a variable in the label: <span data-expand-macro="$TestVariable"></span>&nbsp;<i class="fa fa-external-link" aria-hidden="true"></i></a>
+            </p>
+            <p><a title="{@TestSection}" href="#" data-goto-section="TestSection">Link with an expanded macro (<span data-expand-macro="$TestVariable"></span>) in its label</a></p>
+            <h1>Images</h1>
+            <p><img src="assets/avatar.png" alt="Image with a direct url" title="Image with a direct url"><br/><img data-image-source-macro="#ImageFunction" src="#" alt="Image with a function url" title="Image with a function url"><br/><img data-image-source-macro="$ImageVariable"
+                    src="#" alt="Image with a variable url" title="Image with a variable url"></p>
+            <h1>Emphasis</h1>
+            <p>Expand a section in an <code>emph</code> element: <em><span data-expand-macro="@TestSection"></span></em><br/>Expand a function in an <code>emph</code> element: <em><span data-expand-macro="#TestFunction"></span></em><br/>Expand a variable
+                in an <code>emph</code> element: <em><span data-expand-macro="$TestVariable"></span></em></p>
+            <p>Non-expanding reference to a section in an <code>emph</code> element: <em>{@TestSection}</em><br/>Non-expanding reference to a function in an <code>emph</code> element: <em>{#TestFunction}</em><br/>Non-expanding reference to a variable in
+                an <code>emph</code> element: <em>{$TestVariable}</em></p>
+            <p>Expand a section with surrounding content in an <code>emph</code> element: <em>reference &gt; <span data-expand-macro="@TestSection"></span> &lt; reference</em><br/>Expand a function with surrounding content in an <code>emph</code> element:
+                <em>reference &gt; <span data-expand-macro="#TestFunction"></span> &lt; reference</em><br/>Expand a variable with surrounding content in an <code>emph</code> element: <em>reference &gt; <span data-expand-macro="$TestVariable"></span> &lt; reference</em></p>
+            <p>Non-expanding reference to a section with surrounding content in an <code>emph</code> element: <em>reference &gt; {@TestSection} &lt; reference</em><br/>Non-expanding reference to a function with surrounding content in an <code>emph</code>                element: <em>reference &gt; {#TestFunction} &lt; reference</em><br/>Non-expanding reference to a variable with surrounding content in an <code>emph</code> element: <em>reference &gt; {$TestVariable} &lt; reference</em></p>
+            <h1>Strong</h1>
+            <p>Expand a section in a <code>strong</code> element: <strong><span data-expand-macro="@TestSection"></span></strong><br/>Expand a function in a <code>strong</code> element: <strong><span data-expand-macro="#TestFunction"></span></strong><br/>Expand
+                a variable in a <code>strong</code> element: <strong><span data-expand-macro="$TestVariable"></span></strong></p>
+            <p>Non-expanding reference to a section in a <code>strong</code> element: <strong>{@TestSection}</strong><br/>Non-expanding reference to a function in a <code>strong</code> element: <strong>{#TestFunction}</strong><br/>Non-expanding reference
+                to a variable in a <code>strong</code> element: <strong>{$TestVariable}</strong></p>
+            <p>Expand a section with surrounding content in a <code>strong</code> element: <strong>reference &gt; <span data-expand-macro="@TestSection"></span> &lt; reference</strong><br/>Expand a function with surrounding content in a <code>strong</code>                element: <strong>reference &gt; <span data-expand-macro="#TestFunction"></span> &lt; reference</strong><br/>Expand a variable with surrounding content in a <code>strong</code> element: <strong>reference &gt; <span data-expand-macro="$TestVariable"></span> &lt; reference</strong></p>
+            <p>Non-expanding reference to a section with surrounding content in a <code>strong</code> element: <strong>reference &gt; {@TestSection} &lt; reference</strong><br/>Non-expanding reference to a function with surrounding content in a <code>strong</code>                element: <strong>reference &gt; {#TestFunction} &lt; reference</strong><br/>Non-expanding reference to a variable with surrounding content in a <code>strong</code> element: <strong>reference &gt; {$TestVariable} &lt; reference</strong></p>
+            <h1>Code</h1>
+            <p>Expand a section in an inline <code>code</code> element: <code><span data-expand-macro="@TestSection"></span></code><br/>Expand a function in an inline <code>code</code> element: <code><span data-expand-macro="#TestFunction"></span></code><br/>Expand
+                a variable in an inline <code>code</code> element: <code><span data-expand-macro="$TestVariable"></span></code></p>
+            <p>Expand a section with surrounding content in an inline <code>code</code> element: <code>reference &gt; </code><code><span data-expand-macro="@TestSection"></span></code><code> &lt; reference</code><br/>Expand a function with surrounding content
+                in an inline <code>code</code> element: <code>reference &gt; </code><code><span data-expand-macro="#TestFunction"></span></code><code> &lt; reference</code><br/>Expand a variable with surrounding content in an inline <code>code</code>                element: <code>reference &gt; </code><code><span data-expand-macro="$TestVariable"></span></code><code> &lt; reference</code></p>
+            <p>Non-expanding reference to a section in an inline <code>code</code> element: <code>{@TestSection}</code><br/>Non-expanding reference to a function in an inline <code>code</code> element: <code>{#TestFunction}</code><br/>Non-expanding reference
+                to a variable in an inline <code>code</code> element: <code>{$TestVariable}</code></p>
+            <p>Non-expanding reference to a section with surrounding content in an inline <code>code</code> element: <code>reference &gt; {@TestSection} &lt; reference</code><br/>Non-expanding reference to a function with surrounding content in an inline
+                <code>code</code> element: <code>reference &gt; {#TestFunction} &lt; reference</code><br/>Non-expanding reference to a variable with surrounding content in an inline <code>code</code> element: <code>reference &gt; {$TestVariable} &lt; reference</code></p>
+            <h1>Code block</h1>
+            <p>Expand a section in an indented <code>code_block</code>:</p>
+            <pre><code><span data-expand-macro="@TestSection"></span></code></pre>
+            <pre><code>
+</code></pre>
+            <p>Expand a function in an indented <code>code_block</code>:</p>
+            <pre><code><span data-expand-macro="#TestFunction"></span></code></pre>
+            <pre><code>
+</code></pre>
+            <p>Expand a variable in an indented <code>code_block</code>:</p>
+            <pre><code><span data-expand-macro="$TestVariable"></span></code></pre>
+            <pre><code>
+</code></pre>
+            <p>Expand a section with surrounding content in an indented <code>code_block</code>:</p>
+            <pre><code>// Begin reference
+</code></pre>
+            <pre><code><span data-expand-macro="@TestSection"></span></code></pre>
+            <pre><code>
+// End reference
+</code></pre>
+            <p>Expand a function with surrounding content in an indented <code>code_block</code>:</p>
+            <pre><code>// Begin reference
+</code></pre>
+            <pre><code><span data-expand-macro="#TestFunction"></span></code></pre>
+            <pre><code>
+// End reference
+</code></pre>
+            <p>Expand a variable with surrounding content in an indented <code>code_block</code>:</p>
+            <pre><code>// Begin reference
+</code></pre>
+            <pre><code><span data-expand-macro="$TestVariable"></span></code></pre>
+            <pre><code>
+// End reference
+</code></pre>
+            <p>Non-expanding reference to a section in an indented <code>code_block</code>:</p>
+            <pre><code>{@TestSection}
+</code></pre>
+            <p>Non-expanding reference to a function in an indented <code>code_block</code>:</p>
+            <pre><code>{#TestFunction}
+</code></pre>
+            <p>Non-expanding reference to a variable in an indented <code>code_block</code>:</p>
+            <pre><code>{$TestVariable}
+</code></pre>
+            <p>Non-expanding reference to a section with surrounding content in an indented <code>code_block</code>:</p>
+            <pre><code>// Begin reference
+{@TestSection}
+// End reference
+</code></pre>
+            <p>Non-expanding reference to a function with surrounding content in an indented <code>code_block</code>:</p>
+            <pre><code>// Begin reference
+{#TestFunction}
+// End reference
+</code></pre>
+            <p>Non-expanding reference to a variable with surrounding content in an indented <code>code_block</code>:</p>
+            <pre><code>// Begin reference
+{$TestVariable}
+// End reference
+</code></pre>
+            <h1>Code fence</h1>
+            <p>Expand a section in a fenced <code>code_block</code>:</p>
+            <p><code><span data-expand-macro="@TestSection"></span></code></p>
+            <p>Expand a function in a fenced <code>code_block</code>:</p>
+            <p><code><span data-expand-macro="#TestFunction"></span></code></p>
+            <p>Expand a variable in a fenced <code>code_block</code>:</p>
+            <p><code><span data-expand-macro="$TestVariable"></span></code></p>
+            <p>Expand a section with surrounding content in a fenced <code>code_block</code>:</p>
+            <pre><code>// Begin reference
+</code></pre>
+            <pre><code><span data-expand-macro="@TestSection"></span></code></pre>
+            <pre><code>
+// End reference
+</code></pre>
+            <p>Expand a function with surrounding content in a fenced <code>code_block</code>:</p>
+            <pre><code>// Begin reference
+</code></pre>
+            <pre><code><span data-expand-macro="#TestFunction"></span></code></pre>
+            <pre><code>
+// End reference
+</code></pre>
+            <p>Expand a variable with surrounding content in a fenced <code>code_block</code>:</p>
+            <pre><code>// Begin reference
+</code></pre>
+            <pre><code><span data-expand-macro="$TestVariable"></span></code></pre>
+            <pre><code>
+// End reference
+</code></pre>
+            <p>Non-expanding reference to a section in a fenced <code>code_block</code>:</p>
+            <p><code>{@TestSection}</code></p>
+            <p>Non-expanding reference to a function in a fenced <code>code_block</code>:</p>
+            <p><code>{#TestFunction}</code></p>
+            <p>Non-expanding reference to a variable in a fenced <code>code_block</code>:</p>
+            <p><code>{$TestVariable}</code></p>
+            <p>Non-expanding reference to a section with surrounding content in a fenced <code>code_block</code>:</p>
+            <pre><code>// Begin reference
+{@TestSection}
+// End reference
+</code></pre>
+            <p>Non-expanding reference to a function with surrounding content in a fenced <code>code_block</code>:</p>
+            <pre><code>// Begin reference
+{#TestFunction}
+// End reference
+</code></pre>
+            <p>Non-expanding reference to a variable with surrounding content in a fenced <code>code_block</code>:</p>
+            <pre><code>// Begin reference
+{$TestVariable}
+// End reference
+</code></pre>
+            <h1>Other formatting</h1>
+            <blockquote>
+                <p>This is a blockquote. It expands a function (<span data-expand-macro="#TestFunction"></span>) and a variable (<span data-expand-macro="$TestVariable"></span>) and finally a section: <span data-expand-macro="@TestSection"></span></p>
+            </blockquote>
+            <ul>
+                <li>Here is a list item expanding a function: <span data-expand-macro="#TestFunction"></span></li>
+                <li>List item expanding a variable: <span data-expand-macro="$TestVariable"></span>
+                    <ul>
+                        <li>Child item with a function: <span data-expand-macro="#TestFunction"></span></li>
+                        <li>Child with a variable: <span data-expand-macro="$TestVariable"></span></li>
+                    </ul>
+                </li>
+                <li>List item with a section (this is probably nonsense): <span data-expand-macro="@TestSection"></span>
+                    <ul>
+                        <li>Child with a section (also nonsense): <span data-expand-macro="@TestSection"></span></li>
+                    </ul>
+                </li>
+            </ul>
+            <h2>Here's a heading expanding a function: <span data-expand-macro="#TestFunction"></span></h2>
+            <h2>Heading with a variable: <span data-expand-macro="$TestVariable"></span></h2>
+            <h2>Heading with a section (nonsense): <span data-expand-macro="@TestSection"></span></h2>
+            <div>
+                <p><span style="color:blue">Here's some inline HTML that expands a function: 
+<span data-expand-macro="#TestFunction"></span>
+                    </span>
+                </p>
+                <p><span style="color:red">Inline HTML that expands a variable: 
+<span data-expand-macro="$TestVariable"></span>
+                    </span>
+                </p>
+                <p><span style="color:green">Inline HTML that expands a section: 
+<span data-expand-macro="@TestSection"></span>
+                    </span>
+                </p>
+            </div>
+        </div>
 
-    <div id="__history"></div>
-    <div id="__currentSection"></div>
+        <div id="__currentSection"></div>
+    </div>
+    <div id="__historyContainer" hidden>
+        <div id="__history"></div>
+    </div>
+    <div id="__controls">
+        <p>
+            <a href="#" onclick="__Restart()">Restart</a> •
+            <a href="#" onclick="__ToggleHistory()">Toggle History</a>
+        </p>
+    </div>
 </body>
 
 </html>

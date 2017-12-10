@@ -1,4 +1,4 @@
-Core.OnGotoSection = function(id, element, tags)
+Core.AddEventListener("OnGotoSection", function(id, element, tags)
 {
 	alert(`Transitioned to section "${id}" with tags "${tags}"`);
-};
+});
