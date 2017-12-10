@@ -44,6 +44,7 @@
     "build-verbose": "node build/Build.js --verbose",
     "build-dry": "node build/Build.js --dry-run",
     "build-debug": "node build/Build.js --debug --verbose",
+    "deploy": "npm install -g .",
     "prepare": "npm run build",
     "test": "echo \"Error: no test specified\" && exit 1"
   }
