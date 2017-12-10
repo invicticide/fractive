@@ -19,6 +19,9 @@
   "bugs": {
     "url": "https://github.com/invicticide/fractive/issues"
   },
+  "bin": {
+    "fractive": "./lib/CLI.js"
+  },
   "main": "lib/Main.js",
   "types": "lib/Main.d.ts",
   "devDependencies": {

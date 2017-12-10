@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 /*
 Fractive: A hypertext authoring tool -- https://github.com/invicticide/fractive
 Copyright (C) 2017 Josh Sutphin
