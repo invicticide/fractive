@@ -201,7 +201,7 @@ export namespace Compiler
 		// files to only specify those properties which they want to override.
 		let targetProject : FractiveProject = JSON.parse(fs.readFileSync(buildPath, "utf8"));
 		let validator = new ajv();
-		let valid = validator.validate(JSON.parse(fs.readFileSync("src/ProjectSchema.json", "utf8")), targetProject);
+		let valid = validator.validate(JSON.parse(fs.readFileSync(path.join(__dirname, "../src/ProjectSchema.json"), "utf8")), targetProject);
 		if(!valid)
 		{
 			LogError(`  ${buildPath}: Failed validating JSON`);
