@@ -125,8 +125,12 @@ console.log("Generating type declarations...");
 jsonSchemaToTypescript.compileFromFile(schemaInput).then(ts =>
 {
 	fs.writeFileSync(schemaOutput, ts, "utf8"); // For TypeScript completion at edit-time
+
+	if(!fs.existsSync("lib")) { fs.mkdirSync("lib"); }
 	fs.copyFileSync(schemaInput, "lib/ProjectSchema.json"); // For JSON validation at runtime
+
 	BuildEngine();
 	BuildExamples();
+
 	Finish();
 });
