@@ -24,6 +24,8 @@ So if you set the URL to `\{@Start}` you'd have created a link back to the secti
 [What happens if I set the link URL to a variable macro?]({#VariableLink})
 [What else can I use macros for?]({@InlineMacros})
 
+[go back]({#Core.GotoLastSection})
+
 {{InlineMacros}}
 
 Macros aren't only for links; you can also use them to add dynamic text to your sections.
