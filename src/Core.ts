@@ -53,6 +53,26 @@ export namespace Core
 	}
 
 	/**
+	 *
+	 */
+	function RetrieveFromWindow(name : string, type) {
+		let targetObject = null;
+		let tokens = name.split('.');
+
+		for(let i = 0; i < tokens.length; i++)
+		{
+			if(i === 0) { targetObject = window[tokens[0]]; }
+			else { targetObject = targetObject[tokens[i]]; }
+		}
+		if(targetObject === undefined)
+		{
+			return `{${type} "${name}" is not declared}`;
+		}
+
+		return targetObject;
+	}
+
+	/**
 	 * Enable or disable :inline macros within the document subtree starting at the given root element.
 	 * Nothing is returned, as the elements are modified in place. Disabled :inline macros simply have
 	 * a _ prepended to their id attribute.
@@ -100,40 +120,14 @@ export namespace Core
 			case '#':
 			{
 				// Return the result of the named function call
-				let targetObject = null;
-				let tokens = macro.substring(1).split('.');
-				for(let i = 0; i < tokens.length; i++)
-				{
-					if(i === 0) { targetObject = window[tokens[0]]; }
-					else { targetObject = targetObject[tokens[i]]; }
-				}
-				if(targetObject === undefined)
-				{
-					return `{function "${macro.substring(1)}" is not declared}`;
-				}
-				else
-				{
-					return targetObject().toString();
-				}
+				let targetFunction = RetrieveFromWindow(macro.substring(1), 'function');
+				return targetFunction().toString();
 			}
 			case '$':
 			{
 				// Return the value of the named variable
-				let targetObject = null;
-				let tokens = macro.substring(1).split('.');
-				for(let i = 0; i < tokens.length; i++)
-				{
-					if(i === 0) { targetObject = window[tokens[0]]; }
-					else { targetObject = targetObject[tokens[i]]; }
-				}
-				if(targetObject === undefined)
-				{
-					return `{variable "${macro.substring(1)}" is not declared}`;
-				}
-				else
-				{
-					return targetObject.toString();
-				}
+				let targetVariable = RetrieveFromWindow(macro.substring(1), 'variable');
+				return targetVariable.toString();
 			}
 			default:
 			{
@@ -231,21 +225,21 @@ export namespace Core
 	/**
 	 * Re-enable disabled hyperlinks in the given section
 	 */
-	// function EnableLinks(section) {
-	// 	let links = section.getElementsByClassName("__disabledLink");
-  //
-	// 	// Stripping each link modifies the collection as we iterate, so we don't need i++
-	// 	for(let i = 0; i < links.length; /*NOP*/)
-	// 	{
-	// 		// Retrieve the link's original tag
-	// 		let linkTag : string = links[i].getAttribute('data-link-tag');
-  //
-	// 		// The content from inside the link will be moved back inside the link tag
-	// 		let contents : string = links[i].innerHTML;
-  //
-	// 		links[i].outerHTML = linkTag + contents + '</a>';
-	// 	}
-	// }
+	function EnableLinks(section) {
+		let links = section.getElementsByClassName("__disabledLink");
+
+		// Stripping each link modifies the collection as we iterate, so we don't need i++
+		for(let i = 0; i < links.length; /*NOP*/)
+		{
+			// Retrieve the link's original tag
+			let linkTag : string = links[i].getAttribute('data-link-tag');
+
+			// The content from inside the link will be moved back inside the link tag
+			let contents : string = links[i].innerHTML;
+
+			links[i].outerHTML = linkTag + contents + '</a>';
+		}
+	}
 
 	/**
 	 * Navigate to the given section.
@@ -264,7 +258,7 @@ export namespace Core
 		let previousSectionId = currentSection.getAttribute('data-id');
 
 		if (previousSectionId !== null) {
-			history.innerHTML += `<div data-id="${previousSectionId}">${currentSection.innerHTML}</div>`;
+			history.innerHTML += `<div class="__previousSection" data-id="${previousSectionId}">${currentSection.innerHTML}</div>`;
 			history.scrollTop = history.scrollHeight;
 		}
 
@@ -285,17 +279,48 @@ export namespace Core
 		for(let i = 0; i < OnGotoSection.length; i++) { OnGotoSection[i](id, clone, []); }
 	}
 
-	// /**
-	//  * Navigate to the previous section as it was
-	//  * before transitioning to the current one.
-	//  */
-	// export function GotoLastSection() {
-  //
-  //
-	// 	// Notify user script
-	// 	// TODO expand the callback with a boolean for whether it's reverse travel
-	// 	for(let i = 0; i < OnGotoSection.length; i++) { OnGotoSection[i](id, clone, []); }
-	// }
+	/**
+	 * Navigate to the previous section as it was
+	 * before transitioning to the current one.
+	 */
+	export function GotoLastSection() {
+		let history = document.getElementById("__history");
+		let currentSection = document.getElementById("__currentSection");
+
+		// TODO only move the current section into history if the story's
+		// configuration is that the back button only goes one layer deep
+		// // Disable hyperlinks in the current section before moving it to history
+		// DisableLinks(currentSection);
+    //
+		// // Move the current section into the history section, keeping it in a div
+		// // with its id as a data attribute
+		// let previousSectionId = currentSection.getAttribute('data-id');
+    //
+		// if (previousSectionId !== null) {
+		// 	history.innerHTML += `<div data-id="${previousSectionId}">${currentSection.innerHTML}</div>`;
+		// 	history.scrollTop = history.scrollHeight;
+		// }
+
+		// Retrieve the most recent section
+		let previousSections = history.getElementsByClassName('__previousSection');
+		let previousSection = previousSections[previousSections.length - 1];
+		let id = previousSection.getAttribute('data-id');
+		let clone = previousSection.cloneNode(true) as Element;
+
+		// TODO remove the section we're rolling back to from the history
+
+		EnableLinks(clone);
+		RegisterLinks(clone);
+
+		clone.scrollTop = 0;
+
+		// Replace the div so as to restart CSS animations (just replacing innerHTML does not do this!)
+		clone.id = "__currentSection";
+		currentSection.parentElement.replaceChild(clone, currentSection);
+
+		// Notify user script
+		for(let i = 0; i < OnGotoSection.length; i++) { OnGotoSection[i](id, clone, []); }
+	}
 
 	/**
 	 * Recursively activates all links in the DOM subtree rooted at this element. This registers appropriate
@@ -319,7 +344,7 @@ export namespace Core
 					}
 					case "data-call-function":
 					{
-						element.addEventListener("click", window[element.attributes[i].value]);
+						element.addEventListener("click", RetrieveFromWindow(element.attributes[i].value, 'function'));
 						break;
 					}
 					case "data-replace-with":
