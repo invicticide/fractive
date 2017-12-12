@@ -116,7 +116,7 @@ export namespace Core
 				}
 				else
 				{
-					return ExpandSection(macro.substring(1)).innerHTML;
+					return ExpandSection(macro.substring(1), true).innerHTML;
 				}
 			}
 			case '#':
@@ -143,7 +143,7 @@ export namespace Core
 	 * @param id The string identifier of the section to expand.
 	 * @return A new section element with all inner macros expanded.
 	 */
-	function ExpandSection(id : string) : Element
+	function ExpandSection(id : string, stripBackButton : boolean = false) : Element
 	{
 		let source = document.getElementById(id);
 		if(source === null)
@@ -154,6 +154,15 @@ export namespace Core
 
 		let sectionInstance = source.cloneNode(true) as Element; // deep
 		sectionInstance.removeAttribute("hidden");
+
+		// We may want to strip the back button out of the section while expanding
+		if (stripBackButton) {
+			let backButtons = sectionInstance.getElementsByClassName("__backButton");
+			if (backButtons.length > 0) {
+				let backButton = backButtons[0];
+				sectionInstance.removeChild(backButton);
+			}
+		}
 
 		let scan = function(element : Element)
 		{
