@@ -210,8 +210,9 @@ export namespace Core
 	function DisableLinks(section) {
 		let links = section.getElementsByTagName("a");
 
-		// Stripping each link modifies the collection as we iterate, so we don't need i++
-		for(let i = 0; i < links.length; /*NOP*/)
+		// We need to i++ because we don't actually remove the link tag,
+		// just leave it empty.
+		for(let i = 0; i < links.length; i++)
 		{
 			// Preserve the link tag, but keep it EMPTY, and leave it next
 			// to the content, so the disabling process can be reversed by
@@ -223,30 +224,28 @@ export namespace Core
 				links[i].outerHTML.indexOf(">") + 1,
 				links[i].outerHTML.indexOf("</a>")
 			);
-			links[i].outerHTML = `<span class="__disabledLink">${linkTag}</a>${contents}</span>`;
+			links[i].outerHTML = `<span class="__disabledLink" data-link-tag='${linkTag}'>${linkTag}${contents}</span>`;
 		}
 	}
 
 	/**
 	 * Re-enable disabled hyperlinks in the given section
 	 */
-	// function EnableLinks(section) {
-	// 	let links = section.getElementsByClassName("__disabledLink");
-  //
-	// 	// Stripping each link modifies the collection as we iterate, so we don't need i++
-	// 	for(let i = 0; i < links.length; /*NOP*/)
-	// 	{
-	// 		// Retrieve the link's original tag
-	// 		let linkTag : string = links[i].childNodes[0].outerHTML;
-  //
-	// 		// The content from inside the link will be moved back inside the link tag
-	// 		let contents : string = links[i].outerHTML.substring(
-	// 			links[i].outerHTML.indexOf("</a>") + 4,
-	// 			links[i].outerHTML.indexOf("</span")
-	// 		);
-	// 		links[i].outerHTML = linkTag.split('>').join('>' + contents);
-	// 	}
-	// }
+	function EnableLinks(section) {
+		let links = section.getElementsByClassName("__disabledLink");
+
+		// Stripping each link modifies the collection as we iterate, so we don't need i++
+		for(let i = 0; i < links.length; /*NOP*/)
+		{
+			// Retrieve the link's original tag
+			let linkTag : string = links[i].getAttribute('data-link-tag');
+
+			// The content from inside the link will be moved back inside the link tag
+			let contents : string = links[i].innerHTML;
+
+			links[i].outerHTML = linkTag + contents + '</a>';
+		}
+	}
 
 	/**
 	 * Navigate to the given section.
@@ -257,20 +256,19 @@ export namespace Core
 		let history = document.getElementById("__history");
 		let currentSection = document.getElementById("__currentSection");
 
-		console.log("it's hapenning!!");
 		// Disable hyperlinks in the current section before moving it to history
 		DisableLinks(currentSection);
-		console.log(currentSection.outerHTML);
-		//EnableLinks(currentSection);
-		//console.log(currentSection.outerHTML);
 
-		// Move the current section into the history section inside a div so it
-		// can be accessed by the back button logic
-		history.innerHTML += '<div>' + currentSection.innerHTML + '</div>';
+		// Move the current section into the history section, including its
+		// enclosing div, so we can retrieve it in whole later if the back
+		// button is pressed
+		history.innerHTML += currentSection.outerHTML;
 		history.scrollTop = history.scrollHeight;
 
 		// Expand the destination section
 		let clone = ExpandSection(id);
+		clone.setAttribute('data-id', id);
+
 		EnableInlineMacros(clone, true);
 		RegisterLinks(clone);
 		clone.scrollTop = 0;
