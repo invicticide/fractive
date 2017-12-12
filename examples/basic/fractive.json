@@ -2,10 +2,10 @@
 	"title": "basic",
 	"template": "../../templates/basic.html",
 	"linkTooltips": true,
-	"output": "build",
 	"linkTags": {
 		"external": {
 			"html": "&nbsp;<i class=\"fa fa-external-link\" aria-hidden=\"true\"></i>"
 		}
-	}
+	},
+	"backButtonHTML": "<i class=\"fa fa-arrow-left\" aria-hidden=\"true\"></i>"
 }

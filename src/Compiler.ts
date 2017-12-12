@@ -73,7 +73,8 @@ export let ProjectDefaults : FractiveProject = {
 			prepend: false
 		}
 	},
-	backButtonHTML: ""
+	includeBackButton: true,
+	backButtonHTML: "Back"
 };
 import * as globby from "globby";
 
@@ -886,6 +887,12 @@ export namespace Compiler
 						{
 							var insertedNode = new commonmark.Node("html_inline", node.sourcepos); // TODO: Real sourcepos
 							insertedNode.literal = `${sectionCount > 0 ? "</div>\n" : ""}<div id="${macro.substring(2, macro.length - 2)}" class="section" hidden="true">`;
+
+							// Add the back button to every section if the project config specifies it
+							if (project.includeBackButton) {
+								insertedNode.literal += '<a href="#" data-call-function="Core.GotoLastSection">' + project.backButtonHTML + '</a>';
+							}
+
 							if(node.prev)
 							{
 								LogParseError(`Section macro "${macro}" must be defined in its own paragraph/on its own line`, filepath, node, lineOffset, columnOffset);
