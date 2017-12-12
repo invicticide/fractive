@@ -1,59 +1,173 @@
 <html>
 
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Type" contentDiv="text/html; charset=utf-8" />
     <link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet"></link>
     <style>
-        #__history {
-            color: silver !important;
-            position: absolute;
-            left: 2%;
-            width: 47%;
-            max-height: 100%;
-            overflow: scroll;
+        #__controls {
+            position: fixed;
+            top: 0px;
+            left: 0px;
+            width: calc(100% - 80px);
+            height: 75px;
+            padding: 0px 40px;
+            background-color: #333333;
+            color: #BBBBBB;
+            text-align: right;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 13pt;
+        }
+
+        #__controls a {
+            color: #FAFAFA;
+        }
+
+        #__historyContainer {
+            position: fixed;
+            top: 75px;
+            left: 0px;
+            height: 400px;
+            width: 100%;
+            overflow: auto;
+            background-color: #333333;
+        }
+
+        #__history * {
+            max-width: 750px !important;
+            margin-left: auto !important;
+            margin-right: auto !important;
+            color: #777777 !important;
+            font-family: Arial, Helvetica, sans-serif !important;
+            font-size: 13pt !important;
         }
 
         #__history .__inlineMacro {
             animation: none;
-            color: silver;
-        }
-
-        #__currentSection {
-            color: black;
-            animation: 2s textFadeIn;
-            position: absolute;
-            left: 51%;
-            width: 47%;
-            max-height: 100%;
-            overflow: scroll;
+            color: #777777;
         }
 
         .__disabledLink {
-            color: silver;
+            color: #777777;
             text-decoration: underline;
         }
 
-        .__inlineMacro {
-            animation: 2s inlineMacroFadeIn;
-            color: blue;
+        #__content {
+            position: absolute;
+            top: 75px;
+            left: 0px;
+            width: 100%;
+            overflow: auto;
+        }
+
+        #__currentSection {
+            color: #555555;
+            animation: 1s textFadeIn;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         @keyframes textFadeIn {
             from {
-                color: white;
+                color: #FAFAFA;
             }
             to {
-                color: black;
+                color: #555555;
             }
+        }
+
+        .__inlineMacro {
+            animation: 1s inlineMacroFadeIn;
+            color: #a7826a;
         }
 
         @keyframes inlineMacroFadeIn {
             from {
-                color: white;
+                color: #FAFAFA;
             }
             to {
-                color: blue;
+                color: #a7826a;
             }
+        }
+
+        h1 {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 56pt;
+            margin-top: 28pt;
+            margin-bottom: -4pt;
+            line-height: 0.9em;
+        }
+
+        h2 {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 38pt;
+            margin-top: 19pt;
+            margin-bottom: -12pt;
+        }
+
+        h3 {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 22pt;
+            text-transform: uppercase;
+            margin-top: 11pt;
+            margin-bottom: -8pt;
+        }
+
+        body {
+            background-color: #FAFAFA;
+        }
+
+        p {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 16pt;
+            line-height: 1.5em;
+        }
+
+        a:link,
+        a:visited {
+            color: #6666FF;
+        }
+
+        a:active,
+        a:hover {
+            color: #FF6666;
+        }
+
+        li {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 16pt;
+            line-height: 1.5em;
+            margin-left: 20px;
+        }
+
+        blockquote p {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 16pt;
+            font-style: italic;
+            line-height: 1.5em;
+        }
+
+        pre {
+            font-family: "Courier New", "Courier", monospace;
+            font-size: 14pt;
+            background-color: #333333;
+            color: #BBBBBB;
+            line-height: 1.5em;
+            padding: 10px 20px;
+            max-height: 600px;
+            overflow: auto;
+        }
+
+        img {
+            margin: 20px 0px;
+        }
+
+        hr {
+            border: 0;
+            height: 1px;
+            background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0));
+            margin-top: 36pt;
+            margin-bottom: 36pt;
         }
     </style>
     <script>
@@ -64,6 +178,24 @@
         });
         var Core;
         (function(Core) {
+            Core.OnGotoSection = [];
+
+            function AddEventListener(eventName, handler) {
+                switch (eventName) {
+                    case "OnGotoSection":
+                        {
+                            Core.OnGotoSection = Core.OnGotoSection.concat(handler);
+                            break;
+                        }
+                    default:
+                        {
+                            console.error("Core.AddEventListener: \"" + eventName + "\" is not a valid event");
+                            break;
+                        }
+                }
+            }
+            Core.AddEventListener = AddEventListener;
+
             function EnableInlineMacros(root, tf) {
                 if (tf === void 0) {
                     tf = true;
@@ -191,8 +323,8 @@
                 clone.scrollTop = 0;
                 clone.id = "__currentSection";
                 currentSection.parentElement.replaceChild(clone, currentSection);
-                if (Core.OnGotoSection) {
-                    Core.OnGotoSection(id, clone, []);
+                for (var i = 0; i < Core.OnGotoSection.length; i++) {
+                    Core.OnGotoSection[i](id, clone, []);
                 }
             }
             Core.GotoSection = GotoSection;
@@ -265,7 +397,7 @@
             }
             Core.ShowHistory = ShowHistory;
         })(Core = exports.Core || (exports.Core = {}));
-        //# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiQ29yZS5qcyIsInNvdXJjZVJvb3QiOiIiLCJzb3VyY2VzIjpbIi4uL3NyYy9Db3JlLnRzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiI7O0FBc0JBLElBQWlCLElBQUksQ0FrU3BCO0FBbFNELFdBQWlCLElBQUk7SUFpQnBCLDRCQUE0QixJQUFjLEVBQUUsRUFBbUI7UUFBbkIsbUJBQUEsRUFBQSxTQUFtQjtRQUk5RCxFQUFFLENBQUEsQ0FBQyxFQUFFLElBQUksSUFBSSxDQUFDLEVBQUUsQ0FBQyxNQUFNLENBQUMsV0FBVyxDQUFDLEdBQUcsQ0FBQyxDQUFDLENBQUMsQ0FBQyxDQUFDO1lBQUMsSUFBSSxDQUFDLEVBQUUsR0FBRyxJQUFJLENBQUMsRUFBRSxDQUFDLFNBQVMsQ0FBQyxDQUFDLENBQUMsQ0FBQztRQUFDLENBQUM7UUFDOUUsSUFBSSxDQUFDLEVBQUUsQ0FBQSxDQUFDLENBQUMsRUFBRSxJQUFJLElBQUksQ0FBQyxFQUFFLENBQUMsTUFBTSxDQUFDLFVBQVUsQ0FBQyxHQUFHLENBQUMsQ0FBQyxDQUFDLENBQUMsQ0FBQztZQUFDLElBQUksQ0FBQyxFQUFFLEdBQUcsTUFBSSxJQUFJLENBQUMsRUFBSSxDQUFDO1FBQUMsQ0FBQztRQUc1RSxHQUFHLENBQUEsQ0FBQyxJQUFJLENBQUMsR0FBRyxDQUFDLEVBQUUsQ0FBQyxHQUFHLElBQUksQ0FBQyxRQUFRLENBQUMsTUFBTSxFQUFFLENBQUMsRUFBRSxFQUM1QyxDQUFDO1lBQ0Esa0JBQWtCLENBQUMsSUFBSSxDQUFDLFFBQVEsQ0FBQyxDQUFDLENBQUMsRUFBRSxFQUFFLENBQUMsQ0FBQztRQUMxQyxDQUFDO0lBQ0YsQ0FBQztJQVVELHFCQUE0QixLQUFjO1FBRXpDLE1BQU0sQ0FBQSxDQUFDLEtBQUssQ0FBQyxDQUFDLENBQUMsQ0FBQyxDQUNoQixDQUFDO1lBQ0EsS0FBSyxHQUFHO2dCQUNSLENBQUM7b0JBQ0EsSUFBSSxXQUFXLEdBQUcsS0FBSyxDQUFDLFNBQVMsQ0FBQyxDQUFDLENBQUMsQ0FBQztvQkFDckMsRUFBRSxDQUFBLENBQUMsQ0FBQyxRQUFRLENBQUMsY0FBYyxDQUFDLFdBQVcsQ0FBQyxDQUFDLENBQ3pDLENBQUM7d0JBQ0EsTUFBTSxDQUFDLGdCQUFhLFdBQVcsd0JBQW9CLENBQUM7b0JBQ3JELENBQUM7b0JBQ0QsSUFBSSxDQUNKLENBQUM7d0JBQ0EsTUFBTSxDQUFDLGFBQWEsQ0FBQyxLQUFLLENBQUMsU0FBUyxDQUFDLENBQUMsQ0FBQyxDQUFDLENBQUMsU0FBUyxDQUFDO29CQUNwRCxDQUFDO2dCQUNGLENBQUM7WUFDRCxLQUFLLEdBQUc7Z0JBQ1IsQ0FBQztvQkFFQSxJQUFJLFlBQVksR0FBRyxJQUFJLENBQUM7b0JBQ3hCLElBQUksTUFBTSxHQUFHLEtBQUssQ0FBQyxTQUFTLENBQUMsQ0FBQyxDQUFDLENBQUMsS0FBSyxDQUFDLEdBQUcsQ0FBQyxDQUFDO29CQUMzQyxHQUFHLENBQUEsQ0FBQyxJQUFJLENBQUMsR0FBRyxDQUFDLEVBQUUsQ0FBQyxHQUFHLE1BQU0sQ0FBQyxNQUFNLEVBQUUsQ0FBQyxFQUFFLEVBQ3JDLENBQUM7d0JBQ0EsRUFBRSxDQUFBLENBQUMsQ0FBQyxLQUFLLENBQUMsQ0FBQyxDQUFDLENBQUM7NEJBQUMsWUFBWSxHQUFHLE1BQU0sQ0FBQyxNQUFNLENBQUMsQ0FBQyxDQUFDLENBQUMsQ0FBQzt3QkFBQyxDQUFDO3dCQUNqRCxJQUFJLENBQUMsQ0FBQzs0QkFBQyxZQUFZLEdBQUcsWUFBWSxDQUFDLE1BQU0sQ0FBQyxDQUFDLENBQUMsQ0FBQyxDQUFDO3dCQUFDLENBQUM7b0JBQ2pELENBQUM7b0JBQ0QsRUFBRSxDQUFBLENBQUMsWUFBWSxLQUFLLFNBQVMsQ0FBQyxDQUM5QixDQUFDO3dCQUNBLE1BQU0sQ0FBQyxpQkFBYyxLQUFLLENBQUMsU0FBUyxDQUFDLENBQUMsQ0FBQyx3QkFBb0IsQ0FBQztvQkFDN0QsQ0FBQztvQkFDRCxJQUFJLENBQ0osQ0FBQzt3QkFDQSxNQUFNLENBQUMsWUFBWSxFQUFFLENBQUMsUUFBUSxFQUFFLENBQUM7b0JBQ2xDLENBQUM7Z0JBQ0YsQ0FBQztZQUNELEtBQUssR0FBRztnQkFDUixDQUFDO29CQUVBLElBQUksWUFBWSxHQUFHLElBQUksQ0FBQztvQkFDeEIsSUFBSSxNQUFNLEdBQUcsS0FBSyxDQUFDLFNBQVMsQ0FBQyxDQUFDLENBQUMsQ0FBQyxLQUFLLENBQUMsR0FBRyxDQUFDLENBQUM7b0JBQzNDLEdBQUcsQ0FBQSxDQUFDLElBQUksQ0FBQyxHQUFHLENBQUMsRUFBRSxDQUFDLEdBQUcsTUFBTSxDQUFDLE1BQU0sRUFBRSxDQUFDLEVBQUUsRUFDckMsQ0FBQzt3QkFDQSxFQUFFLENBQUEsQ0FBQyxDQUFDLEtBQUssQ0FBQyxDQUFDLENBQUMsQ0FBQzs0QkFBQyxZQUFZLEdBQUcsTUFBTSxDQUFDLE1BQU0sQ0FBQyxDQUFDLENBQUMsQ0FBQyxDQUFDO3dCQUFDLENBQUM7d0JBQ2pELElBQUksQ0FBQyxDQUFDOzRCQUFDLFlBQVksR0FBRyxZQUFZLENBQUMsTUFBTSxDQUFDLENBQUMsQ0FBQyxDQUFDLENBQUM7d0JBQUMsQ0FBQztvQkFDakQsQ0FBQztvQkFDRCxFQUFFLENBQUEsQ0FBQyxZQUFZLEtBQUssU0FBUyxDQUFDLENBQzlCLENBQUM7d0JBQ0EsTUFBTSxDQUFDLGlCQUFjLEtBQUssQ0FBQyxTQUFTLENBQUMsQ0FBQyxDQUFDLHdCQUFvQixDQUFDO29CQUM3RCxDQUFDO29CQUNELElBQUksQ0FDSixDQUFDO3dCQUNBLE1BQU0sQ0FBQyxZQUFZLENBQUMsUUFBUSxFQUFFLENBQUM7b0JBQ2hDLENBQUM7Z0JBQ0YsQ0FBQztZQUNEO2dCQUNBLENBQUM7b0JBQ0EsTUFBTSxDQUFDLHVDQUFvQyxLQUFLLE9BQUcsQ0FBQztnQkFDckQsQ0FBQztRQUNGLENBQUM7SUFDRixDQUFDO0lBM0RlLGdCQUFXLGNBMkQxQixDQUFBO0lBT0QsdUJBQXVCLEVBQVc7UUFFakMsSUFBSSxNQUFNLEdBQUcsUUFBUSxDQUFDLGNBQWMsQ0FBQyxFQUFFLENBQUMsQ0FBQztRQUN6QyxFQUFFLENBQUEsQ0FBQyxNQUFNLEtBQUssSUFBSSxDQUFDLENBQ25CLENBQUM7WUFDQSxPQUFPLENBQUMsR0FBRyxDQUFDLFVBQVUsR0FBRyxFQUFFLEdBQUcsZ0JBQWdCLENBQUMsQ0FBQztZQUNoRCxNQUFNLENBQUMsSUFBSSxDQUFDO1FBQ2IsQ0FBQztRQUVELElBQUksZUFBZSxHQUFHLE1BQU0sQ0FBQyxTQUFTLENBQUMsSUFBSSxDQUFZLENBQUM7UUFDeEQsZUFBZSxDQUFDLGVBQWUsQ0FBQyxRQUFRLENBQUMsQ0FBQztRQUUxQyxJQUFJLElBQUksR0FBRyxVQUFTLE9BQWlCO1lBRXBDLEdBQUcsQ0FBQSxDQUFDLElBQUksQ0FBQyxHQUFHLENBQUMsRUFBRSxDQUFDLEdBQUcsT0FBTyxDQUFDLFVBQVUsQ0FBQyxNQUFNLEVBQUUsQ0FBQyxFQUFFLEVBQ2pELENBQUM7Z0JBQ0EsSUFBSSxRQUFRLEdBQWEsS0FBSyxDQUFDO2dCQUMvQixNQUFNLENBQUEsQ0FBQyxPQUFPLENBQUMsVUFBVSxDQUFDLENBQUMsQ0FBQyxDQUFDLElBQUksQ0FBQyxDQUNsQyxDQUFDO29CQUNBLEtBQUssbUJBQW1CO3dCQUN4QixDQUFDOzRCQUNBLEVBQUUsQ0FBQSxDQUFDLE9BQU8sQ0FBQyxhQUFhLENBQUMsQ0FDekIsQ0FBQztnQ0FDQSxJQUFJLFVBQVUsR0FBRyxRQUFRLENBQUMsYUFBYSxDQUFDLE1BQU0sQ0FBQyxDQUFDO2dDQUNoRCxVQUFVLENBQUMsU0FBUyxHQUFHLFdBQVcsQ0FBQyxPQUFPLENBQUMsVUFBVSxDQUFDLENBQUMsQ0FBQyxDQUFDLEtBQUssQ0FBQyxDQUFDO2dDQUNoRSxPQUFPLENBQUMsYUFBYSxDQUFDLFlBQVksQ0FBQyxVQUFVLEVBQUUsT0FBTyxDQUFDLENBQUM7Z0NBQ3hELFFBQVEsR0FBRyxJQUFJLENBQUM7NEJBQ2pCLENBQUM7NEJBQ0QsS0FBSyxDQUFDO3dCQUNQLENBQUM7b0JBQ0QsS0FBSyx5QkFBeUI7d0JBQzlCLENBQUM7NEJBQ0EsSUFBSSxRQUFNLEdBQUcsV0FBVyxDQUFDLE9BQU8sQ0FBQyxVQUFVLENBQUMsQ0FBQyxDQUFDLENBQUMsS0FBSyxDQUFDLENBQUM7NEJBQ3RELE9BQU8sQ0FBQyxHQUFHLENBQUMsZUFBYSxPQUFPLENBQUMsT0FBTyw0QkFBdUIsT0FBTyxDQUFDLFVBQVUsQ0FBQyxDQUFDLENBQUMsQ0FBQyxLQUFLLGNBQVEsUUFBTSxPQUFHLENBQUMsQ0FBQzs0QkFDN0csT0FBTyxDQUFDLFlBQVksQ0FBQyxLQUFLLEVBQUUsV0FBVyxDQUFDLE9BQU8sQ0FBQyxVQUFVLENBQUMsQ0FBQyxDQUFDLENBQUMsS0FBSyxDQUFDLENBQUMsQ0FBQzs0QkFDdEUsUUFBUSxHQUFHLElBQUksQ0FBQzt3QkFDakIsQ0FBQztnQkFDRixDQUFDO2dCQUlELEVBQUUsQ0FBQSxDQUFDLFFBQVEsQ0FBQyxDQUFDLENBQUM7b0JBQUMsS0FBSyxDQUFDO2dCQUFDLENBQUM7WUFDeEIsQ0FBQztZQUNELEVBQUUsQ0FBQSxDQUFDLE9BQU8sQ0FBQyxhQUFhLENBQUMsQ0FDekIsQ0FBQztnQkFDQSxHQUFHLENBQUEsQ0FBQyxJQUFJLENBQUMsR0FBRyxDQUFDLEVBQUUsQ0FBQyxHQUFHLE9BQU8sQ0FBQyxRQUFRLENBQUMsTUFBTSxFQUFFLENBQUMsRUFBRSxFQUMvQyxDQUFDO29CQUNBLElBQUksQ0FBQyxPQUFPLENBQUMsUUFBUSxDQUFDLENBQUMsQ0FBQyxDQUFDLENBQUM7Z0JBQzNCLENBQUM7WUFDRixDQUFDO1FBQ0YsQ0FBQyxDQUFDO1FBQ0YsSUFBSSxDQUFDLGVBQWUsQ0FBQyxDQUFDO1FBRXRCLE1BQU0sQ0FBQyxlQUFlLENBQUM7SUFDeEIsQ0FBQztJQU1ELHFCQUE0QixFQUFXO1FBRXRDLElBQUksT0FBTyxHQUFHLFFBQVEsQ0FBQyxjQUFjLENBQUMsV0FBVyxDQUFDLENBQUM7UUFDbkQsSUFBSSxjQUFjLEdBQUcsUUFBUSxDQUFDLGNBQWMsQ0FBQyxrQkFBa0IsQ0FBQyxDQUFDO1FBSWpFLElBQUksS0FBSyxHQUFHLGNBQWMsQ0FBQyxvQkFBb0IsQ0FBQyxHQUFHLENBQUMsQ0FBQztRQUNyRCxHQUFHLENBQUEsQ0FBQyxJQUFJLENBQUMsR0FBRyxDQUFDLEVBQUUsQ0FBQyxHQUFHLEtBQUssQ0FBQyxNQUFNLEdBQy9CLENBQUM7WUFDQSxJQUFJLFFBQVEsR0FBWSxLQUFLLENBQUMsQ0FBQyxDQUFDLENBQUMsU0FBUyxDQUFDLFNBQVMsQ0FDbkQsS0FBSyxDQUFDLENBQUMsQ0FBQyxDQUFDLFNBQVMsQ0FBQyxPQUFPLENBQUMsR0FBRyxDQUFDLEdBQUcsQ0FBQyxFQUNuQyxLQUFLLENBQUMsQ0FBQyxDQUFDLENBQUMsU0FBUyxDQUFDLE9BQU8sQ0FBQyxNQUFNLENBQUMsQ0FDbEMsQ0FBQztZQUNGLEtBQUssQ0FBQyxDQUFDLENBQUMsQ0FBQyxTQUFTLEdBQUcsb0NBQWdDLFFBQVEsWUFBUyxDQUFDO1FBQ3hFLENBQUM7UUFHRCxPQUFPLENBQUMsU0FBUyxJQUFJLGNBQWMsQ0FBQyxTQUFTLENBQUM7UUFDOUMsT0FBTyxDQUFDLFNBQVMsR0FBRyxPQUFPLENBQUMsWUFBWSxDQUFDO1FBR3pDLElBQUksS0FBSyxHQUFHLGFBQWEsQ0FBQyxFQUFFLENBQUMsQ0FBQztRQUM5QixrQkFBa0IsQ0FBQyxLQUFLLEVBQUUsSUFBSSxDQUFDLENBQUM7UUFDaEMsYUFBYSxDQUFDLEtBQUssQ0FBQyxDQUFDO1FBQ3JCLEtBQUssQ0FBQyxTQUFTLEdBQUcsQ0FBQyxDQUFDO1FBSXBCLEtBQUssQ0FBQyxFQUFFLEdBQUcsa0JBQWtCLENBQUM7UUFDOUIsY0FBYyxDQUFDLGFBQWEsQ0FBQyxZQUFZLENBQUMsS0FBSyxFQUFFLGNBQWMsQ0FBQyxDQUFDO1FBR2pFLEVBQUUsQ0FBQSxDQUFDLEtBQUEsYUFBYSxDQUFDLENBQUMsQ0FBQztZQUFDLEtBQUEsYUFBYSxDQUFDLEVBQUUsRUFBRSxLQUFLLEVBQUUsRUFBRSxDQUFDLENBQUM7UUFBQyxDQUFDO0lBQ3BELENBQUM7SUFsQ2UsZ0JBQVcsY0FrQzFCLENBQUE7SUFPRCx1QkFBOEIsT0FBaUI7UUFFOUMsRUFBRSxDQUFBLENBQUMsT0FBTyxDQUFDLE9BQU8sSUFBSSxHQUFHLENBQUMsQ0FDMUIsQ0FBQztvQ0FDUSxDQUFDO2dCQUVSLE1BQU0sQ0FBQSxDQUFDLE9BQU8sQ0FBQyxVQUFVLENBQUMsQ0FBQyxDQUFDLENBQUMsSUFBSSxDQUFDLENBQ2xDLENBQUM7b0JBQ0EsS0FBSyxtQkFBbUI7d0JBQ3hCLENBQUM7NEJBQ0EsT0FBTyxDQUFDLGdCQUFnQixDQUFDLE9BQU8sRUFBRTtnQ0FDakMsSUFBSSxDQUFDLFdBQVcsQ0FBQyxPQUFPLENBQUMsVUFBVSxDQUFDLENBQUMsQ0FBQyxDQUFDLEtBQUssQ0FBQyxDQUFDOzRCQUMvQyxDQUFDLENBQUMsQ0FBQzs0QkFDSCxLQUFLLENBQUM7d0JBQ1AsQ0FBQztvQkFDRCxLQUFLLG9CQUFvQjt3QkFDekIsQ0FBQzs0QkFDQSxPQUFPLENBQUMsZ0JBQWdCLENBQUMsT0FBTyxFQUFFLE1BQU0sQ0FBQyxPQUFPLENBQUMsVUFBVSxDQUFDLENBQUMsQ0FBQyxDQUFDLEtBQUssQ0FBQyxDQUFDLENBQUM7NEJBQ3ZFLEtBQUssQ0FBQzt3QkFDUCxDQUFDO29CQUNELEtBQUssbUJBQW1CO3dCQUN4QixDQUFDOzRCQUNBLE9BQU8sQ0FBQyxnQkFBZ0IsQ0FBQyxPQUFPLEVBQUU7Z0NBQ2pDLElBQUksQ0FBQyxvQkFBb0IsQ0FBQyxPQUFPLENBQUMsRUFBRSxFQUFFLFdBQVcsQ0FBQyxPQUFPLENBQUMsVUFBVSxDQUFDLENBQUMsQ0FBQyxDQUFDLEtBQUssQ0FBQyxDQUFDLENBQUM7NEJBQ2pGLENBQUMsQ0FBQyxDQUFDOzRCQUNILEtBQUssQ0FBQzt3QkFDUCxDQUFDO2dCQUNGLENBQUM7WUFDRixDQUFDO1lBeEJELEdBQUcsQ0FBQSxDQUFDLElBQUksQ0FBQyxHQUFHLENBQUMsRUFBRSxDQUFDLEdBQUcsT0FBTyxDQUFDLFVBQVUsQ0FBQyxNQUFNLEVBQUUsQ0FBQyxFQUFFO3dCQUF6QyxDQUFDO2FBd0JSO1FBQ0YsQ0FBQztRQUNELEVBQUUsQ0FBQSxDQUFDLE9BQU8sQ0FBQyxhQUFhLENBQUMsQ0FDekIsQ0FBQztZQUNBLEdBQUcsQ0FBQSxDQUFDLElBQUksQ0FBQyxHQUFHLENBQUMsRUFBRSxDQUFDLEdBQUcsT0FBTyxDQUFDLFFBQVEsQ0FBQyxNQUFNLEVBQUUsQ0FBQyxFQUFFLEVBQy9DLENBQUM7Z0JBQ0EsYUFBYSxDQUFDLE9BQU8sQ0FBQyxRQUFRLENBQUMsQ0FBQyxDQUFDLENBQUMsQ0FBQztZQUNwQyxDQUFDO1FBQ0YsQ0FBQztJQUNGLENBQUM7SUFyQ2Usa0JBQWEsZ0JBcUM1QixDQUFBO0lBUUQsOEJBQXFDLEVBQVcsRUFBRSxJQUFhO1FBRTlELEdBQUcsQ0FBQSxDQUFDLElBQUksT0FBTyxHQUFHLFFBQVEsQ0FBQyxjQUFjLENBQUMsRUFBRSxDQUFDLEVBQUUsT0FBTyxFQUFFLE9BQU8sR0FBRyxRQUFRLENBQUMsY0FBYyxDQUFDLEVBQUUsQ0FBQyxFQUM3RixDQUFDO1lBQ0EsRUFBRSxDQUFBLENBQUMsQ0FBQyxPQUFPLENBQUMsQ0FBQyxDQUFDO2dCQUFDLFFBQVEsQ0FBQztZQUFDLENBQUM7WUFJMUIsSUFBSSxTQUFTLEdBQWEsS0FBSyxDQUFDO1lBQ2hDLEdBQUcsQ0FBQSxDQUFDLElBQUksUUFBTSxHQUFHLE9BQU8sQ0FBQyxhQUFhLEVBQUUsUUFBTSxFQUFFLFFBQU0sR0FBRyxRQUFNLENBQUMsYUFBYSxFQUM3RSxDQUFDO2dCQUNBLEVBQUUsQ0FBQSxDQUFDLFFBQU0sQ0FBQyxFQUFFLEtBQUssa0JBQWtCLENBQUMsQ0FDcEMsQ0FBQztvQkFDQSxTQUFTLEdBQUcsSUFBSSxDQUFDO29CQUNqQixLQUFLLENBQUM7Z0JBQ1AsQ0FBQztZQUNGLENBQUM7WUFDRCxFQUFFLENBQUEsQ0FBQyxTQUFTLENBQUMsQ0FDYixDQUFDO2dCQUNBLElBQUksV0FBVyxHQUFHLFFBQVEsQ0FBQyxhQUFhLENBQUMsTUFBTSxDQUFDLENBQUM7Z0JBQ2pELFdBQVcsQ0FBQyxTQUFTLEdBQUcsZUFBZSxDQUFDO2dCQUN4QyxXQUFXLENBQUMsU0FBUyxHQUFHLElBQUksQ0FBQztnQkFDN0Isa0JBQWtCLENBQUMsV0FBVyxFQUFFLElBQUksQ0FBQyxDQUFDO2dCQUN0QyxhQUFhLENBQUMsV0FBVyxDQUFDLENBQUM7Z0JBQzNCLE9BQU8sQ0FBQyxVQUFVLENBQUMsWUFBWSxDQUFDLFdBQVcsRUFBRSxPQUFPLENBQUMsQ0FBQztnQkFDdEQsS0FBSyxDQUFDO1lBQ1AsQ0FBQztRQUNGLENBQUM7SUFDRixDQUFDO0lBNUJlLHlCQUFvQix1QkE0Qm5DLENBQUE7SUFNRCxxQkFBNEIsRUFBWTtRQUV2QyxJQUFJLE9BQU8sR0FBRyxRQUFRLENBQUMsY0FBYyxDQUFDLFdBQVcsQ0FBQyxDQUFDO1FBQ25ELE9BQU8sQ0FBQyxNQUFNLEdBQUcsQ0FBQyxFQUFFLENBQUM7SUFDdEIsQ0FBQztJQUplLGdCQUFXLGNBSTFCLENBQUE7QUFDRixDQUFDLEVBbFNnQixJQUFJLEdBQUosWUFBSSxLQUFKLFlBQUksUUFrU3BCIn0=// source/script.js
+        //# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiQ29yZS5qcyIsInNvdXJjZVJvb3QiOiIiLCJzb3VyY2VzIjpbIi4uL3NyYy9Db3JlLnRzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiI7O0FBc0JBLElBQWlCLElBQUksQ0F3VHBCO0FBeFRELFdBQWlCLElBQUk7SUFRVCxrQkFBYSxHQUFzRSxFQUFFLENBQUM7SUFPakcsMEJBQWlDLFNBQWtCLEVBQUUsT0FBb0I7UUFFeEUsTUFBTSxDQUFBLENBQUMsU0FBUyxDQUFDLENBQ2pCLENBQUM7WUFDQSxLQUFLLGVBQWU7Z0JBQ3BCLENBQUM7b0JBQ0EsSUFBSSxDQUFDLGFBQWEsR0FBRyxJQUFJLENBQUMsYUFBYSxDQUFDLE1BQU0sQ0FBQyxPQUFPLENBQUMsQ0FBQztvQkFDeEQsS0FBSyxDQUFDO2dCQUNQLENBQUM7WUFDRDtnQkFDQSxDQUFDO29CQUNBLE9BQU8sQ0FBQyxLQUFLLENBQUMsOEJBQTJCLFNBQVMsNEJBQXdCLENBQUMsQ0FBQztvQkFDNUUsS0FBSyxDQUFDO2dCQUNQLENBQUM7UUFDRixDQUFDO0lBQ0YsQ0FBQztJQWZlLHFCQUFnQixtQkFlL0IsQ0FBQTtJQVNELDRCQUE0QixJQUFjLEVBQUUsRUFBbUI7UUFBbkIsbUJBQUEsRUFBQSxTQUFtQjtRQUk5RCxFQUFFLENBQUEsQ0FBQyxFQUFFLElBQUksSUFBSSxDQUFDLEVBQUUsQ0FBQyxNQUFNLENBQUMsV0FBVyxDQUFDLEdBQUcsQ0FBQyxDQUFDLENBQUMsQ0FBQyxDQUFDO1lBQUMsSUFBSSxDQUFDLEVBQUUsR0FBRyxJQUFJLENBQUMsRUFBRSxDQUFDLFNBQVMsQ0FBQyxDQUFDLENBQUMsQ0FBQztRQUFDLENBQUM7UUFDOUUsSUFBSSxDQUFDLEVBQUUsQ0FBQSxDQUFDLENBQUMsRUFBRSxJQUFJLElBQUksQ0FBQyxFQUFFLENBQUMsTUFBTSxDQUFDLFVBQVUsQ0FBQyxHQUFHLENBQUMsQ0FBQyxDQUFDLENBQUMsQ0FBQztZQUFDLElBQUksQ0FBQyxFQUFFLEdBQUcsTUFBSSxJQUFJLENBQUMsRUFBSSxDQUFDO1FBQUMsQ0FBQztRQUc1RSxHQUFHLENBQUEsQ0FBQyxJQUFJLENBQUMsR0FBRyxDQUFDLEVBQUUsQ0FBQyxHQUFHLElBQUksQ0FBQyxRQUFRLENBQUMsTUFBTSxFQUFFLENBQUMsRUFBRSxFQUM1QyxDQUFDO1lBQ0Esa0JBQWtCLENBQUMsSUFBSSxDQUFDLFFBQVEsQ0FBQyxDQUFDLENBQUMsRUFBRSxFQUFFLENBQUMsQ0FBQztRQUMxQyxDQUFDO0lBQ0YsQ0FBQztJQVVELHFCQUE0QixLQUFjO1FBRXpDLE1BQU0sQ0FBQSxDQUFDLEtBQUssQ0FBQyxDQUFDLENBQUMsQ0FBQyxDQUNoQixDQUFDO1lBQ0EsS0FBSyxHQUFHO2dCQUNSLENBQUM7b0JBQ0EsSUFBSSxXQUFXLEdBQUcsS0FBSyxDQUFDLFNBQVMsQ0FBQyxDQUFDLENBQUMsQ0FBQztvQkFDckMsRUFBRSxDQUFBLENBQUMsQ0FBQyxRQUFRLENBQUMsY0FBYyxDQUFDLFdBQVcsQ0FBQyxDQUFDLENBQ3pDLENBQUM7d0JBQ0EsTUFBTSxDQUFDLGdCQUFhLFdBQVcsd0JBQW9CLENBQUM7b0JBQ3JELENBQUM7b0JBQ0QsSUFBSSxDQUNKLENBQUM7d0JBQ0EsTUFBTSxDQUFDLGFBQWEsQ0FBQyxLQUFLLENBQUMsU0FBUyxDQUFDLENBQUMsQ0FBQyxDQUFDLENBQUMsU0FBUyxDQUFDO29CQUNwRCxDQUFDO2dCQUNGLENBQUM7WUFDRCxLQUFLLEdBQUc7Z0JBQ1IsQ0FBQztvQkFFQSxJQUFJLFlBQVksR0FBRyxJQUFJLENBQUM7b0JBQ3hCLElBQUksTUFBTSxHQUFHLEtBQUssQ0FBQyxTQUFTLENBQUMsQ0FBQyxDQUFDLENBQUMsS0FBSyxDQUFDLEdBQUcsQ0FBQyxDQUFDO29CQUMzQyxHQUFHLENBQUEsQ0FBQyxJQUFJLENBQUMsR0FBRyxDQUFDLEVBQUUsQ0FBQyxHQUFHLE1BQU0sQ0FBQyxNQUFNLEVBQUUsQ0FBQyxFQUFFLEVBQ3JDLENBQUM7d0JBQ0EsRUFBRSxDQUFBLENBQUMsQ0FBQyxLQUFLLENBQUMsQ0FBQyxDQUFDLENBQUM7NEJBQUMsWUFBWSxHQUFHLE1BQU0sQ0FBQyxNQUFNLENBQUMsQ0FBQyxDQUFDLENBQUMsQ0FBQzt3QkFBQyxDQUFDO3dCQUNqRCxJQUFJLENBQUMsQ0FBQzs0QkFBQyxZQUFZLEdBQUcsWUFBWSxDQUFDLE1BQU0sQ0FBQyxDQUFDLENBQUMsQ0FBQyxDQUFDO3dCQUFDLENBQUM7b0JBQ2pELENBQUM7b0JBQ0QsRUFBRSxDQUFBLENBQUMsWUFBWSxLQUFLLFNBQVMsQ0FBQyxDQUM5QixDQUFDO3dCQUNBLE1BQU0sQ0FBQyxpQkFBYyxLQUFLLENBQUMsU0FBUyxDQUFDLENBQUMsQ0FBQyx3QkFBb0IsQ0FBQztvQkFDN0QsQ0FBQztvQkFDRCxJQUFJLENBQ0osQ0FBQzt3QkFDQSxNQUFNLENBQUMsWUFBWSxFQUFFLENBQUMsUUFBUSxFQUFFLENBQUM7b0JBQ2xDLENBQUM7Z0JBQ0YsQ0FBQztZQUNELEtBQUssR0FBRztnQkFDUixDQUFDO29CQUVBLElBQUksWUFBWSxHQUFHLElBQUksQ0FBQztvQkFDeEIsSUFBSSxNQUFNLEdBQUcsS0FBSyxDQUFDLFNBQVMsQ0FBQyxDQUFDLENBQUMsQ0FBQyxLQUFLLENBQUMsR0FBRyxDQUFDLENBQUM7b0JBQzNDLEdBQUcsQ0FBQSxDQUFDLElBQUksQ0FBQyxHQUFHLENBQUMsRUFBRSxDQUFDLEdBQUcsTUFBTSxDQUFDLE1BQU0sRUFBRSxDQUFDLEVBQUUsRUFDckMsQ0FBQzt3QkFDQSxFQUFFLENBQUEsQ0FBQyxDQUFDLEtBQUssQ0FBQyxDQUFDLENBQUMsQ0FBQzs0QkFBQyxZQUFZLEdBQUcsTUFBTSxDQUFDLE1BQU0sQ0FBQyxDQUFDLENBQUMsQ0FBQyxDQUFDO3dCQUFDLENBQUM7d0JBQ2pELElBQUksQ0FBQyxDQUFDOzRCQUFDLFlBQVksR0FBRyxZQUFZLENBQUMsTUFBTSxDQUFDLENBQUMsQ0FBQyxDQUFDLENBQUM7d0JBQUMsQ0FBQztvQkFDakQsQ0FBQztvQkFDRCxFQUFFLENBQUEsQ0FBQyxZQUFZLEtBQUssU0FBUyxDQUFDLENBQzlCLENBQUM7d0JBQ0EsTUFBTSxDQUFDLGlCQUFjLEtBQUssQ0FBQyxTQUFTLENBQUMsQ0FBQyxDQUFDLHdCQUFvQixDQUFDO29CQUM3RCxDQUFDO29CQUNELElBQUksQ0FDSixDQUFDO3dCQUNBLE1BQU0sQ0FBQyxZQUFZLENBQUMsUUFBUSxFQUFFLENBQUM7b0JBQ2hDLENBQUM7Z0JBQ0YsQ0FBQztZQUNEO2dCQUNBLENBQUM7b0JBQ0EsTUFBTSxDQUFDLHVDQUFvQyxLQUFLLE9BQUcsQ0FBQztnQkFDckQsQ0FBQztRQUNGLENBQUM7SUFDRixDQUFDO0lBM0RlLGdCQUFXLGNBMkQxQixDQUFBO0lBT0QsdUJBQXVCLEVBQVc7UUFFakMsSUFBSSxNQUFNLEdBQUcsUUFBUSxDQUFDLGNBQWMsQ0FBQyxFQUFFLENBQUMsQ0FBQztRQUN6QyxFQUFFLENBQUEsQ0FBQyxNQUFNLEtBQUssSUFBSSxDQUFDLENBQ25CLENBQUM7WUFDQSxPQUFPLENBQUMsR0FBRyxDQUFDLFVBQVUsR0FBRyxFQUFFLEdBQUcsZ0JBQWdCLENBQUMsQ0FBQztZQUNoRCxNQUFNLENBQUMsSUFBSSxDQUFDO1FBQ2IsQ0FBQztRQUVELElBQUksZUFBZSxHQUFHLE1BQU0sQ0FBQyxTQUFTLENBQUMsSUFBSSxDQUFZLENBQUM7UUFDeEQsZUFBZSxDQUFDLGVBQWUsQ0FBQyxRQUFRLENBQUMsQ0FBQztRQUUxQyxJQUFJLElBQUksR0FBRyxVQUFTLE9BQWlCO1lBRXBDLEdBQUcsQ0FBQSxDQUFDLElBQUksQ0FBQyxHQUFHLENBQUMsRUFBRSxDQUFDLEdBQUcsT0FBTyxDQUFDLFVBQVUsQ0FBQyxNQUFNLEVBQUUsQ0FBQyxFQUFFLEVBQ2pELENBQUM7Z0JBQ0EsSUFBSSxRQUFRLEdBQWEsS0FBSyxDQUFDO2dCQUMvQixNQUFNLENBQUEsQ0FBQyxPQUFPLENBQUMsVUFBVSxDQUFDLENBQUMsQ0FBQyxDQUFDLElBQUksQ0FBQyxDQUNsQyxDQUFDO29CQUNBLEtBQUssbUJBQW1CO3dCQUN4QixDQUFDOzRCQUNBLEVBQUUsQ0FBQSxDQUFDLE9BQU8sQ0FBQyxhQUFhLENBQUMsQ0FDekIsQ0FBQztnQ0FDQSxJQUFJLFVBQVUsR0FBRyxRQUFRLENBQUMsYUFBYSxDQUFDLE1BQU0sQ0FBQyxDQUFDO2dDQUNoRCxVQUFVLENBQUMsU0FBUyxHQUFHLFdBQVcsQ0FBQyxPQUFPLENBQUMsVUFBVSxDQUFDLENBQUMsQ0FBQyxDQUFDLEtBQUssQ0FBQyxDQUFDO2dDQUNoRSxPQUFPLENBQUMsYUFBYSxDQUFDLFlBQVksQ0FBQyxVQUFVLEVBQUUsT0FBTyxDQUFDLENBQUM7Z0NBQ3hELFFBQVEsR0FBRyxJQUFJLENBQUM7NEJBQ2pCLENBQUM7NEJBQ0QsS0FBSyxDQUFDO3dCQUNQLENBQUM7b0JBQ0QsS0FBSyx5QkFBeUI7d0JBQzlCLENBQUM7NEJBQ0EsSUFBSSxRQUFNLEdBQUcsV0FBVyxDQUFDLE9BQU8sQ0FBQyxVQUFVLENBQUMsQ0FBQyxDQUFDLENBQUMsS0FBSyxDQUFDLENBQUM7NEJBQ3RELE9BQU8sQ0FBQyxHQUFHLENBQUMsZUFBYSxPQUFPLENBQUMsT0FBTyw0QkFBdUIsT0FBTyxDQUFDLFVBQVUsQ0FBQyxDQUFDLENBQUMsQ0FBQyxLQUFLLGNBQVEsUUFBTSxPQUFHLENBQUMsQ0FBQzs0QkFDN0csT0FBTyxDQUFDLFlBQVksQ0FBQyxLQUFLLEVBQUUsV0FBVyxDQUFDLE9BQU8sQ0FBQyxVQUFVLENBQUMsQ0FBQyxDQUFDLENBQUMsS0FBSyxDQUFDLENBQUMsQ0FBQzs0QkFDdEUsUUFBUSxHQUFHLElBQUksQ0FBQzt3QkFDakIsQ0FBQztnQkFDRixDQUFDO2dCQUlELEVBQUUsQ0FBQSxDQUFDLFFBQVEsQ0FBQyxDQUFDLENBQUM7b0JBQUMsS0FBSyxDQUFDO2dCQUFDLENBQUM7WUFDeEIsQ0FBQztZQUNELEVBQUUsQ0FBQSxDQUFDLE9BQU8sQ0FBQyxhQUFhLENBQUMsQ0FDekIsQ0FBQztnQkFDQSxHQUFHLENBQUEsQ0FBQyxJQUFJLENBQUMsR0FBRyxDQUFDLEVBQUUsQ0FBQyxHQUFHLE9BQU8sQ0FBQyxRQUFRLENBQUMsTUFBTSxFQUFFLENBQUMsRUFBRSxFQUMvQyxDQUFDO29CQUNBLElBQUksQ0FBQyxPQUFPLENBQUMsUUFBUSxDQUFDLENBQUMsQ0FBQyxDQUFDLENBQUM7Z0JBQzNCLENBQUM7WUFDRixDQUFDO1FBQ0YsQ0FBQyxDQUFDO1FBQ0YsSUFBSSxDQUFDLGVBQWUsQ0FBQyxDQUFDO1FBRXRCLE1BQU0sQ0FBQyxlQUFlLENBQUM7SUFDeEIsQ0FBQztJQU1ELHFCQUE0QixFQUFXO1FBRXRDLElBQUksT0FBTyxHQUFHLFFBQVEsQ0FBQyxjQUFjLENBQUMsV0FBVyxDQUFDLENBQUM7UUFDbkQsSUFBSSxjQUFjLEdBQUcsUUFBUSxDQUFDLGNBQWMsQ0FBQyxrQkFBa0IsQ0FBQyxDQUFDO1FBSWpFLElBQUksS0FBSyxHQUFHLGNBQWMsQ0FBQyxvQkFBb0IsQ0FBQyxHQUFHLENBQUMsQ0FBQztRQUNyRCxHQUFHLENBQUEsQ0FBQyxJQUFJLENBQUMsR0FBRyxDQUFDLEVBQUUsQ0FBQyxHQUFHLEtBQUssQ0FBQyxNQUFNLEdBQy9CLENBQUM7WUFDQSxJQUFJLFFBQVEsR0FBWSxLQUFLLENBQUMsQ0FBQyxDQUFDLENBQUMsU0FBUyxDQUFDLFNBQVMsQ0FDbkQsS0FBSyxDQUFDLENBQUMsQ0FBQyxDQUFDLFNBQVMsQ0FBQyxPQUFPLENBQUMsR0FBRyxDQUFDLEdBQUcsQ0FBQyxFQUNuQyxLQUFLLENBQUMsQ0FBQyxDQUFDLENBQUMsU0FBUyxDQUFDLE9BQU8sQ0FBQyxNQUFNLENBQUMsQ0FDbEMsQ0FBQztZQUNGLEtBQUssQ0FBQyxDQUFDLENBQUMsQ0FBQyxTQUFTLEdBQUcsb0NBQWdDLFFBQVEsWUFBUyxDQUFDO1FBQ3hFLENBQUM7UUFHRCxPQUFPLENBQUMsU0FBUyxJQUFJLGNBQWMsQ0FBQyxTQUFTLENBQUM7UUFDOUMsT0FBTyxDQUFDLFNBQVMsR0FBRyxPQUFPLENBQUMsWUFBWSxDQUFDO1FBR3pDLElBQUksS0FBSyxHQUFHLGFBQWEsQ0FBQyxFQUFFLENBQUMsQ0FBQztRQUM5QixrQkFBa0IsQ0FBQyxLQUFLLEVBQUUsSUFBSSxDQUFDLENBQUM7UUFDaEMsYUFBYSxDQUFDLEtBQUssQ0FBQyxDQUFDO1FBQ3JCLEtBQUssQ0FBQyxTQUFTLEdBQUcsQ0FBQyxDQUFDO1FBSXBCLEtBQUssQ0FBQyxFQUFFLEdBQUcsa0JBQWtCLENBQUM7UUFDOUIsY0FBYyxDQUFDLGFBQWEsQ0FBQyxZQUFZLENBQUMsS0FBSyxFQUFFLGNBQWMsQ0FBQyxDQUFDO1FBR2pFLEdBQUcsQ0FBQSxDQUFDLElBQUksQ0FBQyxHQUFHLENBQUMsRUFBRSxDQUFDLEdBQUcsS0FBQSxhQUFhLENBQUMsTUFBTSxFQUFFLENBQUMsRUFBRSxFQUFFLENBQUM7WUFBQyxLQUFBLGFBQWEsQ0FBQyxDQUFDLENBQUMsQ0FBQyxFQUFFLEVBQUUsS0FBSyxFQUFFLEVBQUUsQ0FBQyxDQUFDO1FBQUMsQ0FBQztJQUNuRixDQUFDO0lBbENlLGdCQUFXLGNBa0MxQixDQUFBO0lBT0QsdUJBQThCLE9BQWlCO1FBRTlDLEVBQUUsQ0FBQSxDQUFDLE9BQU8sQ0FBQyxPQUFPLElBQUksR0FBRyxDQUFDLENBQzFCLENBQUM7b0NBQ1EsQ0FBQztnQkFFUixNQUFNLENBQUEsQ0FBQyxPQUFPLENBQUMsVUFBVSxDQUFDLENBQUMsQ0FBQyxDQUFDLElBQUksQ0FBQyxDQUNsQyxDQUFDO29CQUNBLEtBQUssbUJBQW1CO3dCQUN4QixDQUFDOzRCQUNBLE9BQU8sQ0FBQyxnQkFBZ0IsQ0FBQyxPQUFPLEVBQUU7Z0NBQ2pDLElBQUksQ0FBQyxXQUFXLENBQUMsT0FBTyxDQUFDLFVBQVUsQ0FBQyxDQUFDLENBQUMsQ0FBQyxLQUFLLENBQUMsQ0FBQzs0QkFDL0MsQ0FBQyxDQUFDLENBQUM7NEJBQ0gsS0FBSyxDQUFDO3dCQUNQLENBQUM7b0JBQ0QsS0FBSyxvQkFBb0I7d0JBQ3pCLENBQUM7NEJBQ0EsT0FBTyxDQUFDLGdCQUFnQixDQUFDLE9BQU8sRUFBRSxNQUFNLENBQUMsT0FBTyxDQUFDLFVBQVUsQ0FBQyxDQUFDLENBQUMsQ0FBQyxLQUFLLENBQUMsQ0FBQyxDQUFDOzRCQUN2RSxLQUFLLENBQUM7d0JBQ1AsQ0FBQztvQkFDRCxLQUFLLG1CQUFtQjt3QkFDeEIsQ0FBQzs0QkFDQSxPQUFPLENBQUMsZ0JBQWdCLENBQUMsT0FBTyxFQUFFO2dDQUNqQyxJQUFJLENBQUMsb0JBQW9CLENBQUMsT0FBTyxDQUFDLEVBQUUsRUFBRSxXQUFXLENBQUMsT0FBTyxDQUFDLFVBQVUsQ0FBQyxDQUFDLENBQUMsQ0FBQyxLQUFLLENBQUMsQ0FBQyxDQUFDOzRCQUNqRixDQUFDLENBQUMsQ0FBQzs0QkFDSCxLQUFLLENBQUM7d0JBQ1AsQ0FBQztnQkFDRixDQUFDO1lBQ0YsQ0FBQztZQXhCRCxHQUFHLENBQUEsQ0FBQyxJQUFJLENBQUMsR0FBRyxDQUFDLEVBQUUsQ0FBQyxHQUFHLE9BQU8sQ0FBQyxVQUFVLENBQUMsTUFBTSxFQUFFLENBQUMsRUFBRTt3QkFBekMsQ0FBQzthQXdCUjtRQUNGLENBQUM7UUFDRCxFQUFFLENBQUEsQ0FBQyxPQUFPLENBQUMsYUFBYSxDQUFDLENBQ3pCLENBQUM7WUFDQSxHQUFHLENBQUEsQ0FBQyxJQUFJLENBQUMsR0FBRyxDQUFDLEVBQUUsQ0FBQyxHQUFHLE9BQU8sQ0FBQyxRQUFRLENBQUMsTUFBTSxFQUFFLENBQUMsRUFBRSxFQUMvQyxDQUFDO2dCQUNBLGFBQWEsQ0FBQyxPQUFPLENBQUMsUUFBUSxDQUFDLENBQUMsQ0FBQyxDQUFDLENBQUM7WUFDcEMsQ0FBQztRQUNGLENBQUM7SUFDRixDQUFDO0lBckNlLGtCQUFhLGdCQXFDNUIsQ0FBQTtJQVFELDhCQUFxQyxFQUFXLEVBQUUsSUFBYTtRQUU5RCxHQUFHLENBQUEsQ0FBQyxJQUFJLE9BQU8sR0FBRyxRQUFRLENBQUMsY0FBYyxDQUFDLEVBQUUsQ0FBQyxFQUFFLE9BQU8sRUFBRSxPQUFPLEdBQUcsUUFBUSxDQUFDLGNBQWMsQ0FBQyxFQUFFLENBQUMsRUFDN0YsQ0FBQztZQUNBLEVBQUUsQ0FBQSxDQUFDLENBQUMsT0FBTyxDQUFDLENBQUMsQ0FBQztnQkFBQyxRQUFRLENBQUM7WUFBQyxDQUFDO1lBSTFCLElBQUksU0FBUyxHQUFhLEtBQUssQ0FBQztZQUNoQyxHQUFHLENBQUEsQ0FBQyxJQUFJLFFBQU0sR0FBRyxPQUFPLENBQUMsYUFBYSxFQUFFLFFBQU0sRUFBRSxRQUFNLEdBQUcsUUFBTSxDQUFDLGFBQWEsRUFDN0UsQ0FBQztnQkFDQSxFQUFFLENBQUEsQ0FBQyxRQUFNLENBQUMsRUFBRSxLQUFLLGtCQUFrQixDQUFDLENBQ3BDLENBQUM7b0JBQ0EsU0FBUyxHQUFHLElBQUksQ0FBQztvQkFDakIsS0FBSyxDQUFDO2dCQUNQLENBQUM7WUFDRixDQUFDO1lBQ0QsRUFBRSxDQUFBLENBQUMsU0FBUyxDQUFDLENBQ2IsQ0FBQztnQkFDQSxJQUFJLFdBQVcsR0FBRyxRQUFRLENBQUMsYUFBYSxDQUFDLE1BQU0sQ0FBQyxDQUFDO2dCQUNqRCxXQUFXLENBQUMsU0FBUyxHQUFHLGVBQWUsQ0FBQztnQkFDeEMsV0FBVyxDQUFDLFNBQVMsR0FBRyxJQUFJLENBQUM7Z0JBQzdCLGtCQUFrQixDQUFDLFdBQVcsRUFBRSxJQUFJLENBQUMsQ0FBQztnQkFDdEMsYUFBYSxDQUFDLFdBQVcsQ0FBQyxDQUFDO2dCQUMzQixPQUFPLENBQUMsVUFBVSxDQUFDLFlBQVksQ0FBQyxXQUFXLEVBQUUsT0FBTyxDQUFDLENBQUM7Z0JBQ3RELEtBQUssQ0FBQztZQUNQLENBQUM7UUFDRixDQUFDO0lBQ0YsQ0FBQztJQTVCZSx5QkFBb0IsdUJBNEJuQyxDQUFBO0lBTUQscUJBQTRCLEVBQVk7UUFFdkMsSUFBSSxPQUFPLEdBQUcsUUFBUSxDQUFDLGNBQWMsQ0FBQyxXQUFXLENBQUMsQ0FBQztRQUNuRCxPQUFPLENBQUMsTUFBTSxHQUFHLENBQUMsRUFBRSxDQUFDO0lBQ3RCLENBQUM7SUFKZSxnQkFBVyxjQUkxQixDQUFBO0FBQ0YsQ0FBQyxFQXhUZ0IsSUFBSSxHQUFKLFlBQUksS0FBSixZQUFJLFFBd1RwQiJ9// source/script.js
         function HideHistory() {
             Core.ShowHistory(false);
         }
@@ -298,93 +430,147 @@ and something different if they don't.";
 
         var InlineExpansionVariable = "variable (a string which will replace the link)";
     </script>
+    <script>
+        function __Restart() {
+            location.reload();
+        }
+
+        function __ToggleHistory() {
+            var historyContainerDiv = document.getElementById("__historyContainer");
+            if (!historyContainerDiv) {
+                return;
+            }
+
+            var historyDiv = document.getElementById("__history");
+            if (!historyDiv) {
+                return;
+            }
+
+            var contentDiv = document.getElementById("__content");
+            if (!contentDiv) {
+                return;
+            }
+
+            // Toggle history visibility
+            historyContainerDiv.hidden = !historyContainerDiv.hidden;
+            historyDiv.hidden = historyContainerDiv.hidden;
+
+            // Scroll to bottom of history
+            historyContainerDiv.scrollTop = historyContainerDiv.scrollHeight;
+
+            // Adjust content position relative to history panel
+            var contentTop = 75 + (historyContainerDiv.hidden ? 0 : 425);
+            contentDiv.style.setProperty("top", contentTop);
+            contentDiv.style.setProperty("height", window.innerHeight - contentTop);
+        }
+        Core.AddEventListener("OnGotoSection", function(id, element, tags) {
+            // Scroll to bottom of history
+            var historyContainerDiv = document.getElementById("__historyContainer");
+            if (historyContainerDiv) {
+                historyContainerDiv.scrollTop = historyContainerDiv.scrollHeight;
+            }
+
+            // Scroll to top of new content
+            var contentDiv = document.getElementById("__content");
+            if (contentDiv) {
+                contentDiv.scrollTop = 0;
+            }
+        });
+    </script>
 </head>
 
 <body>
-    <!-- source/text.md -->
-    <div id="Start" class="section" hidden="true">
-        <h1>Welcome!</h1>
-        <p>Welcome to fractive, a tool for creating hypertext fiction!</p>
-        <p>Fractive stories are written in Markdown, and you can add (optional) game logic in Javascript. Stories consist of &quot;sections&quot;, which you might think of like one page of a book. Typically a section will give you a bit of narrative and
-            then present one or more choices to the player; each choice takes the story to a different section, and in a different direction.</p>
-        <p>In Markdown, you declare the beginning of a new section by enclosing the section name (which must be unique!) in double curly braces. The section you're reading right now is called <code>{{Start}}</code> which is a special section name that indicates
-            where the story begins.</p>
-        <p><a title="{@AnotherSection}" href="#" data-goto-section="AnotherSection">Link to another section</a></p>
-    </div>
-    <div id="AnotherSection" class="section" hidden="true">
-        <p>You just clicked a link that took you to another section! You create section links just like any ol' Markdown link, but in place of the URL you put a special <em>macro</em> enclosed in single curly braces. There are three types of macros, each
-            denoted by a symbol:</p>
-        <ul>
-            <li>@ denotes a section name to link to</li>
-            <li># denotes a Javascript function to call</li>
-            <li>$ denotes a Javascript variable</li>
-        </ul>
-        <p>So if you set the URL to <code>{@Start}</code> you'd have created a link back to the section called <code>Start</code>. If on the other hand you'd put <code>{#Start}</code> you'd have created a link that would call a Javascript function called
-            <code>Start</code>.</p>
-        <p><a title="{#FunctionLink}" href="#" data-call-function="FunctionLink">What does it look like when a link calls a Javascript function?</a><br/><a title="{#VariableLink}" href="#" data-call-function="VariableLink">What happens if I set the link URL to a variable macro?</a><br/>
-            <a
-                title="{@InlineMacros}" href="#" data-goto-section="InlineMacros">What else can I use macros for?</a>
-        </p>
-        <p>(P.S. Notice that the first section is still displayed above. That's because we keep track of your play history in a scrollback. You can <a title="{#HideHistory}" href="#" data-call-function="HideHistory">hide the history</a> if you like. The
-            UX for this is still going to need some work.)</p>
-    </div>
-    <div id="InlineMacros" class="section" hidden="true">
-        <p>Macros aren't only for links; you can also use them to add dynamic text to your sections.</p>
-        <blockquote>
-            <p><span data-expand-macro="#InlineFunction"></span></p>
-        </blockquote>
-        <p>The above paragraph was the result of inlining a function call, which expects the function to return a string. You can also inline the value of a variable. Here's one: <span data-expand-macro="$InlineVariable"></span></p>
-        <p>You can even inline an entire section:</p>
-        <blockquote>
-            <p><span data-expand-macro="@InlineSection"></span></p>
-        </blockquote>
-        <p>The inlined function and section above are indented, but that's only because I prefaced them with the Markdown blockquote indicator for clarity. Inlines don't inherently get any special styling, so you can inline things totally seamlessly and
-            your players will never know the difference.</p>
-        <p>Finally, you can create links which expand to text in-place, which is commonly used in e.g. <a title="https://twinery.org/2/" target="_blank" href="https://twinery.org/2/">Twine&nbsp;<i class="fa fa-external-link" aria-hidden="true"></i></a> games
-            for artistic effect. You can link to a <a title="{$InlineExpansionVariable:inline}" href="#" data-replace-with="$InlineExpansionVariable" id="_inline-0">variable</a>, or to the return value of a <a title="{#InlineExpansionFunction:inline}"
-                href="#" data-replace-with="#InlineExpansionFunction" id="_inline-1">function</a>, and they'll expand in-place.</p>
-        <p><a title="{@InlineExpansionSection:inline}" href="#" data-replace-with="@InlineExpansionSection" id="_inline-2">You can also do this with a section</a></p>
-        <p><a title="{@AboutFormatting}" href="#" data-goto-section="AboutFormatting">Can I use Markdown styling?</a></p>
-    </div>
-    <div id="InlineSection" class="section" hidden="true">
-        <p>This paragraph was written in an entirely different section, but it appears as part of the section you're already reading. This might be useful if you have some boilerplate text that needs to follow the player around from place to place; you could
-            put it in a section and inline it, instead of copy-pasting the same sentences (or paragraphs) all over your story text.</p>
-    </div>
-    <div id="InlineExpansionSection" class="section" hidden="true">
-        <p>Sections are kind of special though, in that they don't actually appear inline <em>per se</em>, because they're block-level elements (i.e. their own paragraphs) which means they'll put a paragraph break where they appear. They still replace their
-            :inline macro link though, just like with variables and functions. When inline-expanding a section, you can still have paragraph breaks, <em>additional</em> <strong>formatting</strong>, and so on. And you can even inline sections which themselves
-            contain <a title="{#RaiseAlert}" href="#" data-call-function="RaiseAlert">macros</a>!</p>
-    </div>
-    <div id="AboutFormatting" class="section" hidden="true">
-        <p>Story text is written in Markdown, which means we have access to <em>all kinds</em> of <strong>formatting</strong>, including:</p>
-        <h1>Headers</h1>
-        <h2>Sub-headers</h2>
-        <ul>
-            <li>Unordered lists (like this one)</li>
-            <li>Ordered lists (1, 2, 3, 4...)</li>
-            <li>Links can also <a title="{#RaiseAlert}" href="#" data-call-function="RaiseAlert"><em>contain</em> <strong>formatting</strong></a></li>
-        </ul>
-        <p>Basically, anything Markdown can do, you can do in your story text! You can even inline <span style="color:#ff0000">raw HTML</span> which means you could do video embeds, HTML5 canvas, and all kinds of other fancy stuff.</p>
-        <p>And of course, because fractive games are ultimately HTML in the end, you can create your own HTML template with whatever layout you want, and style it with CSS. For example, you could surround your game with a header and footer, or create a sidebar
-            which (along with some custom Javascript) tracks your player's inventory and stats as they move through the story.</p>
-        <p><a title="{@LongStories}" href="#" data-goto-section="LongStories">How does fractive handle long/complicated stories?</a></p>
-    </div>
-    <div id="LongStories" class="section" hidden="true">
-        <p>Fractive's main goal is to be the best tool for writing complex, dynamic hypertext fiction that has lots of branches and genuinely consequential choices. What you're reading right now is produced by a <em>very</em> eary version of the tool, so
-            this goal isn't fully realized yet, but it is the direction I'm heading.</p>
-        <p>You can split long story text up into as many individual Markdown files as you like, and they can be named whatever you like. The same goes for game logic in Javascript; you could have separate .js files for each logical class, or for each scene
-            or major location in your story, or however else you'd like to organize it. When you publish your story, all the files in the story source folder are gathered up automatically, and everything gets compiled together into a single self-contained
-            HTML file.</p>
-        <p>In the future I'll be exploring additional tools and visualizations to help authors understand, trace, and debug the complexity of large, deeply-branching narratives. Those tools and visualizers will likely be the most experimental, and pivotal,
-            aspects of fractive's development.</p>
-        <p>Anything you'd like to review?</p>
-        <p><a title="{#FunctionLink}" href="#" data-call-function="FunctionLink">What does it look like when a link calls a Javascript function?</a><br/><a title="{#VariableLink}" href="#" data-call-function="VariableLink">What happens if I set the link URL to a variable macro?</a><br/>
-            <a
-                title="{@InlineMacros}" href="#" data-goto-section="InlineMacros">What else can I use macros for?</a><br/><a title="{@AboutFormatting}" href="#" data-goto-section="AboutFormatting">Can I use Markdown styling?</a></p>
-    </div>
+    <div id="__content">
+        <!-- source/text.md -->
+        <div id="Start" class="section" hidden="true">
+            <h1>Welcome!</h1>
+            <p>Welcome to fractive, a tool for creating hypertext fiction!</p>
+            <p>Fractive stories are written in Markdown, and you can add (optional) game logic in Javascript. Stories consist of &quot;sections&quot;, which you might think of like one page of a book. Typically a section will give you a bit of narrative
+                and then present one or more choices to the player; each choice takes the story to a different section, and in a different direction.</p>
+            <p>In Markdown, you declare the beginning of a new section by enclosing the section name (which must be unique!) in double curly braces. The section you're reading right now is called <code>{{Start}}</code> which is a special section name that
+                indicates where the story begins.</p>
+            <p><a title="{@AnotherSection}" href="#" data-goto-section="AnotherSection">Link to another section</a></p>
+        </div>
+        <div id="AnotherSection" class="section" hidden="true">
+            <p>You just clicked a link that took you to another section! You create section links just like any ol' Markdown link, but in place of the URL you put a special <em>macro</em> enclosed in single curly braces. There are three types of macros,
+                each denoted by a symbol:</p>
+            <ul>
+                <li>@ denotes a section name to link to</li>
+                <li># denotes a Javascript function to call</li>
+                <li>$ denotes a Javascript variable</li>
+            </ul>
+            <p>So if you set the URL to <code>{@Start}</code> you'd have created a link back to the section called <code>Start</code>. If on the other hand you'd put <code>{#Start}</code> you'd have created a link that would call a Javascript function called
+                <code>Start</code>.</p>
+            <p><a title="{#FunctionLink}" href="#" data-call-function="FunctionLink">What does it look like when a link calls a Javascript function?</a><br/><a title="{#VariableLink}" href="#" data-call-function="VariableLink">What happens if I set the link URL to a variable macro?</a><br/>
+                <a
+                    title="{@InlineMacros}" href="#" data-goto-section="InlineMacros">What else can I use macros for?</a>
+            </p>
+        </div>
+        <div id="InlineMacros" class="section" hidden="true">
+            <p>Macros aren't only for links; you can also use them to add dynamic text to your sections.</p>
+            <blockquote>
+                <p><span data-expand-macro="#InlineFunction"></span></p>
+            </blockquote>
+            <p>The above paragraph was the result of inlining a function call, which expects the function to return a string. You can also inline the value of a variable. Here's one: <span data-expand-macro="$InlineVariable"></span></p>
+            <p>You can even inline an entire section:</p>
+            <blockquote>
+                <p><span data-expand-macro="@InlineSection"></span></p>
+            </blockquote>
+            <p>The inlined function and section above are indented, but that's only because I prefaced them with the Markdown blockquote indicator for clarity. Inlines don't inherently get any special styling, so you can inline things totally seamlessly
+                and your players will never know the difference.</p>
+            <p>Finally, you can create links which expand to text in-place, which is commonly used in e.g. <a title="https://twinery.org/2/" target="_blank" href="https://twinery.org/2/">Twine&nbsp;<i class="fa fa-external-link" aria-hidden="true"></i></a>                games for artistic effect. You can link to a <a title="{$InlineExpansionVariable:inline}" href="#" data-replace-with="$InlineExpansionVariable" id="_inline-0">variable</a>, or to the return value of a <a title="{#InlineExpansionFunction:inline}"
+                    href="#" data-replace-with="#InlineExpansionFunction" id="_inline-1">function</a>, and they'll expand in-place.</p>
+            <p><a title="{@InlineExpansionSection:inline}" href="#" data-replace-with="@InlineExpansionSection" id="_inline-2">You can also do this with a section</a></p>
+            <p><a title="{@AboutFormatting}" href="#" data-goto-section="AboutFormatting">Can I use Markdown styling?</a></p>
+        </div>
+        <div id="InlineSection" class="section" hidden="true">
+            <p>This paragraph was written in an entirely different section, but it appears as part of the section you're already reading. This might be useful if you have some boilerplate text that needs to follow the player around from place to place; you
+                could put it in a section and inline it, instead of copy-pasting the same sentences (or paragraphs) all over your story text.</p>
+        </div>
+        <div id="InlineExpansionSection" class="section" hidden="true">
+            <p>Sections are kind of special though, in that they don't actually appear inline <em>per se</em>, because they're block-level elements (i.e. their own paragraphs) which means they'll put a paragraph break where they appear. They still replace
+                their :inline macro link though, just like with variables and functions. When inline-expanding a section, you can still have paragraph breaks, <em>additional</em> <strong>formatting</strong>, and so on. And you can even inline sections
+                which themselves contain <a title="{#RaiseAlert}" href="#" data-call-function="RaiseAlert">macros</a>!</p>
+        </div>
+        <div id="AboutFormatting" class="section" hidden="true">
+            <p>Story text is written in Markdown, which means we have access to <em>all kinds</em> of <strong>formatting</strong>, including:</p>
+            <h1>Headers</h1>
+            <h2>Sub-headers</h2>
+            <ul>
+                <li>Unordered lists (like this one)</li>
+                <li>Ordered lists (1, 2, 3, 4...)</li>
+                <li>Links can also <a title="{#RaiseAlert}" href="#" data-call-function="RaiseAlert"><em>contain</em> <strong>formatting</strong></a></li>
+            </ul>
+            <p>Basically, anything Markdown can do, you can do in your story text! You can even inline <span style="color:#ff0000">raw HTML</span> which means you could do video embeds, HTML5 canvas, and all kinds of other fancy stuff.</p>
+            <p>And of course, because fractive games are ultimately HTML in the end, you can create your own HTML template with whatever layout you want, and style it with CSS. For example, you could surround your game with a header and footer, or create
+                a sidebar which (along with some custom Javascript) tracks your player's inventory and stats as they move through the story.</p>
+            <p><a title="{@LongStories}" href="#" data-goto-section="LongStories">How does fractive handle long/complicated stories?</a></p>
+        </div>
+        <div id="LongStories" class="section" hidden="true">
+            <p>Fractive's main goal is to be the best tool for writing complex, dynamic hypertext fiction that has lots of branches and genuinely consequential choices. What you're reading right now is produced by a <em>very</em> eary version of the tool,
+                so this goal isn't fully realized yet, but it is the direction I'm heading.</p>
+            <p>You can split long story text up into as many individual Markdown files as you like, and they can be named whatever you like. The same goes for game logic in Javascript; you could have separate .js files for each logical class, or for each
+                scene or major location in your story, or however else you'd like to organize it. When you publish your story, all the files in the story source folder are gathered up automatically, and everything gets compiled together into a single
+                self-contained HTML file.</p>
+            <p>In the future I'll be exploring additional tools and visualizations to help authors understand, trace, and debug the complexity of large, deeply-branching narratives. Those tools and visualizers will likely be the most experimental, and pivotal,
+                aspects of fractive's development.</p>
+            <p>Anything you'd like to review?</p>
+            <p><a title="{#FunctionLink}" href="#" data-call-function="FunctionLink">What does it look like when a link calls a Javascript function?</a><br/><a title="{#VariableLink}" href="#" data-call-function="VariableLink">What happens if I set the link URL to a variable macro?</a><br/>
+                <a
+                    title="{@InlineMacros}" href="#" data-goto-section="InlineMacros">What else can I use macros for?</a><br/><a title="{@AboutFormatting}" href="#" data-goto-section="AboutFormatting">Can I use Markdown styling?</a></p>
+        </div>
 
-    <div id="__history"></div>
-    <div id="__currentSection"></div>
+        <div id="__currentSection"></div>
+    </div>
+    <div id="__historyContainer" hidden>
+        <div id="__history"></div>
+    </div>
+    <div id="__controls">
+        <p>
+            <a href="#" onclick="__Restart()">Restart</a> •
+            <a href="#" onclick="__ToggleHistory()">Toggle History</a>
+        </p>
+    </div>
 </body>
 
 </html>

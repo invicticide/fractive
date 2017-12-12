@@ -23,12 +23,34 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 export namespace Core
 {
 	/**
-	 * Assign a user-defined function to be called whenever the current section changes
+	 * Event listener to call whenever the current section changes
 	 * @param id The id attribute of the new section
 	 * @param element The raw DOM element for the new section
 	 * @param tags Array of tags associated with the new section
 	 */
-	export let OnGotoSection : (id : string, element : Element, tags : string[]) => void;
+	export let OnGotoSection : Array<(id : string, element : Element, tags : string[]) => void> = [];
+
+	/**
+	 * Subscribe to an event with a custom handler function. The handler will be called whenever the event occurs.
+	 * @param eventName The name of the event to subscribe to
+	 * @param handler The function that will be called when the event occurs
+	 */
+	export function AddEventListener(eventName : string, handler : () => void)
+	{
+		switch(eventName)
+		{
+			case "OnGotoSection":
+			{
+				Core.OnGotoSection = Core.OnGotoSection.concat(handler);
+				break;
+			}
+			default:
+			{
+				console.error(`Core.AddEventListener: "${eventName}" is not a valid event`);
+				break;
+			}
+		}
+	}
 
 	/**
 	 * Enable or disable :inline macros within the document subtree starting at the given root element.
@@ -218,7 +240,7 @@ export namespace Core
 		currentSection.parentElement.replaceChild(clone, currentSection);
 
 		// Notify user script
-		if(OnGotoSection) { OnGotoSection(id, clone, []); }
+		for(let i = 0; i < OnGotoSection.length; i++) { OnGotoSection[i](id, clone, []); }
 	}
 
 	/**

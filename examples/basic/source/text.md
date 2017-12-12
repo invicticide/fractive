@@ -24,8 +24,6 @@ So if you set the URL to `\{@Start}` you'd have created a link back to the secti
 [What happens if I set the link URL to a variable macro?]({#VariableLink})
 [What else can I use macros for?]({@InlineMacros})
 
-(P.S. Notice that the first section is still displayed above. That's because we keep track of your play history in a scrollback. You can [hide the history]({#HideHistory}) if you like. The UX for this is still going to need some work.)
-
 {{InlineMacros}}
 
 Macros aren't only for links; you can also use them to add dynamic text to your sections.
