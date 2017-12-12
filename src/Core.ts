@@ -231,21 +231,21 @@ export namespace Core
 	/**
 	 * Re-enable disabled hyperlinks in the given section
 	 */
-	function EnableLinks(section) {
-		let links = section.getElementsByClassName("__disabledLink");
-
-		// Stripping each link modifies the collection as we iterate, so we don't need i++
-		for(let i = 0; i < links.length; /*NOP*/)
-		{
-			// Retrieve the link's original tag
-			let linkTag : string = links[i].getAttribute('data-link-tag');
-
-			// The content from inside the link will be moved back inside the link tag
-			let contents : string = links[i].innerHTML;
-
-			links[i].outerHTML = linkTag + contents + '</a>';
-		}
-	}
+	// function EnableLinks(section) {
+	// 	let links = section.getElementsByClassName("__disabledLink");
+  //
+	// 	// Stripping each link modifies the collection as we iterate, so we don't need i++
+	// 	for(let i = 0; i < links.length; /*NOP*/)
+	// 	{
+	// 		// Retrieve the link's original tag
+	// 		let linkTag : string = links[i].getAttribute('data-link-tag');
+  //
+	// 		// The content from inside the link will be moved back inside the link tag
+	// 		let contents : string = links[i].innerHTML;
+  //
+	// 		links[i].outerHTML = linkTag + contents + '</a>';
+	// 	}
+	// }
 
 	/**
 	 * Navigate to the given section.
@@ -259,11 +259,14 @@ export namespace Core
 		// Disable hyperlinks in the current section before moving it to history
 		DisableLinks(currentSection);
 
-		// Move the current section into the history section, including its
-		// enclosing div, so we can retrieve it in whole later if the back
-		// button is pressed
-		history.innerHTML += currentSection.outerHTML;
-		history.scrollTop = history.scrollHeight;
+		// Move the current section into the history section, keeping it in a div
+		// with its id as a data attribute
+		let previousSectionId = currentSection.getAttribute('data-id');
+
+		if (previousSectionId !== null) {
+			history.innerHTML += `<div data-id="${previousSectionId}">${currentSection.innerHTML}</div>`;
+			history.scrollTop = history.scrollHeight;
+		}
 
 		// Expand the destination section
 		let clone = ExpandSection(id);
