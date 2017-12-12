@@ -157,7 +157,7 @@
 			{
 				var historyContainerDiv = document.getElementById("__historyContainer");
 				if(!historyContainerDiv) { return; }
-				
+
 				var historyDiv = document.getElementById("__history");
 				if(!historyDiv) { return; }
 
@@ -167,7 +167,7 @@
 				// Toggle history visibility
 				historyContainerDiv.hidden = !historyContainerDiv.hidden;
 				historyDiv.hidden = historyContainerDiv.hidden;
-				
+
 				// Scroll to bottom of history
 				historyContainerDiv.scrollTop = historyContainerDiv.scrollHeight;
 
@@ -181,7 +181,7 @@
 				// Scroll to bottom of history
 				var historyContainerDiv = document.getElementById("__historyContainer");
 				if(historyContainerDiv) { historyContainerDiv.scrollTop = historyContainerDiv.scrollHeight; }
-				
+
 				// Scroll to top of new content
 				var contentDiv = document.getElementById("__content");
 				if(contentDiv) { contentDiv.scrollTop = 0; }
@@ -198,6 +198,7 @@
 		</div>
 		<div id="__controls">
 			<p>
+				<!--{backButton}-->
 				<a href="#" onclick="__Restart()">Restart</a> •
 				<a href="#" onclick="__ToggleHistory()">Toggle History</a>
 			</p>

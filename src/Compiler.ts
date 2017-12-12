@@ -141,6 +141,12 @@ export namespace Compiler
 		// Insert html-formatted story text
 		template = template.split("<!--{story}-->").join(html);
 
+		// Insert the back button if specified to do so
+		if (project.includeBackButton) {
+			let backButtonHTML = '<a href="#" onclick="Core.GotoLastSection()">' + project.backButtonHTML + '</a>';
+			template = template.split("<!--{backButton}-->").join(backButtonHTML);
+		}
+
 		// Auto-start at the "Start" section
 		template += "<script>Core.GotoSection(\"Start\");</script>";
 
@@ -887,11 +893,6 @@ export namespace Compiler
 						{
 							var insertedNode = new commonmark.Node("html_inline", node.sourcepos); // TODO: Real sourcepos
 							insertedNode.literal = `${sectionCount > 0 ? "</div>\n" : ""}<div id="${macro.substring(2, macro.length - 2)}" class="section" hidden="true">`;
-
-							// Add the back button to every section if the project config specifies it
-							if (project.includeBackButton) {
-								insertedNode.literal += '<p class="__backButton"><a href="#" data-call-function="Core.GotoLastSection">' + project.backButtonHTML + '</a></p>';
-							}
 
 							if(node.prev)
 							{
