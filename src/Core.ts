@@ -27,8 +27,9 @@ export namespace Core
 	 * @param id The id attribute of the new section
 	 * @param element The raw DOM element for the new section
 	 * @param tags Array of tags associated with the new section
+	 * @param goingBack True if section is changing as a result of the back button or GotoLastSection() being called
 	 */
-	export let OnGotoSection : Array<(id : string, element : Element, tags : string[]) => void> = [];
+	export let OnGotoSection : Array<(id : string, element : Element, tags : string[], goingBack : boolean) => void> = [];
 
 	/**
 	 * Subscribe to an event with a custom handler function. The handler will be called whenever the event occurs.
@@ -53,7 +54,8 @@ export namespace Core
 	}
 
 	/**
-	 *
+	 * Access a global variable dynamically from the window by splitting its
+	 * name at any .'s in order to keep indexing recursively.
 	 */
 	function RetrieveFromWindow(name : string, type) {
 		let targetObject = null;
@@ -276,7 +278,7 @@ export namespace Core
 		currentSection.parentElement.replaceChild(clone, currentSection);
 
 		// Notify user script
-		for(let i = 0; i < OnGotoSection.length; i++) { OnGotoSection[i](id, clone, []); }
+		for(let i = 0; i < OnGotoSection.length; i++) { OnGotoSection[i](id, clone, [], false); }
 	}
 
 	/**
@@ -286,20 +288,6 @@ export namespace Core
 	export function GotoLastSection() {
 		let history = document.getElementById("__history");
 		let currentSection = document.getElementById("__currentSection");
-
-		// TODO only move the current section into history if the story's
-		// configuration is that the back button only goes one layer deep
-		// // Disable hyperlinks in the current section before moving it to history
-		// DisableLinks(currentSection);
-    //
-		// // Move the current section into the history section, keeping it in a div
-		// // with its id as a data attribute
-		// let previousSectionId = currentSection.getAttribute('data-id');
-    //
-		// if (previousSectionId !== null) {
-		// 	history.innerHTML += `<div data-id="${previousSectionId}">${currentSection.innerHTML}</div>`;
-		// 	history.scrollTop = history.scrollHeight;
-		// }
 
 		// Retrieve the most recent section
 		let previousSections = history.getElementsByClassName('__previousSection');
@@ -320,7 +308,7 @@ export namespace Core
 		currentSection.parentElement.replaceChild(clone, currentSection);
 
 		// Notify user script
-		for(let i = 0; i < OnGotoSection.length; i++) { OnGotoSection[i](id, clone, []); }
+		for(let i = 0; i < OnGotoSection.length; i++) { OnGotoSection[i](id, clone, [], true); }
 	}
 
 	/**
