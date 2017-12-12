@@ -139,7 +139,7 @@ export namespace Compiler
 
 		// Insert html-formatted story text
 		template = template.split("<!--{story}-->").join(html);
-		
+
 		// Auto-start at the "Start" section
 		template += "<script>Core.GotoSection(\"Start\");</script>";
 
@@ -650,6 +650,7 @@ export namespace Compiler
 		// future, we could define a glob expression for urls that are internal
 		// to the game, and filter those out. For now, everything is considered
 		// external.
+		url = url;
 		return true;
 	}
 

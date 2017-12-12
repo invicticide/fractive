@@ -204,6 +204,51 @@ export namespace Core
 	}
 
 	/**
+	 * Disable any hyperlinks in the given section, while preserving their
+	 * original link tag in case they need to be re-enabled
+	 */
+	function DisableLinks(section) {
+		let links = section.getElementsByTagName("a");
+
+		// Stripping each link modifies the collection as we iterate, so we don't need i++
+		for(let i = 0; i < links.length; /*NOP*/)
+		{
+			// Preserve the link tag, but keep it EMPTY, and leave it next
+			// to the content, so the disabling process can be reversed by
+			// the back button.
+			let linkTag : string = links[i].outerHTML.substring(
+				0, links[i].outerHTML.indexOf(">") + 1);
+			// The content from inside the link will be moved outside the link tag
+			let contents : string = links[i].outerHTML.substring(
+				links[i].outerHTML.indexOf(">") + 1,
+				links[i].outerHTML.indexOf("</a>")
+			);
+			links[i].outerHTML = `<span class="__disabledLink">${linkTag}</a>${contents}</span>`;
+		}
+	}
+
+	/**
+	 * Re-enable disabled hyperlinks in the given section
+	 */
+	// function EnableLinks(section) {
+	// 	let links = section.getElementsByClassName("__disabledLink");
+  //
+	// 	// Stripping each link modifies the collection as we iterate, so we don't need i++
+	// 	for(let i = 0; i < links.length; /*NOP*/)
+	// 	{
+	// 		// Retrieve the link's original tag
+	// 		let linkTag : string = links[i].childNodes[0].outerHTML;
+  //
+	// 		// The content from inside the link will be moved back inside the link tag
+	// 		let contents : string = links[i].outerHTML.substring(
+	// 			links[i].outerHTML.indexOf("</a>") + 4,
+	// 			links[i].outerHTML.indexOf("</span")
+	// 		);
+	// 		links[i].outerHTML = linkTag.split('>').join('>' + contents);
+	// 	}
+	// }
+
+	/**
 	 * Navigate to the given section.
 	 * @param id The string identifier of the section to navigate to.
 	 */
@@ -212,20 +257,16 @@ export namespace Core
 		let history = document.getElementById("__history");
 		let currentSection = document.getElementById("__currentSection");
 
+		console.log("it's hapenning!!");
 		// Disable hyperlinks in the current section before moving it to history
-		// Stripping each link modifies the collection as we iterate, so we don't need i++
-		let links = currentSection.getElementsByTagName("a");
-		for(let i = 0; i < links.length; /*NOP*/)
-		{
-			let contents : string = links[i].outerHTML.substring(
-				links[i].outerHTML.indexOf(">") + 1,
-				links[i].outerHTML.indexOf("</a>")
-			);
-			links[i].outerHTML = `<span class="__disabledLink">${contents}</span>`;
-		}
+		DisableLinks(currentSection);
+		console.log(currentSection.outerHTML);
+		//EnableLinks(currentSection);
+		//console.log(currentSection.outerHTML);
 
-		// Move the current section into the history
-		history.innerHTML += currentSection.innerHTML;
+		// Move the current section into the history section inside a div so it
+		// can be accessed by the back button logic
+		history.innerHTML += '<div>' + currentSection.innerHTML + '</div>';
 		history.scrollTop = history.scrollHeight;
 
 		// Expand the destination section
@@ -233,7 +274,7 @@ export namespace Core
 		EnableInlineMacros(clone, true);
 		RegisterLinks(clone);
 		clone.scrollTop = 0;
-		
+
 		// Replace the div so as to restart CSS animations
 		// Replace the div so as to restart CSS animations (just replacing innerHTML does not do this!)
 		clone.id = "__currentSection";
@@ -242,6 +283,18 @@ export namespace Core
 		// Notify user script
 		for(let i = 0; i < OnGotoSection.length; i++) { OnGotoSection[i](id, clone, []); }
 	}
+
+	// /**
+	//  * Navigate to the previous section as it was
+	//  * before transitioning to the current one.
+	//  */
+	// export function GotoLastSection() {
+  //
+  //
+	// 	// Notify user script
+	// 	// TODO expand the callback with a boolean for whether it's reverse travel
+	// 	for(let i = 0; i < OnGotoSection.length; i++) { OnGotoSection[i](id, clone, []); }
+	// }
 
 	/**
 	 * Recursively activates all links in the DOM subtree rooted at this element. This registers appropriate
@@ -316,7 +369,7 @@ export namespace Core
 				replacement.className = "__inlineMacro";
 				replacement.innerHTML = html;
 				EnableInlineMacros(replacement, true);
-				RegisterLinks(replacement);		
+				RegisterLinks(replacement);
 				element.parentNode.replaceChild(replacement, element);
 				break;
 			}
