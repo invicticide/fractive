@@ -504,7 +504,8 @@
 <body>
     <div id="__content">
         <!-- source/text.md -->
-        <div id="Start" class="section" hidden="true"><a href="#" class="__backButton" data-call-function="Core.GotoLastSection">Back</a>
+        <div id="Start" class="section" hidden="true">
+            <p class="__backButton"><a href="#" data-call-function="Core.GotoLastSection">Back</a></p>
             <h1>The joy of tagging links!</h1>
             <p>You may have noticed in the previous examples, links to external websites were marked with a special symbol. That symbol comes from <a title="http://fontawesome.io/" target="_blank" href="http://fontawesome.io/">Font Awesome.&nbsp;<i class="fa fa-external-link" aria-hidden="true"></i> (<span data-expand-macro="$TagVariable"></span>)</a>                (There it is again!)</p>
             <p>You can actually customize what appears next to any link in your story by defining a link tag. These are defined in your story's <code>fractive.json</code> file under the name <code>linkTags</code>.</p>
@@ -529,7 +530,8 @@
                     title="{@WhenTags}" href="#" data-goto-section="WhenTags">&nbsp;<i class="fa fa-arrow-right" aria-hidden="true"></i> (<span data-expand-macro="$TagVariable"></span>)When and why to use tags.</a>
             </p>
         </div>
-        <div id="FontAwesome" class="section" hidden="true"><a href="#" class="__backButton" data-call-function="Core.GotoLastSection">Back</a>
+        <div id="FontAwesome" class="section" hidden="true">
+            <p class="__backButton"><a href="#" data-call-function="Core.GotoLastSection">Back</a></p>
             <p>We've chosen to use icons from Font Awesome for each of the link tags, but you can think bigger. For example, you might use an <code>&lt;img&gt;</code> tag to use your own icon as a tag:</p>
             <pre><code>{
   ...
@@ -542,7 +544,8 @@
                 this: <code>\&quot;</code>.</p>
             <p><strong>More info</strong>:<br/><a title="{@WhenTags}" href="#" data-goto-section="WhenTags">&nbsp;<i class="fa fa-arrow-right" aria-hidden="true"></i> (<span data-expand-macro="$TagVariable"></span>)When and why to use tags.</a></p>
         </div>
-        <div id="WhenTags" class="section" hidden="true"><a href="#" class="__backButton" data-call-function="Core.GotoLastSection">Back</a>
+        <div id="WhenTags" class="section" hidden="true">
+            <p class="__backButton"><a href="#" data-call-function="Core.GotoLastSection">Back</a></p>
             <p>Tags are useful for helping the player know what to expect before they click on a link. Some players want to experience everything they can in a section before moving on to the next one, making the section tag especially useful.</p>
             <p>However, an excess of tags can visually clutter your story. We recommend you only define the most important ones depending on the way you structure your story. For example, if you use a lot of inline links, you might want to tag only the external
                 links and section links.</p>

@@ -890,7 +890,7 @@ export namespace Compiler
 
 							// Add the back button to every section if the project config specifies it
 							if (project.includeBackButton) {
-								insertedNode.literal += '<a href="#" class="__backButton" data-call-function="Core.GotoLastSection">' + project.backButtonHTML + '</a>';
+								insertedNode.literal += '<p class="__backButton"><a href="#" data-call-function="Core.GotoLastSection">' + project.backButtonHTML + '</a></p>';
 							}
 
 							if(node.prev)

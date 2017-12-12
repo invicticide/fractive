@@ -512,10 +512,12 @@
 <body>
     <div id="__content">
         <!-- source/text.md -->
-        <div id="TestSection" class="section" hidden="true"><a href="#" class="__backButton" data-call-function="Core.GotoLastSection">Back</a>
+        <div id="TestSection" class="section" hidden="true">
+            <p class="__backButton"><a href="#" data-call-function="Core.GotoLastSection">Back</a></p>
             <p>Expanded section!</p>
         </div>
-        <div id="Start" class="section" hidden="true"><a href="#" class="__backButton" data-call-function="Core.GotoLastSection">Back</a>
+        <div id="Start" class="section" hidden="true">
+            <p class="__backButton"><a href="#" data-call-function="Core.GotoLastSection">Back</a></p>
             <h1>Text</h1>
             <p>Expand a section in a <code>text</code> element: <span data-expand-macro="@TestSection"></span><br/>Expand a function in a <code>text</code> element: <span data-expand-macro="#TestFunction"></span><br/>Expand a variable in a <code>text</code>                element: <span data-expand-macro="$TestVariable"></span></p>
             <p>Non-expanding reference to a section in a <code>text</code> element: {@TestSection}<br/>Non-expanding reference to a function in a <code>text</code> element: {#TestFunction}<br/>Non-expanding reference to a variable in a <code>text</code>                element: {$TestVariable}</p>
