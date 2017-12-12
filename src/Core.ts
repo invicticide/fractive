@@ -307,7 +307,8 @@ export namespace Core
 		let id = previousSection.getAttribute('data-id');
 		let clone = previousSection.cloneNode(true) as Element;
 
-		// TODO remove the section we're rolling back to from the history
+		// Remove the most recent section from history, now that we're going back to it
+		history.removeChild(previousSection);
 
 		EnableLinks(clone);
 		RegisterLinks(clone);
