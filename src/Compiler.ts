@@ -740,16 +740,18 @@ export namespace Compiler
 					{
 						event.node.appendChild(newNode);
 					}
-			return true;
+					return true;
 				}
 				else
 				{
-					// Prepending _ to the id makes this :inline macro disabled by default. It gets enabled when it's moved
-					// into the __currentSection div.
+					// Setting href=javascript:; instead of href=# prevents the browser from resetting the scroll position on click
 					let attrs = [
-						{ attr: "href", value: "#" },
+						{ attr: "href", value: "javascript:;" },
 						{ attr: "data-replace-with", value: url }
 					];
+
+					// Prepending _ to the id makes this :inline macro disabled by default. It gets enabled when it's moved
+					// into the __currentSection div.
 					return RewriteLinkNode(event.node, attrs, `_inline-${nextInlineID++}`);
 				}
 			}
