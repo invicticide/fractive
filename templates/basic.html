@@ -13,12 +13,24 @@
 				padding: 0px 40px;
 				background-color: #333333;
 				color: #BBBBBB;
-				text-align: right;
 				font-family: Arial, Helvetica, sans-serif;
 				font-size: 13pt;
 			}
-			#__controls a {
+			#__controls .controls-left {
+				float: left;
+				text-align: left;
+			}
+			#__controls .controls-right {
+				float: right;
+				text-align: right;
+			}
+			#__controls a:link, #__controls a:visited {
 				color: #FAFAFA;
+				text-decoration: none;
+			}
+			#__controls a:active, #__controls a:hover {
+				color: #FF6666;
+				text-decoration: none;
 			}
 			#__historyContainer
 			{
@@ -157,7 +169,7 @@
 			{
 				var historyContainerDiv = document.getElementById("__historyContainer");
 				if(!historyContainerDiv) { return; }
-				
+
 				var historyDiv = document.getElementById("__history");
 				if(!historyDiv) { return; }
 
@@ -167,7 +179,7 @@
 				// Toggle history visibility
 				historyContainerDiv.hidden = !historyContainerDiv.hidden;
 				historyDiv.hidden = historyContainerDiv.hidden;
-				
+
 				// Scroll to bottom of history
 				historyContainerDiv.scrollTop = historyContainerDiv.scrollHeight;
 
@@ -181,7 +193,7 @@
 				// Scroll to bottom of history
 				var historyContainerDiv = document.getElementById("__historyContainer");
 				if(historyContainerDiv) { historyContainerDiv.scrollTop = historyContainerDiv.scrollHeight; }
-				
+
 				// Scroll to top of new content
 				var contentDiv = document.getElementById("__content");
 				if(contentDiv) { contentDiv.scrollTop = 0; }
@@ -197,7 +209,10 @@
 			<div id="__history"></div>
 		</div>
 		<div id="__controls">
-			<p>
+			<p class="controls-left">
+				<!--{backButton}-->
+			</p>
+			<p class="controls-right">
 				<a href="#" onclick="__Restart()">Restart</a> -
 				<a href="#" onclick="__ToggleHistory()">Toggle History</a>
 			</p>

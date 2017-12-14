@@ -73,7 +73,8 @@ export let ProjectDefaults : FractiveProject = {
 			prepend: false
 		}
 	},
-	backButtonHTML: ""
+	includeBackButton: true,
+	backButtonHTML: "Back"
 };
 import * as globby from "globby";
 
@@ -139,7 +140,14 @@ export namespace Compiler
 
 		// Insert html-formatted story text
 		template = template.split("<!--{story}-->").join(html);
-		
+
+		// Insert the back button if specified to do so
+		if(project.includeBackButton)
+		{
+			let backButtonHTML = '<a href="javascript:Core.GotoPreviousSection();">' + project.backButtonHTML + '</a>';
+			template = template.split("<!--{backButton}-->").join(backButtonHTML);
+		}
+
 		// Auto-start at the "Start" section
 		template += "<script>Core.GotoSection(\"Start\");</script>";
 
@@ -650,6 +658,7 @@ export namespace Compiler
 		// future, we could define a glob expression for urls that are internal
 		// to the game, and filter those out. For now, everything is considered
 		// external.
+		url = url;
 		return true;
 	}
 

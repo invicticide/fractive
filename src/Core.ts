@@ -27,8 +27,9 @@ export namespace Core
 	 * @param id The id attribute of the new section
 	 * @param element The raw DOM element for the new section
 	 * @param tags Array of tags associated with the new section
+	 * @param isGoingBack True if section is changing as a result of GotoPreviousSection() being called
 	 */
-	export let OnGotoSection : Array<(id : string, element : Element, tags : string[]) => void> = [];
+	export let OnGotoSection : Array<(id : string, element : Element, tags : string[], isGoingBack : boolean) => void> = [];
 
 	/**
 	 * Subscribe to an event with a custom handler function. The handler will be called whenever the event occurs.
@@ -53,6 +54,30 @@ export namespace Core
 	}
 
 	/**
+	 * Disable any hyperlinks in the given section, while preserving their original link tag in case they need to be re-enabled
+	 */
+	function DisableLinks(section : Element)
+	{
+		let links = section.getElementsByTagName("a");
+
+		// We need to i++ because we don't actually remove the link tag,
+		// just leave it empty.
+		for(let i = 0; i < links.length; i++)
+		{
+			// Preserve the link tag, but keep it EMPTY, and leave it next to the content, so the
+			// disabling process can be reversed by the back button.
+			let linkTag : string = links[i].outerHTML.substring(0, links[i].outerHTML.indexOf(">") + 1);
+			
+			// The content from inside the link will be moved outside the link tag
+			let contents : string = links[i].outerHTML.substring(
+				links[i].outerHTML.indexOf(">") + 1,
+				links[i].outerHTML.indexOf("</a>")
+			);
+			links[i].outerHTML = `<span class="__disabledLink" data-link-tag='${linkTag}'>${linkTag}${contents}</span>`;
+		}
+	}
+
+	/**
 	 * Enable or disable :inline macros within the document subtree starting at the given root element.
 	 * Nothing is returned, as the elements are modified in place. Disabled :inline macros simply have
 	 * a _ prepended to their id attribute.
@@ -70,6 +95,26 @@ export namespace Core
 		for(let i = 0; i < root.children.length; i++)
 		{
 			EnableInlineMacros(root.children[i], tf);
+		}
+	}
+
+	/**
+	 * Re-enable disabled hyperlinks in the given section
+	 */
+	function EnableLinks(section : Element)
+	{
+		let links = section.getElementsByClassName("__disabledLink");
+
+		// Stripping each link modifies the collection as we iterate, so we don't need i++
+		for(let i = 0; i < links.length; /*NOP*/)
+		{
+			// Retrieve the link's original tag
+			let linkTag : string = links[i].getAttribute('data-link-tag');
+
+			// The content from inside the link will be moved back inside the link tag
+			let contents : string = links[i].innerHTML;
+
+			links[i].outerHTML = linkTag + contents + '</a>';
 		}
 	}
 
@@ -100,40 +145,14 @@ export namespace Core
 			case '#':
 			{
 				// Return the result of the named function call
-				let targetObject = null;
-				let tokens = macro.substring(1).split('.');
-				for(let i = 0; i < tokens.length; i++)
-				{
-					if(i === 0) { targetObject = window[tokens[0]]; }
-					else { targetObject = targetObject[tokens[i]]; }
-				}
-				if(targetObject === undefined)
-				{
-					return `{function "${macro.substring(1)}" is not declared}`;
-				}
-				else
-				{
-					return targetObject().toString();
-				}
+				let targetFunction = RetrieveFromWindow(macro.substring(1), 'function');
+				return targetFunction().toString();
 			}
 			case '$':
 			{
 				// Return the value of the named variable
-				let targetObject = null;
-				let tokens = macro.substring(1).split('.');
-				for(let i = 0; i < tokens.length; i++)
-				{
-					if(i === 0) { targetObject = window[tokens[0]]; }
-					else { targetObject = targetObject[tokens[i]]; }
-				}
-				if(targetObject === undefined)
-				{
-					return `{variable "${macro.substring(1)}" is not declared}`;
-				}
-				else
-				{
-					return targetObject.toString();
-				}
+				let targetVariable = RetrieveFromWindow(macro.substring(1), 'variable');
+				return targetVariable.toString();
 			}
 			default:
 			{
@@ -204,43 +223,74 @@ export namespace Core
 	}
 
 	/**
+	 * Navigate to the previous section as it was before transitioning to the current one.
+	 */
+	export function GotoPreviousSection()
+	{
+		let history = document.getElementById("__history");
+		let currentSection = document.getElementById("__currentSection");
+
+		// Retrieve the most recent section
+		let previousSections = history.getElementsByClassName('__previousSection');
+		let previousSection = previousSections[previousSections.length - 1];
+		if(!previousSection) { return; }
+
+		let id = previousSection.getAttribute('data-id');
+		let clone = previousSection.cloneNode(true) as Element;
+
+		// Remove the most recent section from history, now that we're going back to it
+		history.removeChild(previousSection);
+
+		EnableLinks(clone);
+		RegisterLinks(clone);
+
+		clone.scrollTop = 0;
+
+		// Replace the div so as to restart CSS animations (just replacing innerHTML does not do this!)
+		clone.id = "__currentSection";
+		currentSection.parentElement.replaceChild(clone, currentSection);
+
+		// Notify user script
+		for(let i = 0; i < OnGotoSection.length; i++) { OnGotoSection[i](id, clone, [], true); }
+	}
+
+	/**
 	 * Navigate to the given section.
 	 * @param id The string identifier of the section to navigate to.
 	 */
 	export function GotoSection(id : string) : void
 	{
-		let history = document.getElementById("__history");
-		let currentSection = document.getElementById("__currentSection");
+		let history : Element = document.getElementById("__history");
+		let currentSection : Element = document.getElementById("__currentSection");
 
 		// Disable hyperlinks in the current section before moving it to history
-		// Stripping each link modifies the collection as we iterate, so we don't need i++
-		let links = currentSection.getElementsByTagName("a");
-		for(let i = 0; i < links.length; /*NOP*/)
-		{
-			let contents : string = links[i].outerHTML.substring(
-				links[i].outerHTML.indexOf(">") + 1,
-				links[i].outerHTML.indexOf("</a>")
-			);
-			links[i].outerHTML = `<span class="__disabledLink">${contents}</span>`;
-		}
+		DisableLinks(currentSection);
 
-		// Move the current section into the history
-		history.innerHTML += currentSection.innerHTML;
-		history.scrollTop = history.scrollHeight;
+		// Move the current section into the history section, keeping it in a div
+		// with its id as a data attribute
+		let previousSectionId = currentSection.getAttribute('data-id');
+
+		if(previousSectionId !== null)
+		{
+			history.innerHTML += `<div class="__previousSection" data-id="${previousSectionId}">${currentSection.innerHTML}</div>`;
+			history.scrollTop = history.scrollHeight;
+		}
 
 		// Expand the destination section
 		let clone = ExpandSection(id);
+		clone.setAttribute('data-id', id);
+
 		EnableInlineMacros(clone, true);
 		RegisterLinks(clone);
 		clone.scrollTop = 0;
-		
+
 		// Replace the div so as to restart CSS animations
 		// Replace the div so as to restart CSS animations (just replacing innerHTML does not do this!)
 		clone.id = "__currentSection";
 		currentSection.parentElement.replaceChild(clone, currentSection);
 
 		// Notify user script
-		for(let i = 0; i < OnGotoSection.length; i++) { OnGotoSection[i](id, clone, []); }
+		for(let i = 0; i < OnGotoSection.length; i++) { OnGotoSection[i](id, clone, [], false); }
 	}
 
 	/**
@@ -265,7 +315,7 @@ export namespace Core
 					}
 					case "data-call-function":
 					{
-						element.addEventListener("click", window[element.attributes[i].value]);
+						element.addEventListener("click", RetrieveFromWindow(element.attributes[i].value, 'function'));
 						break;
 					}
 					case "data-replace-with":
@@ -285,6 +335,28 @@ export namespace Core
 				RegisterLinks(element.children[i]);
 			}
 		}
+	}
+
+	/**
+	 * Access a global variable dynamically from the window by splitting its name at any .'s in order to keep indexing recursively.
+	 * This is like what you'd expect window["foo.bar.baz"] would do... if that syntax were legal.
+	 */
+	function RetrieveFromWindow(name : string, type)
+	{
+		let targetObject = null;
+		let tokens = name.split('.');
+
+		for(let i = 0; i < tokens.length; i++)
+		{
+			if(i === 0) { targetObject = window[tokens[0]]; }
+			else { targetObject = targetObject[tokens[i]]; }
+		}
+		if(targetObject === undefined)
+		{
+			return `{${type} "${name}" is not declared}`;
+		}
+
+		return targetObject;
 	}
 
 	/**
@@ -316,7 +388,7 @@ export namespace Core
 				replacement.className = "__inlineMacro";
 				replacement.innerHTML = html;
 				EnableInlineMacros(replacement, true);
-				RegisterLinks(replacement);		
+				RegisterLinks(replacement);
 				element.parentNode.replaceChild(replacement, element);
 				break;
 			}
