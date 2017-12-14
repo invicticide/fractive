@@ -317,3 +317,17 @@ To test changes in a global install, first update your global install from your 
 Then build your test story normally:
 
 	fractive compile path/to/test/story
+
+# Who's making this?
+
+**Josh Sutphin**<br>
+Creator and primary developer
+
+- GitHub: [@invicticide](https://github.com/invicticide)
+- Twitter: [@invicticide](https://twitter.com/invicticide)
+- Mastodon: [invicticide@mastodon.gamedev.place](https://mastodon.gamedev.place/@invicticide)
+
+**Nat Quayle Nelson**<br>
+Major contributor
+
+- GitHub: [@NQNStudios](https://github.com/NQNStudios)
