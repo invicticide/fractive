@@ -282,6 +282,32 @@ export namespace Core
 	}
 
 	/**
+	 * Go to the section declared in Markdown immediately after the current one.
+	 */
+	export function GotoNextSection() {
+		// Get the id of the current section
+		let currentSection = document.getElementById("__currentSection");
+		let currentSectionId = currentSection.getAttribute('data-id');
+
+		// Find that section's declaration, then retrieve the next one
+		let sections = document.getElementsByClassName("section");
+
+		let i = 0;
+		for (; i < sections.length; ++i) {
+			if (sections[i].getAttribute('id') === currentSectionId)
+				break;
+		}
+
+		if (i+1>=sections.length) {
+			console.log("Tried to go to next section when there were no more sections.");
+			return;
+		}
+
+		let nextSectionId = sections[i+1].getAttribute('id');
+		GotoSection(nextSectionId);
+	}
+
+	/**
 	 * Navigate to the previous section as it was
 	 * before transitioning to the current one.
 	 */
