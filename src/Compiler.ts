@@ -646,20 +646,22 @@ export namespace Compiler
 	}
 
 	/**
-	* Check if a URL is considered external and its link should be marked
-	* with the external link mark defined in fractive.json
-	* @param url
+	* Check if a URL is considered external and its link should be marked with the external link mark defined in snap.json
+	* @param url The URL string to check
 	*/
-	// @ts-ignore Unused function argument, until this stub gets expanded
-	function IsExternalLink(url: string)
+	function IsExternalLink(url : string)
 	{
-		// TODO I imagine if the user wants to link to pages on their own site,
-		// the external link icon will be unwanted. To account for this in the
-		// future, we could define a glob expression for urls that are internal
-		// to the game, and filter those out. For now, everything is considered
-		// external.
-		url = url;
-		return true;
+		let tokens : Array<string> = url.split("/");
+		switch(tokens[0].toLowerCase())
+		{
+			case "http:":
+			case "https:":
+			case "mailto:":
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
