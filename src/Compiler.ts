@@ -74,8 +74,15 @@ export let ProjectDefaults : FractiveProject = {
 		}
 	},
 	includeBackButton: true,
-	backButtonHTML: "Back"
+	backButtonHTML: "Back",
+	useStockAliases: true
 };
+
+let StockAliases = [
+	{ "alias": "backButton", "replaceWith": "[Back]({#Core.GotoLastSection})" },
+	{ "alias": "nextButton", "replaceWith": "[Next]({#Core.GotoNextSection})" }
+];
+
 import * as globby from "globby";
 
 // CLI colors
@@ -960,6 +967,10 @@ export namespace Compiler
 	 */
 	function ReplaceAliases(source : string) : string
 	{
+		if (project.useStockAliases) {
+			project.aliases = project.aliases.concat(StockAliases);
+		}
+
 		// Don't parse anything if there aren't any aliases defined
 		if(project.aliases.length < 1) { return source; }
 
