@@ -28,12 +28,12 @@ export namespace Core
 		Back,		// Going back to this section in history
 		Refresh,	// Refreshing this section in place
 	}
-	
+
 	/**
 	* Event listener to call just before the story begins, for user init code to run
 	*/
 	let OnBeginStory : Array<() => void> = [];
-	
+
 	/**
 	* Event listener to call whenever the current section changes
 	* @param id The id attribute of the new section
@@ -52,7 +52,7 @@ export namespace Core
 		characterData: true,
 		subtree: true
 	}
-	
+
 	/**
 	* Recursively activates all links in the DOM subtree rooted at this element. This registers appropriate
 	* click handlers for each link based on the presence and type of data attributes on <a> tags.
@@ -105,7 +105,7 @@ export namespace Core
 			}
 		}
 	}
-	
+
 	/**
 	* Subscribe to an event with a custom handler function. The handler will be called whenever the event occurs.
 	* @param eventName The name of the event to subscribe to
@@ -133,7 +133,7 @@ export namespace Core
 			}
 		}
 	}
-	
+
 	/**
 	* Begins the story. Notifies user code and navigates to the "Start" section.
 	*/
@@ -143,7 +143,7 @@ export namespace Core
 		for(let i = 0; i < OnBeginStory.length; i++) { OnBeginStory[i](); }
 		GotoSection("Start");
 	}
-	
+
 	/**
 	* Returns true if the given element is and contains only inline elements, or false if it is or contains any block-level elements
 	* @param html The html blob to check
@@ -156,7 +156,7 @@ export namespace Core
 		if(context) { context.appendChild(root); }
 		else { document.appendChild(root); }
 		root.innerHTML = html;
-		
+
 		let scan = function(e : Element)
 		{
 			if(getComputedStyle(e, "").display === "block")
@@ -170,21 +170,21 @@ export namespace Core
 			return true;
 		};
 		let result = scan(root);
-		
+
 		// Remove the temporary element
 		if(context) { context.removeChild(root); }
 		else { document.removeChild(root); }
-		
+
 		return result;
 	}
-	
+
 	/**
 	* Disable any hyperlinks in the given section, while preserving their original link tag in case they need to be re-enabled
 	*/
 	function DisableLinks(section : Element)
 	{
 		let links = section.getElementsByTagName("a");
-		
+
 		// We need to i++ because we don't actually remove the link tag,
 		// just leave it empty.
 		for(let i = 0; i < links.length; i++)
@@ -192,7 +192,7 @@ export namespace Core
 			// Preserve the link tag, but keep it EMPTY, and leave it next to the content, so the
 			// disabling process can be reversed by the back button.
 			let linkTag : string = links[i].outerHTML.substring(0, links[i].outerHTML.indexOf(">") + 1);
-			
+
 			// The content from inside the link will be moved outside the link tag
 			let contents : string = links[i].outerHTML.substring(
 				links[i].outerHTML.indexOf(">") + 1,
@@ -201,27 +201,27 @@ export namespace Core
 			links[i].outerHTML = `<span class="__disabledLink" data-link-tag='${linkTag}'>${contents}</span>`;
 		}
 	}
-	
+
 	/**
 	* Re-enable disabled hyperlinks in the given section
 	*/
 	function EnableLinks(section : Element)
 	{
 		let links = section.getElementsByClassName("__disabledLink");
-		
+
 		// Stripping each link modifies the collection as we iterate, so we don't need i++
 		for(let i = 0; i < links.length; /*NOP*/)
 		{
 			// Retrieve the link's original tag
 			let linkTag : string = links[i].getAttribute('data-link-tag');
-			
+
 			// The content from inside the link will be moved back inside the link tag
 			let contents : string = links[i].innerHTML;
-			
+
 			links[i].outerHTML = linkTag + contents + '</a>';
 		}
 	}
-	
+
 	/**
 	* Expand a macro (e.g. "{@someSection}", "{#someFunction}", "{$someVariable}") into human-readable text.
 	* {@section} macros expand the entire referenced section, including its own macros.
@@ -281,7 +281,7 @@ export namespace Core
 			}
 		}
 	}
-	
+
 	/**
 	* Expand all macros within the given section, and return the resulting human-readable text.
 	* @param id The string identifier of the section to expand.
@@ -295,10 +295,10 @@ export namespace Core
 			console.log("Section " + id + " doesn't exist");
 			return null;
 		}
-		
+
 		let sectionInstance = source.cloneNode(true) as Element; // deep
 		sectionInstance.removeAttribute("hidden");
-		
+
 		let scan = function(element : Element)
 		{
 			for(let i = 0; i < element.attributes.length; i++)
@@ -323,7 +323,7 @@ export namespace Core
 						expanded = true;
 					}
 				}
-				
+
 				// If we replaced the element with an expansion, the attributes list we're iterating over will
 				// no longer be valid. But that's fine, because we're done here anyway.
 				if(expanded) { break; }
@@ -337,10 +337,10 @@ export namespace Core
 			}
 		};
 		scan(sectionInstance);
-		
+
 		return sectionInstance;
 	}
-	
+
 	/**
 	* Get a list of the tags the current section was declared with.
 	*/
@@ -360,7 +360,7 @@ export namespace Core
 		clone.setAttribute('data-id', id);
 		return clone;
 	}
-	
+
 	/*
 	* Get a list of the id's of sections which were declared with the given tag
 	*/
@@ -368,7 +368,7 @@ export namespace Core
 	{
 		let matchingSections : Array<string> = [];
 		let sections = document.getElementsByClassName("section");
-		
+
 		// Check every section. If this ever needs better performance than O(N),
 		// we'll have to create a data structure at initialization, but that
 		// seems like overkill for now.
@@ -381,10 +381,10 @@ export namespace Core
 				matchingSections.push(sectionId);
 			}
 		}
-		
+
 		return matchingSections;
 	}
-	
+
 	/**
 	* Get a list of the tags a section was declared with.
 	*/
@@ -394,7 +394,7 @@ export namespace Core
 		let tagDeclarations = sectionDiv.getAttribute("data-tags");
 		return tagDeclarations.split(',');
 	}
-	
+
 	/**
 	* Navigate to the previous section as it was before transitioning to the current one.
 	*/
@@ -409,18 +409,18 @@ export namespace Core
 			console.error("History is not supported in this template (the __history element is missing)");
 			return;
 		}
-				
+
 		// Retrieve the most recent section
 		let previousSections = history.getElementsByClassName('__previousSection');
 		let previousSection = previousSections[previousSections.length - 1];
 		if(!previousSection) { return; }
-		
+
 		// Replace the current section with the previous section
 		let id = previousSection.getAttribute('data-id');
 		let clone = previousSection.cloneNode(true) as Element;
 		EnableLinks(clone);
 		SetElementAsCurrentSection(clone);
-		
+
 		// Notify user script
 		for(let i = 0; i < OnGotoSection.length; i++) { OnGotoSection[i](id, clone, GetSectionTags(id), EGotoSectionReason.Back); }
 
@@ -428,7 +428,7 @@ export namespace Core
 		history.removeChild(previousSection);
 	}
 	export function GoToPreviousSection() { GotoPreviousSection(); } // Convenience alias
-	
+
 	/**
 	* Navigate to the given section.
 	* @param id The string identifier of the section to navigate to.
@@ -437,11 +437,11 @@ export namespace Core
 	{
 		// Don't listen for changes while we're deactivating the current section
 		currentSectionObserver.disconnect();
-		
+
 		// Disable hyperlinks in the current section before moving it to history
 		let currentSection : Element = document.getElementById("__currentSection");
 		DisableLinks(currentSection);
-		
+
 		// Move the current section into the history section, keeping it in a div with its id as a data attribute
 		let history : Element = document.getElementById("__history");
 		let previousSectionId = currentSection.getAttribute('data-id');
@@ -450,20 +450,50 @@ export namespace Core
 			history.innerHTML += `<div class="__previousSection" data-id="${previousSectionId}">${currentSection.innerHTML}</div>`;
 			history.scrollTop = history.scrollHeight;
 		}
-		
+
 		// Get a copy of the new section that's ready to display
 		let clone : Element = GetSection(id);
 		SetElementAsCurrentSection(clone);
-		
+
 		// Notify user script
 		for(let i = 0; i < OnGotoSection.length; i++) { OnGotoSection[i](id, clone, GetSectionTags(id), EGotoSectionReason.Goto); }
 	}
 	export function GoToSection(id : string) { GotoSection(id); } // Convenience alias
 
 	/**
-	 * MutationObserver callback for when __currentSection has been modified in the DOM
-	 * @param mutations Array of MutationRecords
-	 */
+	* Go to the section declared in Markdown immediately after the current one.
+	*/
+	export function GotoRelativeSection(offset : number)
+	{
+		// Get the id of the current section
+		let currentSection = document.getElementById("__currentSection");
+		let currentSectionId = currentSection.getAttribute('data-id');
+
+		// Find that section's declaration
+		let sections = document.getElementsByClassName("section");
+		let i = 0;
+		for (; i < sections.length; ++i)
+		{
+			if (sections[i].getAttribute('id') === currentSectionId)
+				break;
+		}
+
+		// Check that the relative section exists
+		if (i+offset>=sections.length || i+offset<0) {
+			console.log("Tried to go to relative section out of bounds.");
+			return;
+		}
+
+		let nextSectionId = sections[i+offset].getAttribute('id');
+		GotoSection(nextSectionId);
+	}
+
+ /**
+	* Navigate to the previous section as it was
+	* before transitioning to the current one.
+	* MutationObserver callback for when __currentSection has been modified in the DOM
+	* @param mutations Array of MutationRecords
+	*/
 	function OnCurrentSectionModified(mutations)
 	{
 		for(let i = 0; i < mutations.length; i++)
@@ -495,7 +525,7 @@ export namespace Core
 		// Notify user script
 		for(let i = 0; i < OnGotoSection.length; i++) { OnGotoSection[i](id, clone, GetSectionTags(id), EGotoSectionReason.Refresh); }
 	}
-	
+
 	/**
 	* Access a global variable dynamically from the window by splitting its name at any .'s in order to keep indexing recursively.
 	* This is like what you'd expect window["foo.bar.baz"] would do... if that syntax were legal.
@@ -504,7 +534,7 @@ export namespace Core
 	{
 		let targetObject = null;
 		let tokens = name.split('.');
-		
+
 		for(let i = 0; i < tokens.length; i++)
 		{
 			if(i === 0) { targetObject = window[tokens[0]]; }
@@ -514,10 +544,10 @@ export namespace Core
 		{
 			return `{${type} "${name}" is not declared}`;
 		}
-		
+
 		return targetObject;
 	}
-	
+
 	/**
 	* Replaces the element having the given id, with the given html.
 	* Only replaces the element that's in the __currentSection div; doesn't affect the hidden story text.
@@ -531,7 +561,7 @@ export namespace Core
 		// we don't want them accidentally munging hidden source divs without realizing it.
 		let element = document.getElementById(id[0] === '!' ? id : `!${id}`);
 		if(!element) { return; }
-			
+
 		let replacement = document.createElement(CanBeInline(html, element.parentElement) ? "span" : "div");
 		replacement.className = "__inlineMacro";
 		replacement.innerHTML = html;
@@ -551,7 +581,7 @@ export namespace Core
 		e.scrollTop = 0;
 		e.id = "__currentSection";
 		ActivateElement(e);
-		
+
 		// Replace the div so as to restart CSS animations
 		currentSection.parentElement.replaceChild(e, currentSection);
 
