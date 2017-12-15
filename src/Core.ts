@@ -228,6 +228,12 @@ export namespace Core
 	export function GotoPreviousSection()
 	{
 		let history = document.getElementById("__history");
+		if(history === null)
+		{
+			console.error("History is not supported in this template (the __history element is missing)");
+			return;
+		}
+
 		let currentSection = document.getElementById("__currentSection");
 
 		// Retrieve the most recent section
@@ -270,7 +276,7 @@ export namespace Core
 		// with its id as a data attribute
 		let previousSectionId = currentSection.getAttribute('data-id');
 
-		if(previousSectionId !== null)
+		if(previousSectionId !== null && history !== null)
 		{
 			history.innerHTML += `<div class="__previousSection" data-id="${previousSectionId}">${currentSection.innerHTML}</div>`;
 			history.scrollTop = history.scrollHeight;
@@ -402,6 +408,6 @@ export namespace Core
 	export function ShowHistory(tf : boolean)
 	{
 		let history = document.getElementById("__history");
-		history.hidden = !tf;
+		if(history !== null) { history.hidden = !tf; }
 	}
 }
