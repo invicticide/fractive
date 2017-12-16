@@ -724,7 +724,7 @@ export namespace Compiler
 
 		if(url[url.length - 1] !== "}")
 		{
-			LogParseError("Unterminated macro in link destination", filepath, event.node);
+			LogParseError(`Unterminated macro in link destination ${url}`, filepath, event.node);
 			return false;
 		}
 
