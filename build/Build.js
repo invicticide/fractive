@@ -31,6 +31,26 @@ let startTime = performance.now();
 var isWindows = /^win/.test(process.platform);
 
 /**
+ * Compiles the user documentation. The engine should've been built before this.
+ */
+function BuildDocs()
+{
+	console.log("Building documentation...");
+	let cmd = `node lib/CLI.js compile doc ${process.argv.slice(2).join(" ")}`;
+	let result = cp.spawnSync(cmd, [], { env : process.env, shell : true });
+	if(result.stdout !== null)
+	{
+		let s = result.stdout.toString();
+		if(s.length > 0) { console.log(`${result.stdout.toString()}`); }
+	}
+	if(result.status !== 0)
+	{
+		if(result.stderr !== null) { console.error(`\n${result.stderr.toString()}`); }
+		process.exit(result.status);
+	}
+}
+
+/**
  * Compiles the engine files. Typings files should've been built before this.
  */
 function BuildEngine()
@@ -130,6 +150,7 @@ jsonSchemaToTypescript.compileFromFile(schemaInput).then(ts =>
 	fs.copyFileSync(schemaInput, "lib/ProjectSchema.json"); // For JSON validation at runtime
 
 	BuildEngine();
+	BuildDocs();
 	BuildExamples();
 
 	Finish();

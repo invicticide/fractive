@@ -1,0 +1,196 @@
+<html>
+	<head>
+		<meta http-equiv="Content-Type" contentDiv="text/html; charset=utf-8" />
+		<link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet"></link>
+		<style>
+			:root {
+				--main-background-color: rgb(36, 29, 50);
+				--main-text-color: rgb(159, 146, 184);
+				--sidebar-background-color: rgb(66, 53, 90);
+				--sidebar-text-color: rgb(30, 25, 41);
+				--chapter-background-color: rgb(122, 99, 167);
+				--chapter-text-color: rgb(36, 29, 50);
+				--topic-background-color: rgb(36, 29, 50);
+				--topic-text-color: rgb(188, 152, 255);
+				--code-background-color: rgb(19, 18, 20);
+				--code-text-color: rgb(159, 146, 184);
+				--link-text-color: rgb(188, 152, 255);
+				--link-hover-color: #FF6666;
+			}
+
+			/* ------------------------------------------------------------------------------------
+			/* Sidebar */
+
+			#__sidebarContainer {
+				position: absolute;
+				top: 0px;
+				left: 0px;
+				width: 300px;
+				height: 100%;
+				overflow: auto;
+				background-color: var(--sidebar-background-color);
+			}
+			#__sidebar {
+				padding: 0px;
+			}
+			#__sidebar .chapter {
+				width: calc(100% - 20px);
+				padding: 10px;
+				background-color: var(--chapter-background-color);
+				color: var(--chapter-text-color);
+				font-size: 18pt;
+				font-weight: bold;
+				text-transform: uppercase;
+			}
+			#__sidebar .topic {
+				width: calc(100% - 20px);
+				padding: 5px 10px;
+				background-color: var(--topic-background-color);
+				color: var(--topic-text-color);
+				font-size: 15pt;
+				font-weight: bold;
+			}
+			#__sidebar p {
+				width: calc(100% - 20px);
+				padding: 0px 10px;
+				background-color: var(--sidebar-background-color);
+				color: var(--sidebar-text-color);
+				font-size: 13pt;
+			}
+			#__sidebar a:link, #__sidebar a:visited {
+				color: var(--link-text-color);
+				text-decoration: none;
+			}
+			#__sidebar a:active, #__sidebar a:hover {
+				color: var(--link-hover-color);
+				text-decoration: none;
+			}
+
+			/* ------------------------------------------------------------------------------------
+			/* Main section */
+
+			#__contentContainer {
+				position: absolute;
+				top: 0px;
+				left: 300px;
+				width: calc(100% - 300px);
+				height: 100%;
+				overflow: auto;
+			}
+			#__content {
+				max-width: 900px;
+				margin-left: auto;
+				margin-right: auto;
+			}
+			#__topNav * {
+				font-size: 13pt;
+				font-weight: bold;
+			}
+			#__topNav a:link, #__topNav a:visited {
+				color: var(--link-text-color);
+				text-decoration: none;
+			}
+			#__topNav a:active, #__topNav a:hover {
+				color: var(--link-hover-color);
+				text-decoration: none;
+			}
+			#__currentSection {
+				color: var(--main-text-color);
+			}
+			.__inlineMacro {
+				color: #a7826a;
+			}
+			h1 {
+				font-family: Arial, Helvetica, sans-serif;
+				font-size: 56pt;
+				margin-top: 28pt;
+				margin-bottom: -4pt;
+				line-height: 0.9em;
+			}
+			h2 {
+				font-family: Arial, Helvetica, sans-serif;
+				font-size: 38pt;
+				margin-top: 19pt;
+				margin-bottom: -12pt;
+			}
+			h3 {
+				font-family: Arial, Helvetica, sans-serif;
+				font-size: 22pt;
+				text-transform: uppercase;
+				margin-top: 11pt;
+				margin-bottom: -8pt;
+			}
+			body {
+				background-color: var(--main-background-color);
+			}
+			p {
+				font-family: Arial, Helvetica, sans-serif;
+				font-size: 16pt;
+				line-height: 1.5em;
+			}
+			a:link, a:visited {
+				color: var(--link-text-color);
+			}
+			a:active, a:hover {
+				color: var(--link-hover-color);
+			}
+			li {
+				font-family: Arial, Helvetica, sans-serif;
+				font-size: 16pt;
+				line-height: 1.5em;
+				margin-left: 20px;
+			}
+			blockquote p {
+				font-family: Arial, Helvetica, sans-serif;
+				font-size: 16pt;
+				font-style: italic;
+				line-height: 1.5em;
+			}
+			pre {
+				background-color: var(--code-background-color);
+				padding: 10px 20px;
+				max-height: 600px;
+				overflow: auto;
+			}
+			code {
+				line-height: 1.25em;
+				font-family: "Courier New", "Courier", monospace;
+				font-size: 14pt;
+				background-color: var(--code-background-color);
+				color: var(--code-text-color);
+			}
+			img {
+				margin: 20px 0px;
+			}
+			hr {
+				border: 0;
+				height: 1px;
+				background-image: linear-gradient(to right, rgba(0,0,0,0), rgba(0,0,0,0.75), rgba(0,0,0,0));
+				margin-top: 36pt;
+				margin-bottom: 36pt;
+			}
+		</style>
+		<!--{script}-->
+	</head>
+	<body>
+		<div id="__history" hidden>
+			<!-- History is included so we can have a functional back button, but we never actually show it directly -->
+		</div>
+		<div id="__sidebarContainer">
+			<div id="__sidebar">
+				<!-- Sidebar table of contents is dynamically populated from script at init time -->
+			</div>
+		</div>
+		<div id="__contentContainer">
+			<div id="__content">
+				<!--{story}-->
+				<div id="__topNav">
+					<p>
+						<a class="__topNav" href="javascript:;" onclick="Core.GotoPreviousSection();">&leftarrow; Back</a>
+					</p>
+				</div>
+				<div id="__currentSection"></div>
+			</div>
+		</div>
+	</body>
+</html>

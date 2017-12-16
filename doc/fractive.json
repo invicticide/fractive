@@ -1,0 +1,44 @@
+{
+    "title": "Fractive User Guide",
+    "author": "invicticide",
+    "description": "Fractive user guide",
+    "website": "fractive.io",
+    "markdown": [
+        "source/**/*.md"
+    ],
+    "javascript": [
+        "source/**/*.js"
+    ],
+    "assets": [
+        "assets/**"
+    ],
+    "ignore": [],
+    "aliases": [
+        { "alias": "chapter", "replaceWith": "<p class=chapter>", "end": "</p>" },
+        { "alias": "topic", "replaceWith": "<p class=topic>", "end": "</p>" }
+    ],
+    "template": "template.html",
+    "output": "build",
+    "outputFormat": "prettify",
+    "linkTooltips": false,
+    "linkTags": {
+		"external": {
+			"html": "&nbsp;<i class=\"fa fa-external-link\" aria-hidden=\"true\"></i>",
+			"prepend": false
+		},
+		"inline": {
+			"html": "&nbsp;<i class=\"fa fa-exclamation\" aria-hidden=\"true\"></i>",
+			"prepend": false
+		},
+        "section": {
+            "html": "",
+            "prepend": false
+        },
+        "function": {
+            "html": "",
+            "prepend": false
+        }
+    },
+    "includeBackButton": true,
+    "backButtonHTML": "Back"
+}
