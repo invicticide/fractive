@@ -1,122 +1,127 @@
 {{TableOfContents}}
 
-{chapter}Introduction{/chapter}
+# Introduction
 
 [What is Fractive?]({@WhatIsFractive})
 
-Quick start
+[Quick start]({@QuickStart})
 
-{chapter}Tutorial{/chapter}
+# Tutorial
 
-Tutorial conventions
+[Tutorial conventions]({@Tutorial-Conventions})
 
-Dev environment setup: VS Code, bash/cmd, etc.
+[Dev environment setup]({@Tutorial-Environment})
 
-Create a project
+[Create a project]({@Tutorial-CreateProject})
 
-Write a couple sections and link them
+[Your first sections]({@Tutorial-FirstSections})
 
-Build the project
+[Build the project]({@Tutorial-BuildProject})
 
-Test the project
+[Test the project]({@Tutorial-TestProject})
 
-Add some multimedia (build/test are implied from here on out)
+[Adding multimedia]({@Tutorial-Multimedia})
 
-Create a function that affects game state
+[Intro to scripting]({@Tutorial-CreateFunction})
 
-Hook it up with a function macro so the player can do it
+[Function macros]({@Tutorial-FunctionMacros})
 
-Use a variable macro to display game state
+[Variable macros]({@Tutorial-VariableMacros})
 
-Add detail with inline links
+[Inline links]({@Tutorial-InlineLinks})
 
-Add a turn counter using an event listener
+[Event listeners]({@Tutorial-EventListener})
 
-Add some inline styling using an alias
+[Aliases]({@Tutorial-Aliases})
 
-Customize the story template
+[Customize the story template]({@Tutorial-CustomTemplate})
 
-Publish the project
+[Publish the project]({@Tutorial-PublishProject})
 
-{chapter}User manual{/chapter}
+# User manual
 
-{topic}Projects{/topic}
+## Projects
 
-What a project is, conceptually
+[What is a project?]({@Projects-Intro})
 
-Creating a new project on the command line
+[Creating a project]({@Projects-HowToCreate})
 
-Project directory structure
+[Directory structure]({@Projects-DirectoryStructure})
 
-Basic fractive.json config
+[Configuration]({@Projects-Configuration})
 
-Recommended .gitignore
+[Source control]({@Projects-SourceControl})
 
-{topic}Stories{/topic}
+[Example projects]({@Projects-Examples})
 
-Sections, what they are and how to declare them
+## Writing stories
 
-The Start section
+[Sections]({@Stories-Sections})
 
-Macros overview, embeds, inlines, and regular links
+[The "Start" section]({@Stories-Start})
 
-Adding multimedia
+[Macros]({@Stories-Macros})
 
-Building the project
+[Multimedia]({@Stories-Multimedia})
 
-{topic}Scripting{/topic}
+## Scripting
 
-Adding script files to the project
+[Introduction]({@Scripting-Intro})
 
-Function macros
+[Function macros]({@Scripting-FunctionMacros})
 
-Variable macros
+[Variable macros]({@Scripting-VariableMacros})
 
-Core.js API overview
+[Core API]({@Scripting-CoreAPI})
 
-Custom event handlers
+[Event handlers]({@Scripting-EventHandlers})
 
-{topic}Advanced scripting{/topic}
+## Advanced scripting
 
-Extending Fractive with unbundled scripts
+[Script extensions]({@Scripting-Extensions})
 
-Importing Fractive as an npm dependency
+[Embedding Fractive]({@Scripting-EmbeddingFractive})
 
-{topic}Aliases{/topic}
+## Aliases
 
-What they are
-How to declare them
-Where they can be used
+[What is an alias?]({@Aliases-Intro})
 
-{topic}Templates{/topic}
+[Declaring aliases]({@Aliases-Declaring})
 
-What a template is, conceptually
-Creating a template file
-Core CSS styles
-Assigning a template to your story
+[Use cases]({@Aliases-UseCases})
 
-{topic}Publishing{/topic}
+## Templates
 
-How to build a project
-Testing the project
-What to upload when you're ready to release
+[What is a template?]({@Templates-Intro})
 
-{topic}Examples{/topic}
+[Creating a template]({@Templates-Creating})
 
-{chapter}Reference{/chapter}
+[Core CSS styles]({@Templates-CSS})
 
-{topic}fractive.json complete reference{/topic}
+[Using a template]({@Templates-Assigning})
+
+## Publishing
+
+[Building]({@Publishing-BuildProject})
+
+[Testing]({@Publishing-TestProject})
+
+[Distribution]({@Publishing-DeployProject})
+
+# Reference
+
+## fractive.json
 
 ...
 
-{topic}Core.js API reference{/topic}
+## Core API
 
 ...
 
-{chapter}Feedback and support{/chapter}
+# Support
 
-Reporting bugs, issues, feature requests
+[Reporting issues]({@Support-BugReports})
 
-Community links
+[Community]({@Support-Community})
 
-Contributing
+[Contributing]({@Support-Contributing})
