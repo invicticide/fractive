@@ -149,7 +149,7 @@ export namespace Compiler
 		}
 
 		// Auto-start at the "Start" section
-		template += "<script>Core.GotoSection(\"Start\");</script>";
+		template += "<script>Core.BeginStory();</script>";
 
 		if(project.outputFormat === 'minify')
 		{

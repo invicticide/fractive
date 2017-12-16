@@ -208,6 +208,10 @@ Fractive exposes a few Javascript functions to your story scripts:
 
 Advances the story to the named section. This is exactly the same thing that happens when the player clicks a link to a section macro. The advantage to calling this in Javascript is you could retrieve the target section name from a variable, or build it dynamically (use with care!)
 
+`Core.GetSection("SectionName")`
+
+Gets a copy of the given section, expands its macros, registers its links, and returns an Element which is fully activated and ready to be displayed to the user, without actually navigating to that section. This function is for advanced/unusual circumstances; normally you should just use `Core.GotoSection("SectionName")` instead.
+
 `Core.ReplaceActiveElement("ElementID", "HTML")`
 
 This is the same thing that happens when a player clicks a link to an inline macro. Pass the element ID of something on the page, and some HTML to replace that element with.
@@ -225,6 +229,10 @@ Fractive also exposes events you can subscribe to, for when you want some code t
 	{
 		// Handle the event here
 	});
+
+`OnBeginStory()`
+
+Assign a function to this event and it'll be called immediately before the story begins. This is a good place to do any script initialization you might need.
 
 `OnGotoSection(id, element, tags)`
 
