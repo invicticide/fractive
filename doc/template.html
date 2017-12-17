@@ -13,7 +13,8 @@
 				--topic-background-color: rgb(36, 29, 50);
 				--topic-text-color: rgb(188, 152, 255);
 				--code-background-color: rgb(19, 18, 20);
-				--code-text-color: rgb(159, 146, 184);
+				--code-text-color: #a7826a;
+				--inline-text-color: #a7826a;
 				--link-text-color: rgb(188, 152, 255);
 				--link-hover-color: #FF6666;
 			}
@@ -100,7 +101,7 @@
 				color: var(--main-text-color);
 			}
 			.__inlineMacro {
-				color: #a7826a;
+				color: var(--inline-text-color);
 			}
 			h1 {
 				font-family: Arial, Helvetica, sans-serif;
@@ -156,8 +157,10 @@
 			}
 			code {
 				line-height: 1.25em;
+				padding: 4px;
 				font-family: "Courier New", "Courier", monospace;
 				font-size: 14pt;
+				font-weight: bold;
 				background-color: var(--code-background-color);
 				color: var(--code-text-color);
 			}
