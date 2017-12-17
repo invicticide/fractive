@@ -14,8 +14,8 @@
     ],
     "ignore": [],
     "aliases": [
-        { "alias": "chapter", "replaceWith": "<p class=chapter>", "end": "</p>" },
-        { "alias": "topic", "replaceWith": "<p class=topic>", "end": "</p>" }
+        { "alias": "icon-external-link", "replaceWith": "<i class=\"fa fa-external-link\" aria-hidden=\"true\"></i>" },
+        { "alias": "icon-inline-link", "replaceWith": "<i class=\"fa fa-info-circle\" aria-hidden=\"true\"></i>" }
     ],
     "template": "template.html",
     "output": "build",
@@ -27,7 +27,7 @@
 			"prepend": false
 		},
 		"inline": {
-			"html": "&nbsp;<i class=\"fa fa-exclamation\" aria-hidden=\"true\"></i>",
+			"html": "&nbsp;<i class=\"fa fa-info-circle\" aria-hidden=\"true\"></i>",
 			"prepend": false
 		},
         "section": {

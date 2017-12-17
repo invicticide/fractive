@@ -1,26 +1,12 @@
 # Fractive
 
-> NOTE: Fractive is in **very early** development and is not even remotely ready for prime-time. You probably shouldn't use it yet!
-
-Fractive is a hypertext authoring tool, primarily intended for the creation of interactive fiction.
-
-Stories are written in Markdown, and (optional) game logic is added with Javascript.
-
-Fractive has three core goals:
-
-- Keep story text readable, unencumbered by the details of scripted game logic and with minimal additional syntax
-- Use complete, standard Javascript for game logic, instead of a limited subset of proprietary macros
-- Compile finished stories to a single, self-contained, portable HTML file which can be played on any (reasonable) browser, platform, and/or device
-
-Fractive is licensed under [AGPL-3.0+](https://github.com/invicticide/fractive/blob/dev/license.md).
-
-## Quick start
-
 Fractive is built on [Node.js](https://nodejs.org), so you'll need to install that if you don't already have it. (Fractive currently targets version 8.9.0 LTS.)
 
-Install Fractive:
+Once Node.js is installed, open a command line and install Fractive:
 
 	npm install -g fractive
+
+Fractive is now globally available on the command line. Type `fractive` to see usage instructions.
 
 Create a new story project:
 
@@ -31,31 +17,6 @@ Build the story project:
 	fractive compile path/to/my/story
 
 Finally, go to `path/to/my/story/build` and open up the `index.html` in a web browser to run your story!
-
-## Fractive projects
-
-Story text is written in Markdown (.md) files, and game logic is written in Javascript (.js) files. These files, plus any additional assets (images, etc.) are kept together in a Fractive **project**. You can create a new project like this:
-
-	fractive create path/to/my/story
-
-In the new project folder you'll see a structure like this:
-
-	story
-	|- assets/
-	|- source/
-	|- fractive.json
-	|- template.html
-
-The `fractive.json` is your **project file**. It contains all your project settings, like rules for where to find source files and where builds should go. If you take a peek inside, you'll see the default rules:
-
-	markdown: [ "source/**/*.md" ],
-	javascript: [ "source/**/*.js" ],
-	assets: [ "assets/**" ],
-	ignore: [],
-	template: "template.html",
-	output: "build",
-
-These are in [glob syntax](https://github.com/isaacs/node-glob#glob-primer). Note that by default Fractive expects to find all your Markdown and Javascript files in `source`, and anything else in `assets`.
 
 ## Story basics
 

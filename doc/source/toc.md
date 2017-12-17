@@ -42,15 +42,9 @@
 
 ## Projects
 
-[What is a project?]({@Projects-Intro})
-
-[Creating a project]({@Projects-HowToCreate})
-
-[Directory structure]({@Projects-DirectoryStructure})
+[About projects]({@Projects-Intro})
 
 [Configuration]({@Projects-Configuration})
-
-[Source control]({@Projects-SourceControl})
 
 [Example projects]({@Projects-Examples})
 
