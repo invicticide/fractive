@@ -104,6 +104,29 @@ export namespace Compiler
 	let sectionCount : number = 0;
 
 	/**
+	 * Inserts the given html snippet into the template HTML at EVERY point where
+	 * a specially formatted comment appears.
+	 * @param snippet The html to insert
+	 * @param template The template in which to insert
+	 * @return The complete resulting html file contents
+	 */
+	function InsertHtmlAtMark(snippet : string, template : string, mark : string) : string
+	{
+		// The mark has to be placed inside an HTML comment formatted like so:
+		let markComment : string = `<!--{${mark}}-->`;
+
+		// Throw an error if the mark doesn't exist
+		if (template.indexOf(markComment) === -1)
+		{
+			console.log(`Template file must contain mark: ${markComment}`);
+			process.exit(1);
+		}
+
+		// Insert the snippet
+		return template.split(markComment).join(snippet);
+	}
+
+	/**
 	 * Inserts the given story text (html) and scripts (javascript) into an html template, and returns the complete resulting html file contents
 	 * @param html The html-formatted story text to insert into the template
 	 * @param javascript The javascript story scripts to insert into the template
@@ -111,6 +134,7 @@ export namespace Compiler
 	 */
 	function ApplyTemplate(basePath : string, html : string, javascript : string) : string
 	{
+		// Ensure that the template file exists
 		let templatePath : string = path.resolve(basePath, project.template);
 		if(!fs.existsSync(templatePath))
 		{
@@ -136,16 +160,16 @@ export namespace Compiler
 		// Insert all bundled scripts, including Core.js
 		scriptSection += `${javascript}`;
 		scriptSection += "</script>";
-		template = template.split("<!--{script}-->").join(scriptSection);
+		template = InsertHtmlAtMark(scriptSection, template, 'script');
 
 		// Insert html-formatted story text
-		template = template.split("<!--{story}-->").join(html);
+		template = InsertHtmlAtMark(html, template, 'story');
 
 		// Insert the back button if specified to do so
 		if(project.includeBackButton)
 		{
-			let backButtonHTML = '<a href="javascript:Core.GotoPreviousSection();">' + project.backButtonHTML + '</a>';
-			template = template.split("<!--{backButton}-->").join(backButtonHTML);
+			let backButtonHtml = '<a href="javascript:Core.GotoPreviousSection();">' + project.backButtonHtml + '</a>';
+			template = InsertHtmlAtMark(backButtonHtml, template, 'backButton');
 		}
 
 		// Auto-start at the "Start" section
