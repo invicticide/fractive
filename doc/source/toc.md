@@ -24,9 +24,9 @@
 
 [Multimedia]({@Stories-Multimedia})
 
-[Aliases]({@Stories-Aliases})
-
 [Templates]({@Stories-Templates})
+
+[Aliases]({@Stories-Aliases})
 
 # Scripting
 
@@ -43,11 +43,3 @@
 [Script extensions]({@Scripting-Extensions})
 
 [Embedding Fractive]({@Scripting-EmbeddingFractive})
-
-# Support
-
-[Reporting issues]({@Support-BugReports})
-
-[Community]({@Support-Community})
-
-[Contributing]({@Support-Contributing})

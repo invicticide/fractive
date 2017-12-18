@@ -18,6 +18,12 @@ Throughout this documentation you'll see some links with symbols next to them:
 
 {icon-inline-link} appears on links which expand in-place to reveal more detailed information about the topic.
 
+# Support
+
+Fractive is maintained on GitHub at [https://github.com/invicticide/fractive](https://github.com/invicticide/fractive)
+
+Bug reports and feature requests can be filed [here](https://github.com/invicticide/fractive/issues) (you will need a GitHub account). Please do a quick search for your issue before filing, to prevent duplicates.
+
 # License
 
 Fractive is licensed under [AGPL-3.0+](https://github.com/invicticide/fractive/blob/dev/license.md).
