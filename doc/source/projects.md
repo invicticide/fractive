@@ -29,29 +29,29 @@ This page lists all the configuration options available in the `fractive.json` p
 
 ----
 
-## Project metadata
+# Project metadata
 
 None of the project metadata is currently used, but in the future it will be displayed to the player (e.g. on a standardized title page, in an online database of Fractive stories, etc.)
 
-### title
+## title
 
 	"title": "My Project Title"
 
 Specifies the name of your story. This will be shown to the player, so it should be your actual story title, not a project code name or internal name.
 
-### author
+## author
 
 	"author": "Your Name"
 
 Specifies who wrote the story. This could be your real name, an online nickname, a social media handle, or even a company name.
 
-### description
+## description
 
 	"description": "About your story"
 
 Give a brief (one or two sentences) description of your story.
 
-### website
+## website
 
 	"website": "Your website"
 
@@ -59,7 +59,7 @@ Give an online address where players can learn more about you, find more of your
 
 ----
 
-## File paths
+# File paths
 
 These options specify where in your project folder Fractive should look for different kinds of files, what should be included in a build, and what should be ignored.
 
@@ -69,7 +69,7 @@ These are generally [globs](https://github.com/isaacs/node-glob#glob-primer) or 
 
 Paths are relative to the `fractive.json` project file.
 
-### markdown
+## markdown
 
 	"markdown": [
 		"source/**/*.md"
@@ -77,7 +77,7 @@ Paths are relative to the `fractive.json` project file.
 
 List of globs indicating where story text (Markdown) files should be found. All files sourced by this list will be compiled as story text when you build the project.
 
-### javascript
+## javascript
 
 	"javascript": [
 		"source/**/*.js"
@@ -85,7 +85,7 @@ List of globs indicating where story text (Markdown) files should be found. All 
 
 List of globs indicating where Javascript files should be found. All files sourced by this list will be combined and embedded in the output `index.html` when you build the project.
 
-### assets
+## assets
 
 	"assets": [
 		"assets/**"
@@ -95,7 +95,7 @@ List of globs indicating where asset files should be found. All files sourced by
 
 [What are asset files?]({@Projects-Configuration-AssetFiles:inline})
 
-### ignore
+## ignore
 
 	"ignore": [
 		"assets/.DS_Store"
@@ -105,13 +105,13 @@ List of globs indicating files to ignore. All files sourced by this list will be
 
 [What kinds of files should I ignore?]({@Projects-Configuration-WhatToIgnore:inline})
 
-### template
+## template
 
 	"template": "template.html"
 
 Specifies the HTML template file to use for formatting the story.
 
-### output
+## output
 
 	"output": "build"
 
@@ -119,19 +119,19 @@ Specifies a directory name where the final `index.html` and asset files will be 
 
 ----
 
-## Formatting
+# Formatting
 
 These options affect how source text is interpreted and rendered into the final HTML.
 
-### aliases
+## aliases
 
 	"aliases": [
 		\{ "alias": "name", "replaceWith": "text", "end": "text" }
 	]
 
-List of alias definitions. See [Aliases]({@Aliases-Intro}) for details. Note that the `end` property is optional and may be omitted for aliases that don't need to use it.
+List of alias definitions. See [Aliases]({@Stories-Aliases}) for details. Note that the `end` property is optional and may be omitted for aliases that don't need to use it.
 
-### outputFormat
+## outputFormat
 
 	"outputFormat": "prettify"
 
@@ -142,7 +142,7 @@ Specifies how the final HTML should be written:
 
 This option doesn't change how your story is displayed to the player at all, it just determines what the HTML source code looks like.
 
-### linkTooltips
+## linkTooltips
 
 	"linkTooltips": false
 
@@ -150,7 +150,7 @@ Specifies whether links should show a tooltip on mouseover which indicates their
 
 [When is this useful?]({@Projects-Configuration-WhenToUseLinkTooltips:inline})
 
-### linkTags
+## linkTags
 
 	"linkTags": \{
 		"external": \{ "html": "someCode", "prepend": false },
@@ -168,13 +168,13 @@ Link tags are custom HTML snippets which can be automatically appended (or prepe
 
 Whatever HTML you specify for `html` will be added immediately after the end of the link, unless `prepend` is `true`, in which case it'll be added immediately before the beginning of the link.
 
-### includeBackButton
+## includeBackButton
 
 	"includeBackButton": true
 
 If `true`, the value of `backButtonHTML` will be inserted into the final story HTML. Where it gets inserted is determined by the location of the `<!--\{backButton}-->` macro in the template file. If the macro is not found, the `backButtonHTML` will be ignored.
 
-### backButtonHTML
+## backButtonHTML
 
 	"backButtonHTML": "Back"
 
@@ -214,3 +214,12 @@ Link tooltips can be useful for debugging, as the tooltip will show the actual m
 
 Example projects can be found in the `examples` folder in your Fractive install location.
 
+{{Projects-Publishing}}
+
+When you're ready to share or test your story, you need to build it:
+
+	fractive compile path/to/my/story
+
+Fractive will compile your project and spit out an `index.html` and assets (if any) in the `output` location specified in the project's `fractive.json`. Simply open that `index.html` in a browser to test, or upload the entire output directory to your web server to publish it to the world.
+
+If you specify a story directory, Fractive will look for a `fractive.json` at that location, and use the settings it finds there to build the story. If you specify a path to a .json file, Fractive will use that as the project file instead.

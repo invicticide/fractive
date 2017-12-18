@@ -1,10 +1,6 @@
-{{Tutorial-Conventions}}
+{{Tutorial-Start}}
 
-Throughout this documentation you'll see some links with symbols next to them:
-
-{icon-external-link} indicates a link to something outside this guide. This will open in a new tab/window.
-
-{icon-inline-link} appears on links which expand in-place to reveal more detailed information about the topic.
+start of the tutorial
 
 {{Tutorial-Environment}}
 
