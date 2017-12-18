@@ -428,14 +428,4 @@ export namespace Core
 			}
 		}
 	}
-
-	/**
-	 * Show or hide the history section
-	 * @param tf If true, show history. If false, hide history.
-	 */
-	export function ShowHistory(tf : boolean)
-	{
-		let history = document.getElementById("__history");
-		if(history !== null) { history.hidden = !tf; }
-	}
 }
