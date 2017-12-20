@@ -182,7 +182,7 @@ A template is a regular HTML file with a couple of special macros.
 You also need to define:
 
 	<div id="__currentSection"></div>
-	
+
 ...which should be empty. This is where the active section's story text will be displayed on the page.
 
 Optionally, you can also include:
@@ -330,4 +330,8 @@ Creator and primary developer
 **Nat Quayle Nelson**<br>
 Major contributor
 
-- GitHub: [@NQNStudios](https://github.com/NQNStudios)
+- Website: [natquaylenelson.com](https://natquaylenelson.com)
+- Fractive Projects:
+	- [SpaceFractive](https://github.com/NQNStudios/SpaceFractive): Fractive integrated with [Phaser](https://phaser.io) for multimedia-enhanced stories.
+	- [Bring Me a Reuben](https://nqn.itch.io/bring-me-a-reuben) (Ongoing)
+	- [Ballad of the Space Bard](https://balladofthespacebard.com) (In Development)
