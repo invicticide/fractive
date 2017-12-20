@@ -29,7 +29,7 @@ import * as util from "util";
 
 // Set up the Markdown parser and renderer
 import * as commonmark from "commonmark";
-const markdownReader = new commonmark.Parser({smart: false});
+const markdownReader = new commonmark.Parser({smart: true});
 const markdownWriter = new commonmark.HtmlRenderer({softbreak: "<br/>"});
 
 // Beautification
