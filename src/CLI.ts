@@ -126,10 +126,12 @@ if(process.argv.length < 3)
 {
 	console.log(``);
 	console.log(`Usage:`);
-	console.log(`${clc.green("node lib/CLI.js")} ${clc.blue("<command>")} ${clc.yellow("[options]")}`);
+	console.log(`${clc.green("fractive")} ${clc.blue("<command>")} ${clc.yellow("[options]")}`);
 	console.log(``);
 	console.log(`${clc.blue("compile:")} Compile an existing Fractive project`);
 	console.log(`${clc.blue("create:")} Create a new Fractive project`);
+	console.log(``);
+	console.log(`Enter a command without ${clc.yellow("options")} to see usage instructions for that command`);
 	console.log(``);
 	process.exit(1);
 }

@@ -1,0 +1,45 @@
+{
+    "title": "Fractive User Guide",
+    "author": "invicticide",
+    "description": "Fractive user guide",
+    "website": "fractive.io",
+    "markdown": [
+        "source/**/*.md"
+    ],
+    "javascript": [
+        "source/**/*.js"
+    ],
+    "assets": [
+        "assets/**"
+    ],
+    "ignore": [],
+    "aliases": [
+        { "alias": "icon-external-link", "replaceWith": "<i class=\"fa fa-external-link\" aria-hidden=\"true\"></i>" },
+        { "alias": "icon-inline-link", "replaceWith": "<i class=\"fa fa-info-circle\" aria-hidden=\"true\"></i>" },
+        { "alias": "icon-forward", "replaceWith": "<i class=\"fa fa-arrow-circle-right\" aria-hidden=\"true\"></i>" }
+    ],
+    "template": "template.html",
+    "output": "build",
+    "outputFormat": "prettify",
+    "linkTooltips": false,
+    "linkTags": {
+		"external": {
+			"html": "&nbsp;<i class=\"fa fa-external-link\" aria-hidden=\"true\"></i>",
+			"prepend": false
+		},
+		"inline": {
+			"html": "&nbsp;<i class=\"fa fa-info-circle\" aria-hidden=\"true\"></i>",
+			"prepend": false
+		},
+        "section": {
+            "html": "",
+            "prepend": false
+        },
+        "function": {
+            "html": "",
+            "prepend": false
+        }
+    },
+    "includeBackButton": true,
+    "backButtonHTML": "Back"
+}
