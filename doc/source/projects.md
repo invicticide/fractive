@@ -1,10 +1,12 @@
 {{Projects-Intro}}
 
+# About projects
+
 Story text is written in Markdown (.md) files, and game logic is written in Javascript (.js) files. These files, plus any additional assets (images, etc.) are kept together in a Fractive **project**. You can create a new project like this:
 
 	fractive create path/to/my/story
 
-In the new project folder you'll see a structure like this:
+In the new project folder you'll see this default structure:
 
 	story
 	|- assets/
@@ -12,7 +14,13 @@ In the new project folder you'll see a structure like this:
 	|- fractive.json
 	|- template.html
 
-The `fractive.json` is your **project file**. It contains all your project settings, like rules for where to find source files and where builds should go. If you take a peek inside, you'll see the default rules:
+The `source` folder contains all your Markdown (.md) and Javascript (.js) files.
+
+The `assets` folder contains images, video clips, and other miscellaneous assets. Not all projects will require these.
+
+The `template.html` is a formatting template for how your published story will look in the browser. See [Templates]({@Stories-Templates}) for details.
+
+Finally, the `fractive.json` is your **project file**. It contains all your project settings, like rules for where to find source files and where builds should go. If you take a peek inside, you'll see the default rules:
 
 	markdown: [ "source/**/*.md" ],
 	javascript: [ "source/**/*.js" ],
@@ -21,13 +29,13 @@ The `fractive.json` is your **project file**. It contains all your project setti
 	template: "template.html",
 	output: "build",
 
-These are in [glob syntax](https://github.com/isaacs/node-glob#glob-primer). Note that by default Fractive expects to find all your Markdown and Javascript files in `source`, and anything else in `assets`.
+[{icon-forward} Next: Project configuration ]({@Projects-Configuration})
 
 {{Projects-Configuration}}
 
-This page lists all the configuration options available in the `fractive.json` project file.
+# Project configuration
 
-----
+This page lists all the configuration options available in the `fractive.json` project file.
 
 # Project metadata
 
@@ -56,8 +64,6 @@ Give a brief (one or two sentences) description of your story.
 	"website": "Your website"
 
 Give an online address where players can learn more about you, find more of your stories, etc. This could be your website URL, a social media handle, or even an email address. You can also just leave it blank if you prefer.
-
-----
 
 # File paths
 
@@ -116,8 +122,6 @@ Specifies the HTML template file to use for formatting the story.
 	"output": "build"
 
 Specifies a directory name where the final `index.html` and asset files will be placed when the project is built.
-
-----
 
 # Formatting
 
@@ -180,6 +184,8 @@ If `true`, the value of `backButtonHTML` will be inserted into the final story H
 
 If `includeBackButton` is `true`, this is the HTML snippet that will be inserted into the final story HTML in place of the `<!--\{backButton}-->` macro in the template file.
 
+[{icon-forward} Next: Publishing]({@Projects-Publishing})
+
 {{Projects-Configuration-Globs}}
 
 If you're not familiar with glob syntax, here are the basics:
@@ -212,9 +218,13 @@ Link tooltips can be useful for debugging, as the tooltip will show the actual m
 
 {{Projects-Examples}}
 
+# Example projects
+
 Example projects can be found in the `examples` folder in your Fractive install location.
 
 {{Projects-Publishing}}
+
+# Publishing
 
 When you're ready to share or test your story, you need to build it:
 
@@ -223,3 +233,5 @@ When you're ready to share or test your story, you need to build it:
 Fractive will compile your project and spit out an `index.html` and assets (if any) in the `output` location specified in the project's `fractive.json`. Simply open that `index.html` in a browser to test, or upload the entire output directory to your web server to publish it to the world.
 
 If you specify a story directory, Fractive will look for a `fractive.json` at that location, and use the settings it finds there to build the story. If you specify a path to a .json file, Fractive will use that as the project file instead.
+
+[{icon-forward} Next: Sections]({@Stories-Sections})

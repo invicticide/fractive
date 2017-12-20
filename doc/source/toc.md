@@ -4,17 +4,15 @@
 
 [Quick start]({@QuickStart})
 
-[Tutorial]({@Tutorial-Start})
-
 # Projects
 
 [About projects]({@Projects-Intro})
 
 [Configuration]({@Projects-Configuration})
 
-[Example projects]({@Projects-Examples})
-
 [Publishing]({@Projects-Publishing})
+
+[Example projects]({@Projects-Examples})
 
 # Writing stories
 

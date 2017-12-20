@@ -15,7 +15,8 @@
     "ignore": [],
     "aliases": [
         { "alias": "icon-external-link", "replaceWith": "<i class=\"fa fa-external-link\" aria-hidden=\"true\"></i>" },
-        { "alias": "icon-inline-link", "replaceWith": "<i class=\"fa fa-info-circle\" aria-hidden=\"true\"></i>" }
+        { "alias": "icon-inline-link", "replaceWith": "<i class=\"fa fa-info-circle\" aria-hidden=\"true\"></i>" },
+        { "alias": "icon-forward", "replaceWith": "<i class=\"fa fa-arrow-circle-right\" aria-hidden=\"true\"></i>" }
     ],
     "template": "template.html",
     "output": "build",

@@ -1,14 +1,16 @@
 {{Start}}
 
+# What is Fractive?
+
 Fractive is a hypertext authoring tool, primarily intended for the creation of interactive fiction.
 
-Stories are written in Markdown, and (optional) game logic is added with Javascript.
+Stories are written in [Markdown](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet), and (optional) game logic is added with [Javascript](https://www.javascript.com). The results are kind of like [Twine](https://twinery.org/2/), but the authoring process is very different.
 
 Fractive has three core goals:
 
 - Keep story text readable, unencumbered by the details of scripted game logic and with minimal additional syntax
-- Use complete, standard Javascript for game logic, instead of a limited subset of proprietary macros
-- Compile finished stories to a single, self-contained, portable HTML file which can be played on any (reasonable) browser, platform, and/or device
+- Don't require any scripting at all for basic "choose your own adventure" style games, and use complete, standard Javascript for custom/advanced game logic
+- Compile finished stories to portable HTML which can be played on any (reasonable) browser, platform, and device
 
 # Conventions
 
@@ -27,3 +29,5 @@ Bug reports and feature requests can be filed [here](https://github.com/invictic
 # License
 
 Fractive is licensed under [AGPL-3.0+](https://github.com/invicticide/fractive/blob/dev/license.md).
+
+[{icon-forward} Next: Quick start]({@QuickStart})

@@ -1,6 +1,10 @@
 {{Stories-Sections}}
 
-In Markdown, you'll write your story text in **sections**, each preceded by a special macro that looks like this: `\{{SectionName}}`. Each section name (the part inside the double curly braces) must be unique within the story, and section names may not contain whitespace or punctuation: only letters and numbers. A simple section would look like this:
+# Sections
+
+Story text is written in [Markdown](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet), which is pretty close to plain text but with a few special formatting marks. Here's a [cheat sheet](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet) that should get you up to speed in just a few minutes.
+
+You'll write your story text in **sections**, each preceded by a special macro that looks like this: `\{{SectionName}}`. Each section name (the part inside the double curly braces) must be unique within the story, and section names may not contain whitespace or punctuation: only letters and numbers. A simple section would look like this:
 
 	\{{Start}}
 
@@ -18,7 +22,11 @@ You can create a link that takes the player to another section by creating a reg
 
 In this example, clicking the "Look around" link would transition the player to the section called `LookAround`.
 
+[{icon-forward} Next: Macros]({@Stories-Macros})
+
 {{Stories-Macros}}
+
+ # Macros
 
 Macros are always enclosed in `\{}`. There are several types, each denoted by a leading **metacharacter**:
 
@@ -92,7 +100,11 @@ Now when the player clicks on the `a maze` link, the link will be replaced with 
 
 Note that sections are block-level elements and will include paragraph breaks, so if you want to do an inline link in the middle of sentence, you'll probably want to use a function or variable macro instead.
 
+[{icon-forward} Next: Multimedia]({@Stories-Multimedia})
+
 {{Stories-Multimedia}}
+
+# Multimedia
 
 You can add multimedia elements, like images or videos, to your Fractive stories. In most cases you'll just put those files in `assets` and then source them in your Markdown file. For example, you can place images like this:
 
@@ -108,7 +120,11 @@ Markdown also allows raw HTML, so you could embed e.g. a YouTube video using its
 
 	<iframe width="854" height="480" src="https://www.youtube.com/embed/dQw4w9WgXcQ" frameborder="0" gesture="media" allowfullscreen></iframe>
 
+[{icon-forward} Next: Templates]({@Stories-Templates})
+
 {{Stories-Aliases}}
+
+# Aliases
 
 Since Markdown also accepts HTML, you could style some text like this:
 
@@ -151,7 +167,11 @@ When you build this story, `\{Home}` will get replaced with `\{{Start}}` and the
 
 Finally, did you notice the `\\{{Start}}` in the example text above? When a macro is preceded by a `\` character it is **escaped**, which means it's not treated like a macro and is instead just rendered as-is. Escaping applies to aliases as well, so `\{red}` will be replaced, but `\\{red}` will not. You should only need to use this in the rare case that you have text that contains a macro (or just a `\{` character) that needs to actually be shown to the player. (This documentation is one such example!)
 
+[{icon-forward} Next: Intro to scripting]({@Scripting-Intro})
+
 {{Stories-Templates}}
+
+# Templates
 
 You can control the visual layout and style of your story by providing a custom HTML template. When you create a new project, a basic `template.html` is created in your project root. You can edit or replace this at your leisure.
 
@@ -191,3 +211,5 @@ Covers the expanded text that appears when the player clicks an `:inline` macro.
 
 `.__disabledLink`
 Covers `<a>` tags in sections that have been moved to the history. Those `<a>` tags are replaced with `<span>` with this class assigned.
+
+[{icon-forward} Next: Aliases]({@Stories-Aliases})

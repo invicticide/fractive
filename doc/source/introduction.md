@@ -1,12 +1,14 @@
 {{QuickStart}}
 
+# Quick start
+
 [**If you haven't installed Fractive yet, click here**]({@QuickStart-Installation:inline})
 
 Create a new story project:
 
 	fractive create path/to/my/story
 
-Launch your favorite code editor (I recommend [VS Code](https://code.visualstudio.com)) and open the default story text file, `source/text.md`. You'll see the following:
+Launch your favorite code editor -- I particularly like [VS Code](https://code.visualstudio.com) -- and open the default story text file, `source/text.md`. You'll see the following:
 
 	\{{Start}}
 
@@ -20,7 +22,7 @@ Add a second section:
 
 	This is a different section.
 
-Now add a link to the second section from the first section. Story text is written in Markdown, so you can use Markdown link syntax:
+Now add a link to the second section from the first section. Story text is written in [Markdown](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet), so you can use Markdown link syntax:
 
 	\{{Start}}
 
@@ -28,7 +30,7 @@ Now add a link to the second section from the first section. Story text is writt
 
 	[Go elsewhere](\{@Elsewhere})
 
-The link URL is a **macro** pointing to the section called "Elsewhere". Macros are enclosed in `\{}` and have a leading **metacharacter** indicating the macro's type. In this case we used `@` which indicates a section macro; clicking this link will take the player to the named section.
+The link URL `\{@Elsewhere}` is a **macro** pointing to the section called "Elsewhere". Macros are enclosed in `\{}` and have a leading **metacharacter** indicating the macro's type. In this case we used `@` which indicates a section macro; clicking this link will take the player to the named section.
 
 Build the story project:
 
@@ -36,7 +38,9 @@ Build the story project:
 
 Navigate to `path/to/my/story/build` and open up the `index.html` in a web browser to run your story!
 
-You now know enough to create interactive fiction stories both simple and complex. However, Fractive is capable of much more than this. For a guided tour of all Fractive's feature, check out [Tutorial]({@Tutorial-Start}).
+You now know enough to create interactive fiction stories both simple and complex. However, Fractive is capable of much more than this! 
+
+[{icon-forward} Next: Projects]({@Projects-Intro})
 
 {{QuickStart-Installation}}
 
