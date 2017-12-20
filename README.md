@@ -6,17 +6,11 @@ Once Node.js is installed, open a command line and install Fractive:
 
 	npm install -g fractive
 
-Fractive is now globally available on the command line. Type `fractive` to see usage instructions.
+Fractive is now globally available on the command line. Type:
 
-Create a new story project:
-
-	fractive create path/to/my/story
-
-Build the story project:
-
-	fractive compile path/to/my/story
-
-Finally, go to `path/to/my/story/build` and open up the `index.html` in a web browser to run your story!
+	fractive help
+	
+...to launch the user guide and start learning how to use Fractive!
 
 ## Contributing
 
