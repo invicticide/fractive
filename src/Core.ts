@@ -32,9 +32,9 @@ export namespace Core
 	 * @param id The id attribute of the new section
 	 * @param element The raw DOM element for the new section
 	 * @param tags Array of tags associated with the new section
-	 * @param isGoingBack True if section is changing as a result of GotoPreviousSection() being called
+	 * @param isRewind True if section is changing as a result of RewindSection() being called
 	 */
-	export let OnGotoSection : Array<(id : string, element : Element, tags : string[], isGoingBack : boolean) => void> = [];
+	export let OnGotoSection : Array<(id : string, element : Element, tags : string[], isRewind : boolean) => void> = [];
 
 	/**
 	 * Subscribe to an event with a custom handler function. The handler will be called whenever the event occurs.
@@ -87,7 +87,7 @@ export namespace Core
 			// Preserve the link tag, but keep it EMPTY, and leave it next to the content, so the
 			// disabling process can be reversed by the back button.
 			let linkTag : string = links[i].outerHTML.substring(0, links[i].outerHTML.indexOf(">") + 1);
-			
+
 			// The content from inside the link will be moved outside the link tag
 			let contents : string = links[i].outerHTML.substring(
 				links[i].outerHTML.indexOf(">") + 1,
@@ -257,9 +257,52 @@ export namespace Core
 	}
 
 	/**
-	 * Navigate to the previous section as it was before transitioning to the current one.
+	 * Go to the section declared in Markdown immediately after the current one.
 	 */
-	export function GotoPreviousSection()
+	export function GotoAdjacentSection(offset : number) {
+		// Get the id of the current section
+		let currentSection = document.getElementById("__currentSection");
+		let currentSectionId = currentSection.getAttribute('data-id');
+
+		// Find that section's declaration, then retrieve the next one
+		let sections = document.getElementsByClassName("section");
+
+		let i = 0;
+		for (; i < sections.length; ++i) {
+			if (sections[i].getAttribute('id') === currentSectionId)
+				break;
+		}
+
+		if (i+offset>=sections.length) {
+			console.log("Tried to go to next section when there were no more sections.");
+			return;
+		}
+
+		let nextSectionId = sections[i+offset].getAttribute('id');
+		GotoSection(nextSectionId);
+	}
+
+	/**
+	 * Go to the next section declared in the story's Markdown files.
+	 */
+	export function GotoNextSection()
+	{
+		GotoAdjacentSection(1);
+	}
+
+	/**
+	 * Go to the previous section declared in the story's Markdown files.
+	 * Not to be confused with RewindSection(), which reverse's the player/reader's story flow.
+	 */
+	 export function GotoPreviousSection()
+	 {
+		 GotoAdjacentSection(-1);
+	 }
+
+	/**
+	 * Rewind to the section the player/reader just barely visited.
+	 */
+	export function RewindSection()
 	{
 		let history = document.getElementById("__history");
 		if(history === null)
@@ -319,7 +362,7 @@ export namespace Core
 		let clone : Element = GetSection(id);
 		clone.scrollTop = 0;
 		clone.id = "__currentSection";
-		
+
 		// Replace the div so as to restart CSS animations (just replacing innerHTML does not do this!)
 		currentSection.parentElement.replaceChild(clone, currentSection);
 

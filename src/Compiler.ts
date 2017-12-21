@@ -74,8 +74,15 @@ export let ProjectDefaults : FractiveProject = {
 		}
 	},
 	includeBackButton: true,
-	backButtonHTML: "Back"
+	backButtonHTML: "Back",
+	useStockAliases: true
 };
+
+let StockAliases = [
+	{ "alias": "previousButton", "replaceWith": "[Previous]({#Core.GotoPreviousSection})" },
+	{ "alias": "nextButton", "replaceWith": "[Next]({#Core.GotoNextSection})" }
+];
+
 import * as globby from "globby";
 
 // CLI colors
@@ -144,7 +151,7 @@ export namespace Compiler
 		// Insert the back button if specified to do so
 		if(project.includeBackButton)
 		{
-			let backButtonHTML = '<a href="javascript:Core.GotoPreviousSection();">' + project.backButtonHTML + '</a>';
+			let backButtonHTML = '<a href="javascript:Core.RewindSection();">' + project.backButtonHTML + '</a>';
 			template = template.split("<!--{backButton}-->").join(backButtonHTML);
 		}
 
@@ -932,11 +939,15 @@ export namespace Compiler
 					}
 					default:
 					{
-						LogParseError(`Unrecognized macro "${macro}" in text`, filepath, node.parent, lineOffset, columnOffset);
-						return false;
+						// If { or } are encountered without the special symbols, assume they were escaped and should be rendered as-is
+						insertedNode = null;
+						break;
 					}
 				}
-				walker.resumeAt(insertedNode);
+				if (insertedNode !== null) {
+					walker.resumeAt(insertedNode);
+				}
+
 				break;
 			}
 			else if(node.literal[i] === '\n')
@@ -951,6 +962,7 @@ export namespace Compiler
 		// We skipped over escape sequences while parsing, but now we need to strip the backslashes entirely
 		// so they don't get rendered out to the html as `\\`
 		if(node.literal) { node.literal = node.literal.split('\\{').join('{'); }
+		if(node.literal) { node.literal = node.literal.split('\\}').join('}'); }
 
 		return true;
 	}
@@ -962,6 +974,10 @@ export namespace Compiler
 	 */
 	function ReplaceAliases(source : string) : string
 	{
+		if (project.useStockAliases) {
+			project.aliases = project.aliases.concat(StockAliases);
+		}
+
 		// Don't parse anything if there aren't any aliases defined
 		if(project.aliases.length < 1) { return source; }
 

@@ -1,3 +1,4 @@
+*.ini
 *.DS_STORE
 .local/
 .vscode/
