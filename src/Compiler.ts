@@ -74,7 +74,7 @@ export let ProjectDefaults : FractiveProject = {
 		}
 	},
 	includeBackButton: true,
-	backButtonHTML: "Back"
+	backButtonHtml: "Back"
 };
 import * as globby from "globby";
 
@@ -105,18 +105,20 @@ export namespace Compiler
 
 	/**
 	 * Inserts the given html snippet into the template HTML at EVERY point where
-	 * a specially formatted comment appears.
+	 * a specially formatted comment appears: <!--{mark}-->
 	 * @param snippet The html to insert
 	 * @param template The template in which to insert
+	 * @param mark The mark at which to insert Html
+	 * @param requiired Whether the mark is required or not. Default: true
 	 * @return The complete resulting html file contents
 	 */
-	function InsertHtmlAtMark(snippet : string, template : string, mark : string) : string
+	function InsertHtmlAtMark(snippet : string, template : string, mark : string, required : boolean = true) : string
 	{
 		// The mark has to be placed inside an HTML comment formatted like so:
 		let markComment : string = `<!--{${mark}}-->`;
 
 		// Throw an error if the mark doesn't exist
-		if (template.indexOf(markComment) === -1)
+		if (template.indexOf(markComment) === -1 && required)
 		{
 			console.log(`Template file must contain mark: ${markComment}`);
 			process.exit(1);
@@ -134,8 +136,19 @@ export namespace Compiler
 	 */
 	function ApplyTemplate(basePath : string, html : string, javascript : string) : string
 	{
+		let templatePath : string = "";
+
+		// If project.template begins with the macro '{examples}/', resolve relative
+		// to the templates folder of the Fractive installation, not the build path
+		if (project.template.indexOf("{examples}") == 0) {
+			templatePath = project.template.replace("{examples}", `${__dirname}/../templates`);
+		}
+		// Otherwise, the path is relative to the story's root directory
+		else {
+			templatePath = path.resolve(basePath, project.template);
+		}
+
 		// Ensure that the template file exists
-		let templatePath : string = path.resolve(basePath, project.template);
 		if(!fs.existsSync(templatePath))
 		{
 			console.log(`Template file not found: "${templatePath}"`);
@@ -165,9 +178,8 @@ export namespace Compiler
 		// Insert html-formatted story text
 		template = InsertHtmlAtMark(html, template, 'story');
 
-		// Insert the back button if specified to do so
-		if(project.includeBackButton)
-		{
+		// Insert the back button everywhere the template defines <!--{backButton}-->
+		if (project.includeBackButton) {
 			let backButtonHtml = '<a href="javascript:Core.GotoPreviousSection();">' + project.backButtonHtml + '</a>';
 			template = InsertHtmlAtMark(backButtonHtml, template, 'backButton');
 		}
