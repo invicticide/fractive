@@ -29,7 +29,7 @@ import * as util from "util";
 
 // Set up the Markdown parser and renderer
 import * as commonmark from "commonmark";
-const markdownReader = new commonmark.Parser({smart: false});
+const markdownReader = new commonmark.Parser({smart: true});
 const markdownWriter = new commonmark.HtmlRenderer({softbreak: "<br/>"});
 
 // Beautification
@@ -149,7 +149,7 @@ export namespace Compiler
 		}
 
 		// Auto-start at the "Start" section
-		template += "<script>Core.GotoSection(\"Start\");</script>";
+		template += "<script>Core.BeginStory();</script>";
 
 		if(project.outputFormat === 'minify')
 		{
@@ -724,7 +724,7 @@ export namespace Compiler
 
 		if(url[url.length - 1] !== "}")
 		{
-			LogParseError("Unterminated macro in link destination", filepath, event.node);
+			LogParseError(`Unterminated macro in link destination ${url}`, filepath, event.node);
 			return false;
 		}
 
@@ -1074,12 +1074,15 @@ export namespace Compiler
 	 * skipping past escaped Fractive macros, but can also skip regular escape sequences as well.
 	 * @param s The string to scan
 	 * @param startIndex The index of the \ character which begins the escape sequence to be skipped
-	 * @returns The index of the last character of the escape sequence, or -1 on error (e.g. an unterminated Fractive macro). If the starting character isn't a \ then this just returns startIndex.
+	 * @returns The index of the last character of the escape sequence, or -1 on error. If the starting character isn't a \ then this just returns startIndex.
 	 */
 	function SkipEscapedSubstring(s : string, startIndex : number)
 	{
 		// This isn't an escape at all
 		if(s[startIndex] !== '\\') { return startIndex; }
+
+		// This is an escaped \ so collapsed the \\ down to a single \
+		if(s[startIndex + 1] === '\\') { return startIndex; }
 
 		// This is a regular escape sequence, so just skip the escaped character
 		if(s[startIndex + 1] !== '{') { return startIndex + 1; }
@@ -1092,6 +1095,7 @@ export namespace Compiler
 			else if(s[i] === '}' && --braceCount === 0) { return i; }
 		}
 
-		return -1;
+		// The escaped macro was not terminated, so we're probably just escaping a single brace
+		return startIndex + 1;
 	}
 }

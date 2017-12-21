@@ -23,6 +23,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 export namespace Core
 {
 	/**
+	 * Event listener to call just before the story begins, for user init code to run
+	 */
+	export let OnBeginStory : Array<() => void> = [];
+
+	/**
 	 * Event listener to call whenever the current section changes
 	 * @param id The id attribute of the new section
 	 * @param element The raw DOM element for the new section
@@ -40,6 +45,11 @@ export namespace Core
 	{
 		switch(eventName)
 		{
+			case "OnBeginStory":
+			{
+				Core.OnBeginStory = Core.OnBeginStory.concat(handler);
+				break;
+			}
 			case "OnGotoSection":
 			{
 				Core.OnGotoSection = Core.OnGotoSection.concat(handler);
@@ -51,6 +61,16 @@ export namespace Core
 				break;
 			}
 		}
+	}
+
+	/**
+	 * Begins the story. Notifies user code and navigates to the "Start" section.
+	 */
+	// @ts-ignore This is never called code but a call to it is written into target HTML by the compiler
+	export function BeginStory()
+	{
+		for(let i = 0; i < OnBeginStory.length; i++) { OnBeginStory[i](); }
+		GotoSection("Start");
 	}
 
 	/**
@@ -223,11 +243,31 @@ export namespace Core
 	}
 
 	/**
+	 * Gets a copy of the given section, expands its macros, registers its links, and returns an Element
+	 * which is fully activated and ready to be displayed to the user.
+	 * @param id The name of the section to retrieve.
+	 */
+	export function GetSection(id : string) : Element
+	{
+		let clone = ExpandSection(id);
+		clone.setAttribute('data-id', id);
+		EnableInlineMacros(clone, true);
+		RegisterLinks(clone);
+		return clone;
+	}
+
+	/**
 	 * Navigate to the previous section as it was before transitioning to the current one.
 	 */
 	export function GotoPreviousSection()
 	{
 		let history = document.getElementById("__history");
+		if(history === null)
+		{
+			console.error("History is not supported in this template (the __history element is missing)");
+			return;
+		}
+
 		let currentSection = document.getElementById("__currentSection");
 
 		// Retrieve the most recent section
@@ -269,24 +309,18 @@ export namespace Core
 		// Move the current section into the history section, keeping it in a div
 		// with its id as a data attribute
 		let previousSectionId = currentSection.getAttribute('data-id');
-
-		if(previousSectionId !== null)
+		if(previousSectionId !== null && history !== null)
 		{
 			history.innerHTML += `<div class="__previousSection" data-id="${previousSectionId}">${currentSection.innerHTML}</div>`;
 			history.scrollTop = history.scrollHeight;
 		}
 
-		// Expand the destination section
-		let clone = ExpandSection(id);
-		clone.setAttribute('data-id', id);
-
-		EnableInlineMacros(clone, true);
-		RegisterLinks(clone);
+		// Get a copy of the new section that's ready to display
+		let clone : Element = GetSection(id);
 		clone.scrollTop = 0;
-
-		// Replace the div so as to restart CSS animations
-		// Replace the div so as to restart CSS animations (just replacing innerHTML does not do this!)
 		clone.id = "__currentSection";
+		
+		// Replace the div so as to restart CSS animations (just replacing innerHTML does not do this!)
 		currentSection.parentElement.replaceChild(clone, currentSection);
 
 		// Notify user script
@@ -393,15 +427,5 @@ export namespace Core
 				break;
 			}
 		}
-	}
-
-	/**
-	 * Show or hide the history section
-	 * @param tf If true, show history. If false, hide history.
-	 */
-	export function ShowHistory(tf : boolean)
-	{
-		let history = document.getElementById("__history");
-		history.hidden = !tf;
 	}
 }
