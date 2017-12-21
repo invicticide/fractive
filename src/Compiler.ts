@@ -29,7 +29,7 @@ import * as util from "util";
 
 // Set up the Markdown parser and renderer
 import * as commonmark from "commonmark";
-const markdownReader = new commonmark.Parser({smart: false});
+const markdownReader = new commonmark.Parser({smart: true});
 const markdownWriter = new commonmark.HtmlRenderer({softbreak: "<br/>"});
 
 // Beautification
@@ -79,7 +79,7 @@ export let ProjectDefaults : FractiveProject = {
 };
 
 let StockAliases = [
-	{ "alias": "backButton", "replaceWith": "[Back]({#Core.GotoLastSection})" },
+	{ "alias": "previousButton", "replaceWith": "[Previous]({#Core.GotoPreviousSection})" },
 	{ "alias": "nextButton", "replaceWith": "[Next]({#Core.GotoNextSection})" }
 ];
 
@@ -149,13 +149,14 @@ export namespace Compiler
 		template = template.split("<!--{story}-->").join(html);
 
 		// Insert the back button if specified to do so
-		if (project.includeBackButton) {
-			let backButtonHTML = '<a href="#" onclick="Core.GotoLastSection()">' + project.backButtonHTML + '</a>';
+		if(project.includeBackButton)
+		{
+			let backButtonHTML = '<a href="javascript:Core.RewindSection();">' + project.backButtonHTML + '</a>';
 			template = template.split("<!--{backButton}-->").join(backButtonHTML);
 		}
 
 		// Auto-start at the "Start" section
-		template += "<script>Core.GotoSection(\"Start\");</script>";
+		template += "<script>Core.BeginStory();</script>";
 
 		if(project.outputFormat === 'minify')
 		{
@@ -652,20 +653,22 @@ export namespace Compiler
 	}
 
 	/**
-	* Check if a URL is considered external and its link should be marked
-	* with the external link mark defined in fractive.json
-	* @param url
+	* Check if a URL is considered external and its link should be marked with the external link mark defined in snap.json
+	* @param url The URL string to check
 	*/
-	// @ts-ignore Unused function argument, until this stub gets expanded
-	function IsExternalLink(url: string)
+	function IsExternalLink(url : string)
 	{
-		// TODO I imagine if the user wants to link to pages on their own site,
-		// the external link icon will be unwanted. To account for this in the
-		// future, we could define a glob expression for urls that are internal
-		// to the game, and filter those out. For now, everything is considered
-		// external.
-		url = url;
-		return true;
+		let tokens : Array<string> = url.split("/");
+		switch(tokens[0].toLowerCase())
+		{
+			case "http:":
+			case "https:":
+			case "mailto:":
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
@@ -728,7 +731,7 @@ export namespace Compiler
 
 		if(url[url.length - 1] !== "}")
 		{
-			LogParseError("Unterminated macro in link destination", filepath, event.node);
+			LogParseError(`Unterminated macro in link destination ${url}`, filepath, event.node);
 			return false;
 		}
 
@@ -902,7 +905,6 @@ export namespace Compiler
 						{
 							var insertedNode = new commonmark.Node("html_inline", node.sourcepos); // TODO: Real sourcepos
 							insertedNode.literal = `${sectionCount > 0 ? "</div>\n" : ""}<div id="${macro.substring(2, macro.length - 2)}" class="section" hidden="true">`;
-
 							if(node.prev)
 							{
 								LogParseError(`Section macro "${macro}" must be defined in its own paragraph/on its own line`, filepath, node, lineOffset, columnOffset);
@@ -937,11 +939,15 @@ export namespace Compiler
 					}
 					default:
 					{
-						LogParseError(`Unrecognized macro "${macro}" in text`, filepath, node.parent, lineOffset, columnOffset);
-						return false;
+						// If { or } are encountered without the special symbols, assume they were escaped and should be rendered as-is
+						insertedNode = null;
+						break;
 					}
 				}
-				walker.resumeAt(insertedNode);
+				if (insertedNode !== null) {
+					walker.resumeAt(insertedNode);
+				}
+
 				break;
 			}
 			else if(node.literal[i] === '\n')
@@ -956,6 +962,7 @@ export namespace Compiler
 		// We skipped over escape sequences while parsing, but now we need to strip the backslashes entirely
 		// so they don't get rendered out to the html as `\\`
 		if(node.literal) { node.literal = node.literal.split('\\{').join('{'); }
+		if(node.literal) { node.literal = node.literal.split('\\}').join('}'); }
 
 		return true;
 	}
@@ -1083,12 +1090,15 @@ export namespace Compiler
 	 * skipping past escaped Fractive macros, but can also skip regular escape sequences as well.
 	 * @param s The string to scan
 	 * @param startIndex The index of the \ character which begins the escape sequence to be skipped
-	 * @returns The index of the last character of the escape sequence, or -1 on error (e.g. an unterminated Fractive macro). If the starting character isn't a \ then this just returns startIndex.
+	 * @returns The index of the last character of the escape sequence, or -1 on error. If the starting character isn't a \ then this just returns startIndex.
 	 */
 	function SkipEscapedSubstring(s : string, startIndex : number)
 	{
 		// This isn't an escape at all
 		if(s[startIndex] !== '\\') { return startIndex; }
+
+		// This is an escaped \ so collapsed the \\ down to a single \
+		if(s[startIndex + 1] === '\\') { return startIndex; }
 
 		// This is a regular escape sequence, so just skip the escaped character
 		if(s[startIndex + 1] !== '{') { return startIndex + 1; }
@@ -1101,6 +1111,7 @@ export namespace Compiler
 			else if(s[i] === '}' && --braceCount === 0) { return i; }
 		}
 
-		return -1;
+		// The escaped macro was not terminated, so we're probably just escaping a single brace
+		return startIndex + 1;
 	}
 }

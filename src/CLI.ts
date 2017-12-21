@@ -24,11 +24,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 require("source-map-support").install();
 
+import * as cp from "child_process";
 import * as fs from "fs";
 import * as path from "path";
 import * as clc from "cli-color";
 
 import { Compiler, CompilerOptions, ProjectDefaults } from "./Compiler";
+
+// True on Windows, false on Mac/Linux, for platform-specific calls
+var isWindows = /^win/.test(process.platform);
 
 /**
  * Invoke the compiler
@@ -122,28 +126,55 @@ function Create(args : Array<string>)
 	console.log(clc.green(`Project created at ${projectDir}`));
 }
 
-if(process.argv.length < 3)
-{
-	console.log(``);
-	console.log(`Usage:`);
-	console.log(`${clc.green("node lib/CLI.js")} ${clc.blue("<command>")} ${clc.yellow("[options]")}`);
-	console.log(``);
-	console.log(`${clc.blue("compile:")} Compile an existing Fractive project`);
-	console.log(`${clc.blue("create:")} Create a new Fractive project`);
-	console.log(``);
-	process.exit(1);
-}
-else
+function HandleArgs()
 {
 	for(let i = 2; i < process.argv.length; i++)
 	{
 		switch(process.argv[i])
 		{
 			// compile <storyDirectory|configFilePath> [options]
-			case "compile": { Compile(process.argv.slice(i + 1)); break; }
+			case "compile": { Compile(process.argv.slice(i + 1)); return; }
 	
 			// create <storyDirectory>
-			case "create": { Create(process.argv.slice(i + 1)); break; }
+			case "create": { Create(process.argv.slice(i + 1)); return; }
+
+			// doc [no options]
+			case "help":
+			{
+				let docPath : string = path.join(__dirname, "../doc/build/index.html");
+				if(isWindows) { cp.execSync(`start "" "${docPath}"`); }
+				else { cp.execSync(`open ${docPath}`); }
+				return;
+			}
+
+			// examples [no options]
+			case "examples":
+			{
+				let examplesPath : string = path.join(__dirname, "../examples");
+				if(isWindows) { cp.execSync(`start "" "${examplesPath}"`); }
+				else { cp.execSync(`open ${examplesPath}`); }
+				return;
+			}
 		}
 	}
+}
+
+if(process.argv.length < 3)
+{
+	console.log(``);
+	console.log(`Usage:`);
+	console.log(`${clc.green("fractive")} ${clc.blue("<command>")} ${clc.yellow("[options]")}`);
+	console.log(``);
+	console.log(`${clc.blue("help:")} Launch the Fractive user guide`);
+	console.log(`${clc.blue("compile:")} Compile an existing Fractive project`);
+	console.log(`${clc.blue("create:")} Create a new Fractive project`);
+	console.log(`${clc.blue("examples:")} Browse Fractive example projects`);
+	console.log(``);
+	console.log(`Enter a command without ${clc.yellow("options")} to see usage instructions for that command`);
+	console.log(``);
+	process.exit(1);
+}
+else
+{
+	HandleArgs();
 }

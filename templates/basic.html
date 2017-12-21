@@ -1,6 +1,6 @@
 <html>
 	<head>
-		<meta http-equiv="Content-Type" contentDiv="text/html; charset=utf-8" />
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 		<link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet"></link>
 		<style>
 			#__controls
@@ -13,12 +13,24 @@
 				padding: 0px 40px;
 				background-color: #333333;
 				color: #BBBBBB;
-				text-align: right;
 				font-family: Arial, Helvetica, sans-serif;
 				font-size: 13pt;
 			}
-			#__controls a {
+			#__controls .controls-left {
+				float: left;
+				text-align: left;
+			}
+			#__controls .controls-right {
+				float: right;
+				text-align: right;
+			}
+			#__controls a:link, #__controls a:visited {
 				color: #FAFAFA;
+				text-decoration: none;
+			}
+			#__controls a:active, #__controls a:hover {
+				color: #FF6666;
+				text-decoration: none;
 			}
 			#__historyContainer
 			{
@@ -197,9 +209,11 @@
 			<div id="__history"></div>
 		</div>
 		<div id="__controls">
-			<p>
+			<p class="controls-left">
 				<!--{backButton}-->
-				<a href="#" onclick="__Restart()">Restart</a> •
+			</p>
+			<p class="controls-right">
+				<a href="#" onclick="__Restart()">Restart</a> -
 				<a href="#" onclick="__ToggleHistory()">Toggle History</a>
 			</p>
 		</div>

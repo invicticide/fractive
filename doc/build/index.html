@@ -1,0 +1,1227 @@
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet"></link>
+    <style>
+        :root {
+            --main-background-color: rgb(36, 29, 50);
+            --main-text-color: rgb(159, 146, 184);
+            --sidebar-background-color: rgb(66, 53, 90);
+            --sidebar-text-color: rgb(30, 25, 41);
+            --chapter-background-color: rgb(122, 99, 167);
+            --chapter-text-color: rgb(36, 29, 50);
+            --topic-background-color: rgb(36, 29, 50);
+            --topic-text-color: rgb(188, 152, 255);
+            --code-background-color: rgb(19, 18, 20);
+            --code-text-color: #b6a79e;
+            --inline-text-color: #a7826a;
+            --link-text-color: rgb(188, 152, 255);
+            --link-hover-color: #FF6666;
+        }
+
+        /* ------------------------------------------------------------------------------------
+			/* Sidebar */
+
+        #__sidebarContainer {
+            position: absolute;
+            top: 0px;
+            left: 0px;
+            width: 300px;
+            height: 100%;
+            overflow: auto;
+            background-color: var(--sidebar-background-color);
+        }
+
+        #__sidebar {
+            padding: 0px;
+        }
+
+        #__sidebar h1 {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin: 10px 0px;
+            background-color: var(--chapter-background-color);
+            color: var(--chapter-text-color);
+            font-size: 18pt;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        #__sidebar h2 {
+            width: calc(100% - 20px);
+            padding: 5px 10px;
+            margin: 10px 0px;
+            background-color: var(--topic-background-color);
+            color: var(--topic-text-color);
+            font-size: 15pt;
+            font-weight: bold;
+        }
+
+        #__sidebar p {
+            width: calc(100% - 20px);
+            padding: 0px 10px;
+            background-color: var(--sidebar-background-color);
+            color: var(--sidebar-text-color);
+            font-size: 13pt;
+        }
+
+        #__sidebar a:link,
+        #__sidebar a:visited {
+            color: var(--link-text-color);
+            text-decoration: none;
+        }
+
+        #__sidebar a:active,
+        #__sidebar a:hover {
+            color: var(--link-hover-color);
+            text-decoration: none;
+        }
+
+        /* ------------------------------------------------------------------------------------
+			/* Main section */
+
+        #__contentContainer {
+            position: absolute;
+            top: 0px;
+            left: 300px;
+            width: calc(100% - 300px);
+            height: 100%;
+            overflow: auto;
+        }
+
+        #__content {
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        #__topNav * {
+            font-size: 13pt;
+            font-weight: bold;
+        }
+
+        #__topNav a:link,
+        #__topNav a:visited {
+            color: var(--link-text-color);
+            text-decoration: none;
+        }
+
+        #__topNav a:active,
+        #__topNav a:hover {
+            color: var(--link-hover-color);
+            text-decoration: none;
+        }
+
+        #__currentSection {
+            color: var(--main-text-color);
+        }
+
+        .__inlineMacro {
+            color: var(--inline-text-color);
+        }
+
+        h1 {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 32pt;
+            margin-top: 28pt;
+            margin-bottom: 0pt;
+        }
+
+        h2 {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 22pt;
+            margin-top: 28pt;
+            margin-bottom: 0pt;
+            font-weight: bold;
+        }
+
+        h3 {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 18pt;
+            margin-top: 28pt;
+            margin-bottom: 0pt;
+            font-weight: bold;
+        }
+
+        body {
+            background-color: var(--main-background-color);
+        }
+
+        p {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 16pt;
+            line-height: 1.5em;
+        }
+
+        a:link,
+        a:visited {
+            color: var(--link-text-color);
+        }
+
+        a:active,
+        a:hover {
+            color: var(--link-hover-color);
+        }
+
+        li {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 16pt;
+            line-height: 1.5em;
+            margin-left: 20px;
+        }
+
+        blockquote p {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 16pt;
+            font-style: italic;
+            line-height: 1.5em;
+        }
+
+        pre {
+            background-color: var(--code-background-color);
+            padding: 10px 20px;
+            max-height: 600px;
+            overflow: auto;
+        }
+
+        code {
+            line-height: 1.25em;
+            padding: 4px;
+            font-family: "Courier New", "Courier", monospace;
+            font-size: 14pt;
+            font-weight: bold;
+            background-color: var(--code-background-color);
+            color: var(--code-text-color);
+        }
+
+        img {
+            margin: 20px 0px;
+        }
+
+        hr {
+            border: 0;
+            height: 1px;
+            background-image: linear-gradient(var(--main-text-color), var(--main-text-color));
+            margin-top: 36pt;
+            margin-bottom: 36pt;
+        }
+    </style>
+    <script>
+        var exports = {};
+        "use strict";
+        Object.defineProperty(exports, "__esModule", {
+            value: true
+        });
+        var Core;
+        (function(Core) {
+            Core.OnBeginStory = [];
+            Core.OnGotoSection = [];
+
+            function AddEventListener(eventName, handler) {
+                switch (eventName) {
+                    case "OnBeginStory":
+                        {
+                            Core.OnBeginStory = Core.OnBeginStory.concat(handler);
+                            break;
+                        }
+                    case "OnGotoSection":
+                        {
+                            Core.OnGotoSection = Core.OnGotoSection.concat(handler);
+                            break;
+                        }
+                    default:
+                        {
+                            console.error("Core.AddEventListener: \"" + eventName + "\" is not a valid event");
+                            break;
+                        }
+                }
+            }
+            Core.AddEventListener = AddEventListener;
+
+            function BeginStory() {
+                for (var i = 0; i < Core.OnBeginStory.length; i++) {
+                    Core.OnBeginStory[i]();
+                }
+                GotoSection("Start");
+            }
+            Core.BeginStory = BeginStory;
+
+            function DisableLinks(section) {
+                var links = section.getElementsByTagName("a");
+                for (var i = 0; i < links.length; i++) {
+                    var linkTag = links[i].outerHTML.substring(0, links[i].outerHTML.indexOf(">") + 1);
+                    var contents = links[i].outerHTML.substring(links[i].outerHTML.indexOf(">") + 1, links[i].outerHTML.indexOf("</a>"));
+                    links[i].outerHTML = "<span class=\"__disabledLink\" data-link-tag='" + linkTag + "'>" + linkTag + contents + "</span>";
+                }
+            }
+
+            function EnableInlineMacros(root, tf) {
+                if (tf === void 0) {
+                    tf = true;
+                }
+                if (tf && root.id.search("_inline\-") > -1) {
+                    root.id = root.id.substring(1);
+                } else if (!tf && root.id.search("inline\-") > -1) {
+                    root.id = "_" + root.id;
+                }
+                for (var i = 0; i < root.children.length; i++) {
+                    EnableInlineMacros(root.children[i], tf);
+                }
+            }
+
+            function EnableLinks(section) {
+                var links = section.getElementsByClassName("__disabledLink");
+                for (var i = 0; i < links.length;) {
+                    var linkTag = links[i].getAttribute('data-link-tag');
+                    var contents = links[i].innerHTML;
+                    links[i].outerHTML = linkTag + contents + '</a>';
+                }
+            }
+
+            function ExpandMacro(macro) {
+                switch (macro[0]) {
+                    case '@':
+                        {
+                            var sectionName = macro.substring(1);
+                            if (!document.getElementById(sectionName)) {
+                                return "{section \"" + sectionName + "\" is not declared}";
+                            } else {
+                                return ExpandSection(macro.substring(1)).innerHTML;
+                            }
+                        }
+                    case '#':
+                        {
+                            var targetFunction = RetrieveFromWindow(macro.substring(1), 'function');
+                            return targetFunction().toString();
+                        }
+                    case '$':
+                        {
+                            var targetVariable = RetrieveFromWindow(macro.substring(1), 'variable');
+                            return targetVariable.toString();
+                        }
+                    default:
+                        {
+                            return "{unknown metacharacter in macro \"" + macro + "\"";
+                        }
+                }
+            }
+            Core.ExpandMacro = ExpandMacro;
+
+            function ExpandSection(id) {
+                var source = document.getElementById(id);
+                if (source === null) {
+                    console.log("Section " + id + " doesn't exist");
+                    return null;
+                }
+                var sectionInstance = source.cloneNode(true);
+                sectionInstance.removeAttribute("hidden");
+                var scan = function(element) {
+                    for (var i = 0; i < element.attributes.length; i++) {
+                        var expanded = false;
+                        switch (element.attributes[i].name) {
+                            case "data-expand-macro":
+                                {
+                                    if (element.parentElement) {
+                                        var newElement = document.createElement("span");
+                                        newElement.innerHTML = ExpandMacro(element.attributes[i].value);
+                                        element.parentElement.replaceChild(newElement, element);
+                                        expanded = true;
+                                    }
+                                    break;
+                                }
+                            case "data-image-source-macro":
+                                {
+                                    var source_1 = ExpandMacro(element.attributes[i].value);
+                                    console.log("Expanding " + element.tagName + " with src attribute " + element.attributes[i].value + " to \"" + source_1 + "\"");
+                                    element.setAttribute("src", ExpandMacro(element.attributes[i].value));
+                                    expanded = true;
+                                }
+                        }
+                        if (expanded) {
+                            break;
+                        }
+                    }
+                    if (element.hasChildNodes) {
+                        for (var i = 0; i < element.children.length; i++) {
+                            scan(element.children[i]);
+                        }
+                    }
+                };
+                scan(sectionInstance);
+                return sectionInstance;
+            }
+
+            function GetSection(id) {
+                var clone = ExpandSection(id);
+                clone.setAttribute('data-id', id);
+                EnableInlineMacros(clone, true);
+                RegisterLinks(clone);
+                return clone;
+            }
+            Core.GetSection = GetSection;
+
+            function GotoAdjacentSection(offset) {
+                var currentSection = document.getElementById("__currentSection");
+                var currentSectionId = currentSection.getAttribute('data-id');
+                var sections = document.getElementsByClassName("section");
+                var i = 0;
+                for (; i < sections.length; ++i) {
+                    if (sections[i].getAttribute('id') === currentSectionId)
+                        break;
+                }
+                if (i + offset >= sections.length) {
+                    console.log("Tried to go to next section when there were no more sections.");
+                    return;
+                }
+                var nextSectionId = sections[i + offset].getAttribute('id');
+                GotoSection(nextSectionId);
+            }
+            Core.GotoAdjacentSection = GotoAdjacentSection;
+
+            function GotoNextSection() {
+                GotoAdjacentSection(1);
+            }
+            Core.GotoNextSection = GotoNextSection;
+
+            function GotoPreviousSection() {
+                GotoAdjacentSection(-1);
+            }
+            Core.GotoPreviousSection = GotoPreviousSection;
+
+            function RewindSection() {
+                var history = document.getElementById("__history");
+                if (history === null) {
+                    console.error("History is not supported in this template (the __history element is missing)");
+                    return;
+                }
+                var currentSection = document.getElementById("__currentSection");
+                var previousSections = history.getElementsByClassName('__previousSection');
+                var previousSection = previousSections[previousSections.length - 1];
+                if (!previousSection) {
+                    return;
+                }
+                var id = previousSection.getAttribute('data-id');
+                var clone = previousSection.cloneNode(true);
+                history.removeChild(previousSection);
+                EnableLinks(clone);
+                RegisterLinks(clone);
+                clone.scrollTop = 0;
+                clone.id = "__currentSection";
+                currentSection.parentElement.replaceChild(clone, currentSection);
+                for (var i = 0; i < Core.OnGotoSection.length; i++) {
+                    Core.OnGotoSection[i](id, clone, [], true);
+                }
+            }
+            Core.RewindSection = RewindSection;
+
+            function GotoSection(id) {
+                var history = document.getElementById("__history");
+                var currentSection = document.getElementById("__currentSection");
+                DisableLinks(currentSection);
+                var previousSectionId = currentSection.getAttribute('data-id');
+                if (previousSectionId !== null && history !== null) {
+                    history.innerHTML += "<div class=\"__previousSection\" data-id=\"" + previousSectionId + "\">" + currentSection.innerHTML + "</div>";
+                    history.scrollTop = history.scrollHeight;
+                }
+                var clone = GetSection(id);
+                clone.scrollTop = 0;
+                clone.id = "__currentSection";
+                currentSection.parentElement.replaceChild(clone, currentSection);
+                for (var i = 0; i < Core.OnGotoSection.length; i++) {
+                    Core.OnGotoSection[i](id, clone, [], false);
+                }
+            }
+            Core.GotoSection = GotoSection;
+
+            function RegisterLinks(element) {
+                if (element.tagName == "A") {
+                    var _loop_1 = function(i) {
+                        switch (element.attributes[i].name) {
+                            case "data-goto-section":
+                                {
+                                    element.addEventListener("click", function() {
+                                        Core.GotoSection(element.attributes[i].value);
+                                    });
+                                    break;
+                                }
+                            case "data-call-function":
+                                {
+                                    element.addEventListener("click", RetrieveFromWindow(element.attributes[i].value, 'function'));
+                                    break;
+                                }
+                            case "data-replace-with":
+                                {
+                                    element.addEventListener("click", function() {
+                                        Core.ReplaceActiveElement(element.id, ExpandMacro(element.attributes[i].value));
+                                    });
+                                    break;
+                                }
+                        }
+                    };
+                    for (var i = 0; i < element.attributes.length; i++) {
+                        _loop_1(i);
+                    }
+                }
+                if (element.hasChildNodes) {
+                    for (var i = 0; i < element.children.length; i++) {
+                        RegisterLinks(element.children[i]);
+                    }
+                }
+            }
+            Core.RegisterLinks = RegisterLinks;
+
+            function RetrieveFromWindow(name, type) {
+                var targetObject = null;
+                var tokens = name.split('.');
+                for (var i = 0; i < tokens.length; i++) {
+                    if (i === 0) {
+                        targetObject = window[tokens[0]];
+                    } else {
+                        targetObject = targetObject[tokens[i]];
+                    }
+                }
+                if (targetObject === undefined) {
+                    return "{" + type + " \"" + name + "\" is not declared}";
+                }
+                return targetObject;
+            }
+
+            function ReplaceActiveElement(id, html) {
+                for (var element = document.getElementById(id); element; element = document.getElementById(id)) {
+                    if (!element) {
+                        continue;
+                    }
+                    var bIsActive = false;
+                    for (var parent_1 = element.parentElement; parent_1; parent_1 = parent_1.parentElement) {
+                        if (parent_1.id === "__currentSection") {
+                            bIsActive = true;
+                            break;
+                        }
+                    }
+                    if (bIsActive) {
+                        var replacement = document.createElement("span");
+                        replacement.className = "__inlineMacro";
+                        replacement.innerHTML = html;
+                        EnableInlineMacros(replacement, true);
+                        RegisterLinks(replacement);
+                        element.parentNode.replaceChild(replacement, element);
+                        break;
+                    }
+                }
+            }
+            Core.ReplaceActiveElement = ReplaceActiveElement;
+        })(Core = exports.Core || (exports.Core = {}));
+        //# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiQ29yZS5qcyIsInNvdXJjZVJvb3QiOiIiLCJzb3VyY2VzIjpbIi4uL3NyYy9Db3JlLnRzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiI7O0FBc0JBLElBQWlCLElBQUksQ0FtY3BCO0FBbmNELFdBQWlCLElBQUk7SUFLVCxpQkFBWSxHQUF1QixFQUFFLENBQUM7SUFTdEMsa0JBQWEsR0FBNkYsRUFBRSxDQUFDO0lBT3hILDBCQUFpQyxTQUFrQixFQUFFLE9BQW9CO1FBRXhFLE1BQU0sQ0FBQSxDQUFDLFNBQVMsQ0FBQyxDQUNqQixDQUFDO1lBQ0EsS0FBSyxjQUFjO2dCQUNuQixDQUFDO29CQUNBLElBQUksQ0FBQyxZQUFZLEdBQUcsSUFBSSxDQUFDLFlBQVksQ0FBQyxNQUFNLENBQUMsT0FBTyxDQUFDLENBQUM7b0JBQ3RELEtBQUssQ0FBQztnQkFDUCxDQUFDO1lBQ0QsS0FBSyxlQUFlO2dCQUNwQixDQUFDO29CQUNBLElBQUksQ0FBQyxhQUFhLEdBQUcsSUFBSSxDQUFDLGFBQWEsQ0FBQyxNQUFNLENBQUMsT0FBTyxDQUFDLENBQUM7b0JBQ3hELEtBQUssQ0FBQztnQkFDUCxDQUFDO1lBQ0Q7Z0JBQ0EsQ0FBQztvQkFDQSxPQUFPLENBQUMsS0FBSyxDQUFDLDhCQUEyQixTQUFTLDRCQUF3QixDQUFDLENBQUM7b0JBQzVFLEtBQUssQ0FBQztnQkFDUCxDQUFDO1FBQ0YsQ0FBQztJQUNGLENBQUM7SUFwQmUscUJBQWdCLG1CQW9CL0IsQ0FBQTtJQU1EO1FBRUMsR0FBRyxDQUFBLENBQUMsSUFBSSxDQUFDLEdBQUcsQ0FBQyxFQUFFLENBQUMsR0FBRyxLQUFBLFlBQVksQ0FBQyxNQUFNLEVBQUUsQ0FBQyxFQUFFLEVBQUUsQ0FBQztZQUFDLEtBQUEsWUFBWSxDQUFDLENBQUMsQ0FBQyxFQUFFLENBQUM7UUFBQyxDQUFDO1FBQ25FLFdBQVcsQ0FBQyxPQUFPLENBQUMsQ0FBQztJQUN0QixDQUFDO0lBSmUsZUFBVSxhQUl6QixDQUFBO0lBS0Qsc0JBQXNCLE9BQWlC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// source/script.js
+        Core.AddEventListener("OnBeginStory", () => {
+            // Populate the sidebar from the @TableOfContents section so it's easy to maintain
+            var sidebar = document.getElementById("__sidebar");
+            sidebar.appendChild(Core.GetSection("TableOfContents"));
+        });
+
+        Core.AddEventListener("OnGotoSection", function(id, element, tags) {
+            // Scroll to top of new content
+            var contentDiv = document.getElementById("__contentContainer");
+            if (contentDiv) {
+                contentDiv.scrollTop = 0;
+            }
+        });
+
+        function InlineFunc() {
+            return "Hello, world!";
+        }
+    </script>
+</head>
+
+<body>
+    <div id="__history" hidden>
+        <!-- History is included so we can have a functional back button, but we never actually show it directly -->
+    </div>
+    <div id="__sidebarContainer">
+        <div id="__sidebar">
+            <!-- Sidebar table of contents is dynamically populated from script at init time -->
+        </div>
+    </div>
+    <div id="__contentContainer">
+        <div id="__content">
+            <!-- source/introduction.md -->
+            <div id="QuickStart" class="section" hidden="true">
+                <h1>Quick start</h1>
+                <p><a title="" href="javascript:;" data-replace-with="@QuickStart-Installation" id="_inline-0"><strong>If you haven’t installed Fractive yet, click here</strong>&nbsp;<i class="fa fa-info-circle" aria-hidden="true"></i></a></p>
+                <p>Create a new story project:</p>
+                <pre><code>fractive create path/to/my/story
+</code></pre>
+                <p>Launch your favorite code editor – I particularly like <a title="" target="_blank" href="https://code.visualstudio.com">VS Code&nbsp;<i class="fa fa-external-link" aria-hidden="true"></i></a> – and open the default story text file, <code>source/text.md</code>.
+                    You’ll see the following:</p>
+                <pre><code>{{Start}}
+
+Your story begins here.
+</code></pre>
+                <p><code>{{Start}}</code> marks the beginning of a new <strong>section</strong>, called “Start”. Your story will contain many sections, each of which must be named uniquely. The “Start” section is the one your story will start on when it’s
+                    first launched.</p>
+                <p>Add a second section:</p>
+                <pre><code>{{Elsewhere}}
+
+This is a different section.
+</code></pre>
+                <p>Now add a link to the second section from the first section. Story text is written in <a title="" target="_blank" href="https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet">Markdown&nbsp;<i class="fa fa-external-link" aria-hidden="true"></i></a>,
+                    so you can use Markdown link syntax:</p>
+                <pre><code>{{Start}}
+
+Your story begins here.
+
+[Go elsewhere]({@Elsewhere})
+</code></pre>
+                <p>The link URL <code>{@Elsewhere}</code> is a <strong>macro</strong> pointing to the section called “Elsewhere”. Macros are enclosed in <code>{}</code> and have a leading <strong>metacharacter</strong> indicating the macro’s type. In this
+                    case we used <code>@</code> which indicates a section macro; clicking this link will take the player to the named section.</p>
+                <p>Build the story project:</p>
+                <pre><code>fractive compile path/to/my/story
+</code></pre>
+                <p>Navigate to <code>path/to/my/story/build</code> and open up the <code>index.html</code> in a web browser to run your story!</p>
+                <p>You now know enough to create interactive fiction stories both simple and complex. However, Fractive is capable of much more than this!</p>
+                <p><a title="" href="#" data-goto-section="Projects-Intro"><i class="fa fa-arrow-circle-right" aria-hidden="true"></i> Next: Projects</a></p>
+            </div>
+            <div id="QuickStart-Installation" class="section" hidden="true">
+                <p>Fractive is built on <a title="" target="_blank" href="https://nodejs.org">Node.js&nbsp;<i class="fa fa-external-link" aria-hidden="true"></i></a>, so you’ll need to install that if you don’t already have it. (Fractive currently targets
+                    version 8.9.0 LTS.)</p>
+                <p>Once Node.js is installed, open a command line and install Fractive:</p>
+                <pre><code>npm install -g fractive
+</code></pre>
+                <p>Fractive is now globally available on the command line. Type <code>fractive</code> to see usage instructions.</p>
+            </div>
+            <!-- source/projects.md -->
+            <div id="Projects-Intro" class="section" hidden="true">
+                <h1>About projects</h1>
+                <p>Story text is written in Markdown (.md) files, and game logic is written in Javascript (.js) files. These files, plus any additional assets (images, etc.) are kept together in a Fractive <strong>project</strong>. You can create a new project
+                    like this:</p>
+                <pre><code>fractive create path/to/my/story
+</code></pre>
+                <p>In the new project folder you’ll see this default structure:</p>
+                <pre><code>story
+|- assets/
+|- source/
+|- fractive.json
+|- template.html
+</code></pre>
+                <p>The <code>source</code> folder contains all your Markdown (.md) and Javascript (.js) files.</p>
+                <p>The <code>assets</code> folder contains images, video clips, and other miscellaneous assets. Not all projects will require these.</p>
+                <p>The <code>template.html</code> is a formatting template for how your published story will look in the browser. See <a title="" href="#" data-goto-section="Stories-Templates">Templates</a> for details.</p>
+                <p>Finally, the <code>fractive.json</code> is your <strong>project file</strong>. It contains all your project settings, like rules for where to find source files and where builds should go. If you take a peek inside, you’ll see the default
+                    rules:</p>
+                <pre><code>markdown: [ &quot;source/**/*.md&quot; ],
+javascript: [ &quot;source/**/*.js&quot; ],
+assets: [ &quot;assets/**&quot; ],
+ignore: [],
+template: &quot;template.html&quot;,
+output: &quot;build&quot;,
+</code></pre>
+                <p><a title="" href="#" data-goto-section="Projects-Configuration"><i class="fa fa-arrow-circle-right" aria-hidden="true"></i> Next: Project configuration </a></p>
+            </div>
+            <div id="Projects-Configuration" class="section" hidden="true">
+                <h1>Project configuration</h1>
+                <p>This page lists all the configuration options available in the <code>fractive.json</code> project file.</p>
+                <h1>Project metadata</h1>
+                <p>None of the project metadata is currently used, but in the future it will be displayed to the player (e.g. on a standardized title page, in an online database of Fractive stories, etc.)</p>
+                <h2>title</h2>
+                <pre><code>&quot;title&quot;: &quot;My Project Title&quot;
+</code></pre>
+                <p>Specifies the name of your story. This will be shown to the player, so it should be your actual story title, not a project code name or internal name.</p>
+                <h2>author</h2>
+                <pre><code>&quot;author&quot;: &quot;Your Name&quot;
+</code></pre>
+                <p>Specifies who wrote the story. This could be your real name, an online nickname, a social media handle, or even a company name.</p>
+                <h2>description</h2>
+                <pre><code>&quot;description&quot;: &quot;About your story&quot;
+</code></pre>
+                <p>Give a brief (one or two sentences) description of your story.</p>
+                <h2>website</h2>
+                <pre><code>&quot;website&quot;: &quot;Your website&quot;
+</code></pre>
+                <p>Give an online address where players can learn more about you, find more of your stories, etc. This could be your website URL, a social media handle, or even an email address. You can also just leave it blank if you prefer.</p>
+                <h1>File paths</h1>
+                <p>These options specify where in your project folder Fractive should look for different kinds of files, what should be included in a build, and what should be ignored.</p>
+                <p>These are generally <a title="" target="_blank" href="https://github.com/isaacs/node-glob#glob-primer">globs&nbsp;<i class="fa fa-external-link" aria-hidden="true"></i></a> or lists of globs.</p>
+                <p><a title="" href="javascript:;" data-replace-with="@Projects-Configuration-Globs" id="_inline-1">How do globs work?&nbsp;<i class="fa fa-info-circle" aria-hidden="true"></i></a></p>
+                <p>Paths are relative to the <code>fractive.json</code> project file.</p>
+                <h2>markdown</h2>
+                <pre><code>&quot;markdown&quot;: [
+	&quot;source/**/*.md&quot;
+]
+</code></pre>
+                <p>List of globs indicating where story text (Markdown) files should be found. All files sourced by this list will be compiled as story text when you build the project.</p>
+                <h2>javascript</h2>
+                <pre><code>&quot;javascript&quot;: [
+	&quot;source/**/*.js&quot;
+]
+</code></pre>
+                <p>List of globs indicating where Javascript files should be found. All files sourced by this list will be combined and embedded in the output <code>index.html</code> when you build the project.</p>
+                <h2>assets</h2>
+                <pre><code>&quot;assets&quot;: [
+	&quot;assets/**&quot;
+]
+</code></pre>
+                <p>List of globs indicating where asset files should be found. All files sourced by this list will be copied to the output location, preserving their directory structure.</p>
+                <p><a title="" href="javascript:;" data-replace-with="@Projects-Configuration-AssetFiles" id="_inline-2">What are asset files?&nbsp;<i class="fa fa-info-circle" aria-hidden="true"></i></a></p>
+                <h2>ignore</h2>
+                <pre><code>&quot;ignore&quot;: [
+	&quot;assets/.DS_Store&quot;
+]
+</code></pre>
+                <p>List of globs indicating files to ignore. All files sourced by this list will be ignored; they will NOT be compiled, embedded, copied, or otherwise processed.</p>
+                <p><a title="" href="javascript:;" data-replace-with="@Projects-Configuration-WhatToIgnore" id="_inline-3">What kinds of files should I ignore?&nbsp;<i class="fa fa-info-circle" aria-hidden="true"></i></a></p>
+                <h2>template</h2>
+                <pre><code>&quot;template&quot;: &quot;template.html&quot;
+</code></pre>
+                <p>Specifies the HTML template file to use for formatting the story.</p>
+                <h2>output</h2>
+                <pre><code>&quot;output&quot;: &quot;build&quot;
+</code></pre>
+                <p>Specifies a directory name where the final <code>index.html</code> and asset files will be placed when the project is built.</p>
+                <h1>Formatting</h1>
+                <p>These options affect how source text is interpreted and rendered into the final HTML.</p>
+                <h2>aliases</h2>
+                <pre><code>&quot;aliases&quot;: [
+	{ &quot;alias&quot;: &quot;name&quot;, &quot;replaceWith&quot;: &quot;text&quot;, &quot;end&quot;: &quot;text&quot; }
+]
+</code></pre>
+                <p>List of alias definitions. See <a title="" href="#" data-goto-section="Stories-Aliases">Aliases</a> for details. Note that the <code>end</code> property is optional and may be omitted for aliases that don’t need to use it.</p>
+                <h2>outputFormat</h2>
+                <pre><code>&quot;outputFormat&quot;: &quot;prettify&quot;
+</code></pre>
+                <p>Specifies how the final HTML should be written:</p>
+                <ul>
+                    <li><code>prettify</code>: Write human-readable HTML with line breaks and whitespace. This is easier to debug but takes up more disk space and bandwidth. Good for development.</li>
+                    <li><code>minify</code>: Compact the final HTML by removing all unnecessary whitespace and symbols. This is difficult to read and debug, but is much smaller. Good for final release.</li>
+                </ul>
+                <p>This option doesn’t change how your story is displayed to the player at all, it just determines what the HTML source code looks like.</p>
+                <h2>linkTooltips</h2>
+                <pre><code>&quot;linkTooltips&quot;: false
+</code></pre>
+                <p>Specifies whether links should show a tooltip on mouseover which indicates their target location.</p>
+                <p><a title="" href="javascript:;" data-replace-with="@Projects-Configuration-WhenToUseLinkTooltips" id="_inline-4">When is this useful?&nbsp;<i class="fa fa-info-circle" aria-hidden="true"></i></a></p>
+                <h2>linkTags</h2>
+                <pre><code>&quot;linkTags&quot;: {
+	&quot;external&quot;: { &quot;html&quot;: &quot;someCode&quot;, &quot;prepend&quot;: false },
+	&quot;inline&quot;: { &quot;html&quot;: &quot;someCode&quot;, &quot;prepend&quot;: false },
+	&quot;section&quot;: { &quot;html&quot;: &quot;someCode&quot;, &quot;prepend&quot;: false },
+	&quot;function&quot;: { &quot;html&quot;: &quot;someCode&quot;, &quot;prepend&quot;: false }
+}
+</code></pre>
+                <p>Link tags are custom HTML snippets which can be automatically appended (or prepended) to links based on their type. The available link types are:</p>
+                <ul>
+                    <li><code>external</code> links target a web URL outside of the current story</li>
+                    <li><code>inline</code> links expand in-place without navigating to another section using the <code>:inline</code> macro modifier, e.g. <code>{$SomeVariable:inline}</code></li>
+                    <li><code>section</code> links navigate to another section within the current story, e.g. <code>{@SomeSection}</code></li>
+                    <li><code>function</code> links call a Javascript function when clicked, e.g. <code>{\#SomeFunction}</code></li>
+                </ul>
+                <p>Whatever HTML you specify for <code>html</code> will be added immediately after the end of the link, unless <code>prepend</code> is <code>true</code>, in which case it’ll be added immediately before the beginning of the link.</p>
+                <h2>includeBackButton</h2>
+                <pre><code>&quot;includeBackButton&quot;: true
+</code></pre>
+                <p>If <code>true</code>, the value of <code>backButtonHTML</code> will be inserted into the final story HTML. Where it gets inserted is determined by the location of the <code>&lt;!--{backButton}--&gt;</code> macro in the template file. If
+                    the macro is not found, the <code>backButtonHTML</code> will be ignored.</p>
+                <h2>backButtonHTML</h2>
+                <pre><code>&quot;backButtonHTML&quot;: &quot;Back&quot;
+</code></pre>
+                <p>If <code>includeBackButton</code> is <code>true</code>, this is the HTML snippet that will be inserted into the final story HTML in place of the <code>&lt;!--{backButton}--&gt;</code> macro in the template file.</p>
+                <p><a title="" href="#" data-goto-section="Projects-Publishing"><i class="fa fa-arrow-circle-right" aria-hidden="true"></i> Next: Publishing</a></p>
+            </div>
+            <div id="Projects-Configuration-Globs" class="section" hidden="true">
+                <p>If you’re not familiar with glob syntax, here are the basics:</p>
+                <ul>
+                    <li><code>source/text.md</code> targets just that one file</li>
+                    <li><code>source/*.md</code> targets all .md files in the directory “source”</li>
+                    <li><code>source/**/*.md</code> targets all .md files in all subdirectories of “source”, including “source” itself</li>
+                    <li><code>source/*</code> targets all files of any type in “source”</li>
+                    <li><code>source/**</code> targets all files of any type in all subdirectories of “source”, including “source” itself</li>
+                </ul>
+            </div>
+            <div id="Projects-Configuration-AssetFiles" class="section" hidden="true">
+                <p>For most stories these will probably be multimedia files like images and video clips, but technically assets can be anything, even Markdown and Javascript files. Markdown files included by <code>assets</code> will NOT be compiled as story
+                    text, and Javascript files included by <code>assets</code> will NOT be embedded in the output <code>index.html</code>.</p>
+            </div>
+            <div id="Projects-Configuration-WhatToIgnore" class="section" hidden="true">
+                <p>Ignores are most useful when you have an <code>assets</code> wildcard like <code>assets/**</code> but then there are a few files or file types within it that you <em>don’t</em> want, like <code>.DS_Store</code> files and similar.</p>
+                <p>Another use case might be for game art. If you made your art with Photoshop and saved PSDs into an <code>assets</code> folder and then exported PNGs alongside them, you might want to include <code>assets/**</code> and then ignore <code>assets/**/*.psd</code>.
+                    That way when you build the project it’ll only copy over the PNGs and leave the PSDs behind.</p>
+            </div>
+            <div id="Projects-Configuration-WhenToUseLinkTooltips" class="section" hidden="true">
+                <p>Link tooltips can be useful for debugging, as the tooltip will show the actual macro a link is targeting. For example, if you have a link like this:</p>
+                <pre><code>[Go somewhere]({@SomeSection})
+</code></pre>
+                <p>…then setting <code>linkTooltips</code> to <code>true</code> will allow a tooltip on that link which looks like this:</p>
+                <pre><code>{@SomeSection}
+</code></pre>
+            </div>
+            <div id="Projects-Examples" class="section" hidden="true">
+                <h1>Example projects</h1>
+                <p>Example projects can be found in the <code>examples</code> folder in your Fractive install location.</p>
+            </div>
+            <div id="Projects-Publishing" class="section" hidden="true">
+                <h1>Publishing</h1>
+                <p>When you’re ready to share or test your story, you need to build it:</p>
+                <pre><code>fractive compile path/to/my/story
+</code></pre>
+                <p>Fractive will compile your project and spit out an <code>index.html</code> and assets (if any) in the <code>output</code> location specified in the project’s <code>fractive.json</code>. Simply open that <code>index.html</code> in a browser
+                    to test, or upload the entire output directory to your web server to publish it to the world.</p>
+                <p>If you specify a story directory, Fractive will look for a <code>fractive.json</code> at that location, and use the settings it finds there to build the story. If you specify a path to a .json file, Fractive will use that as the project
+                    file instead.</p>
+                <p><a title="" href="#" data-goto-section="Stories-Sections"><i class="fa fa-arrow-circle-right" aria-hidden="true"></i> Next: Sections</a></p>
+            </div>
+            <!-- source/scripting.md -->
+            <div id="Scripting-Intro" class="section" hidden="true">
+                <h1>Intro to scripting</h1>
+                <p>You can add logic to your Fractive stories using <a title="" target="_blank" href="https://www.javascript.com/">Javascript&nbsp;<i class="fa fa-external-link" aria-hidden="true"></i></a>.</p>
+                <p>By default, new projects contain a <code>source/script.js</code> which you can put your custom scripting in, but you can also add new .js files and link them into your story using the <code>scripts</code> property in <code>fractive.json</code>                    (see <a title="" href="#" data-goto-section="Projects-Configuration">Configuration</a> for details).</p>
+                <p>Typically, you’ll create Javascript variables to remember the game state, and Javascript functions to change the game state. In your story text you can use <a title="" href="#" data-goto-section="Stories-Macros">Macros</a> to retrieve
+                    those variables and call those functions.</p>
+                <p><a title="" href="#" data-goto-section="Scripting-FunctionMacros"><i class="fa fa-arrow-circle-right" aria-hidden="true"></i> Next: Function macros</a></p>
+            </div>
+            <div id="Scripting-FunctionMacros" class="section" hidden="true">
+                <h1>Function macros</h1>
+                <p>Function macros are denoted by the <code>#</code> metacharacter and they refer to Javascript functions. For example, the macro <code>{#Foo}</code> refers to the Javascript function <code>Foo()</code>. Function macros never pass any arguments,
+                    but in some circumstances can accept a <code>string</code> return value (see below).</p>
+                <h2>In story text</h2>
+                <p>If you put a function macro directly in the story text, the function will be called on entry into the section, and any text it returns will be inserted into the section in place of the macro.</p>
+                <p>First, create a Javascript function in any .js file that’s included in your project:</p>
+                <pre><code>function MyFunction()
+{
+	return &quot;Hello, world!&quot;;
+}
+</code></pre>
+                <p>In your Markdown story text, include a function macro referencing this function:</p>
+                <pre><code>{{Start}}
+
+Here is a message from Javascript: {#MyFunction}
+</code></pre>
+                <p>When the player starts this story they’ll see:</p>
+                <pre><code>Here is a message from Javascript: Hello, world!
+</code></pre>
+                <p>The text that gets displayed is the return value of <code>MyFunction()</code> converted to a string by <code>MyFunction().toString()</code>.</p>
+                <h2>As link destinations</h2>
+                <p>If you put a function macro as a link destination, the function will be called when the player clicks the link.</p>
+                <p>First, create a Javascript function in any .js file that’s included in your project:</p>
+                <pre><code>function MyFunction()
+{
+	alert(&quot;Hello, world!&quot;);
+}
+</code></pre>
+                <p>In your Markdown story text, link to this function using a function macro:</p>
+                <pre><code>{{Start}}
+
+[Say hello]({#MyFunction})
+</code></pre>
+                <p>When the player clicks the “Say hello” link, a window will pop up with the text “Hello, world!”</p>
+                <h1>Inline macros</h1>
+                <p>If you put a function macro as a link destination and add the <code>:inline</code> specifier, the function will be called when the player clicks the link, and the link will be replaced with any text the function returns.</p>
+                <p>First, create a Javascript function in any .js file that’s included in your project:</p>
+                <pre><code>function MyFunction()
+{
+	return &quot;Hello, world!&quot;;
+}
+</code></pre>
+                <p>In your Markdown story text, link to this function using a function macro with the <code>:inline</code> specifier:</p>
+                <pre><code>{{Start}}
+
+Javascript says: [???]({#MyFunction:inline})
+</code></pre>
+                <p>When the player starts the story, they’ll see:</p>
+                <pre><code>Javascript says: ???
+</code></pre>
+                <p>…and when they click the link “???” it’ll be replaced inline, so they’ll now see:</p>
+                <pre><code>Javascript says: Hello, World!
+</code></pre>
+                <p>The text that gets displayed is the return value of <code>MyFunction()</code> converted to a string by <code>MyFunction().toString()</code>.</p>
+                <p><a title="" href="#" data-goto-section="Scripting-VariableMacros"><i class="fa fa-arrow-circle-right" aria-hidden="true"></i> Next: Variable macros</a></p>
+            </div>
+            <div id="Scripting-VariableMacros" class="section" hidden="true">
+                <h1>Variable macros</h1>
+                <p>Variable macros are denoted by the <code>$</code> metacharacter and refer to Javascript variables. For example, the macro <code>{$Foo}</code> refers to the Javascript variable <code>Foo</code>.</p>
+                <h2>In story text</h2>
+                <p>Variable macros placed directly into story text are expanded to their string value when the section is entered. For example, if a .js file declares a variable like this:</p>
+                <pre><code>var Foo = &quot;Hello, world!&quot;;
+</code></pre>
+                <p>…and the story text contains a variable macro like this:</p>
+                <pre><code>{{Start}}
+
+Javascript says: {$Foo}
+</code></pre>
+                <p>…then when the player starts the story, they’ll see:</p>
+                <pre><code>Javascript says: Hello, world!
+</code></pre>
+                <p>The text that gets displayed is the value of <code>Foo</code> converted to a string by <code>Foo.toString()</code>.</p>
+                <h2>As link destinations</h2>
+                <p>Variable macros cannot currently be used as link destinations, and the compiler will spit out an error at build time if you attempt to do so.</p>
+                <h2>Inline macros</h2>
+                <p>Variable macros can be set as link destinations with the <code>:inline</code> specifier, in which case the link will be replaced with the value of the variable when clicked. For example, if a .js file declares a variable like this:</p>
+                <pre><code>var Foo = &quot;Hello, world!&quot;;
+</code></pre>
+                <p>…and the story text contains a variable macro like this:</p>
+                <pre><code>{{Start}}
+
+[Javascript says...]({$Foo:inline})
+</code></pre>
+                <p>…then when the player starts the story, they’ll see:</p>
+                <pre><code>Javascript says...
+</code></pre>
+                <p>…and when they click the “Javascript says…” link, it’ll be replaced with:</p>
+                <pre><code>Hello, world!
+</code></pre>
+                <p>The text that gets displayed is the value of <code>Foo</code> converted to a string by <code>Foo.toString()</code>.</p>
+                <p><a title="" href="#" data-goto-section="Scripting-CoreAPI"><i class="fa fa-arrow-circle-right" aria-hidden="true"></i> Next: Core API</a></p>
+            </div>
+            <div id="Scripting-CoreAPI" class="section" hidden="true">
+                <h1>Core API</h1>
+                <p>Fractive exposes some useful Javascript functions to your story scripts.</p>
+                <h2>Core.BeginStory</h2>
+                <pre><code>Core.BeginStory()
+</code></pre>
+                <p>Begins (or restarts) the story. You don’t need to call this to start the story initially; that happens automatically. But you might call this if you wanted to implement your own “Restart Story” link.</p>
+                <p>The difference between calling this vs. calling <code>Core.GotoSection(&quot;Start&quot;)</code> is that this function also calls any registered <code>OnBeginStory</code> <a title="" href="#" data-goto-section="Scripting-EventHandlers">event handlers</a>.</p>
+                <h2>Core.GetSection</h2>
+                <pre><code>Core.GetSection(&quot;SectionName&quot;)
+</code></pre>
+                <p>Gets a copy of the given section, expands its macros, registers its links, and returns an <code>Element</code> instance which is fully activated and ready to be displayed to the user, without actually navigating to that section. This function
+                    is for advanced/unusual circumstances; for example, this documentation uses it to populate the table of contents in the sidebar. Normally you should just use <code>Core.GotoSection(&quot;SectionName&quot;)</code> instead.</p>
+                <h2>Core.GotoPreviousSection()</h2>
+                <pre><code>Core.GotoPrevousSection()
+</code></pre>
+                <p>Travel to the section we just came from. You can hook this up to a “Back” link if you want players to be able to undo their choices.</p>
+                <h2>Core.GotoSection</h2>
+                <pre><code>Core.GotoSection(&quot;SectionName&quot;)
+</code></pre>
+                <p>Advances the story to the named section. This is exactly the same thing that happens when the player clicks a link to a section macro. The advantage to calling this in Javascript is you could retrieve the target section name from a variable,
+                    or build it dynamically (use with care!)</p>
+                <p><a title="" href="#" data-goto-section="Scripting-EventHandlers"><i class="fa fa-arrow-circle-right" aria-hidden="true"></i> Next: Event handlers</a></p>
+            </div>
+            <div id="Scripting-EventHandlers" class="section" hidden="true">
+                <h1>Event handlers</h1>
+                <p>Fractive exposes events you can subscribe to, for when you want some code to be notified that something happened. To assign an event, declare a Javascript function in your story script and pass it to <code>Core.AddEventListener</code>.</p>
+                <h2>OnBeginStory</h2>
+                <pre><code>Core.AddEventListener(&quot;OnBeginStory&quot;, function()
+{
+	// Handle the event here
+});
+</code></pre>
+                <p>Subscribe to this event and it’ll be called immediately before the story begins. This is a good place to do any script initialization you might need.</p>
+                <h2>OnGotoSection</h2>
+                <pre><code>Core.AddEventListener(&quot;OnGotoSection&quot;, function(id, element, tags, isGoingBack)
+{
+	// Handle the event here
+});
+</code></pre>
+                <p>Subscribe to this event and it’ll be called whenever the current section changes. You’ll receive the ID (section name) of the target section, the HTML <code>Element</code> representing it (this will be the new state of the <code>__currentSection</code>                    div), an array of tags (strings), and an <code>isGoingBack</code> flag.</p>
+                <p>Tags are not currently used, but in the future you’ll be able to assign them to sections and then do whatever you want with them.</p>
+                <p>The <code>isGoingBack</code> flag is normally false, but will be true if we’re transitioning back to a previous section (e.g. because the player clicked the “back” link). That gives your script a chance to revert any custom game state.</p>
+                <p><a title="" href="#" data-goto-section="Scripting-Extensions"><i class="fa fa-arrow-circle-right" aria-hidden="true"></i> Next: Script extensions</a></p>
+            </div>
+            <div id="Scripting-Extensions" class="section" hidden="true">
+                <h1>Script extensions</h1>
+                <p>Since Fractive games allow unrestricted Javascript, you have the ability to extend your game beyond the “normal” hypertext fiction structure in potentially surprising ways. For example, you might choose to integrate your own or third-party
+                    libraries to add things like interactive graphical gameplay sequences or network multiplayer.</p>
+                <p>These kinds of extensions may add lots of additional Javascript – much more than you’d be using for your “normal” game logic – and that Javascript may need to be deployed in certain directory structures, utilize lazy loading, etc. These
+                    are all things that would likely break if all those scripts were embedded directly into your story’s <code>index.html</code>.</p>
+                <p>In these situations you may benefit from placing those scripts in your <code>assets</code> list instead of your <code>source</code> list (see <a title="" href="#" data-goto-section="Projects-Configuration">Project configuration</a>). That
+                    way, they’ll simply be copied to your final build location instead of being embedded in the <code>index.html</code>. You can then edit your template with <code>&lt;script&gt;</code> tags to source those scripts however you need.</p>
+                <p><a title="" href="#" data-goto-section="Scripting-EmbeddingFractive"><i class="fa fa-arrow-circle-right" aria-hidden="true"></i> Next: Embedding Fractive</a></p>
+            </div>
+            <div id="Scripting-EmbeddingFractive" class="section" hidden="true">
+                <h1>Embedding Fractive</h1>
+                <p>You can also import Fractive as an npm dependency into another project, e.g. if you wanted to embed Fractive into a larger game or application. If your host project is an NPM project (which is strongly recommended) then you can add Fractive
+                    as a local dependency like this:</p>
+                <pre><code>npm install --save-dev fractive
+</code></pre>
+                <p>Then import it in your script file(s):</p>
+                <p><code>import * as fractive from &quot;fractive&quot;;</code></p>
+                <p>And invoke exported API functions like this:</p>
+                <p><code>fractive.Core.GotoSection(&quot;SomeSectionName&quot;);</code></p>
+                <p>This installs Fractive as a local dependency to your project. If this is your only Fractive install (i.e. you never do <code>npm install -g fractive</code>) then you won’t have <code>fractive</code> on your PATH, which means commands like
+                    <code>fractive compile path/to/my/story</code> won’t work. Local installs place the <code>fractive</code> executable in your project’s <code>node_modules/.bin</code> directory, so you’ll need to invoke it like this:</p>
+                <pre><code>cd path/to/my/story
+./node_modules/.bin/fractive compile .
+</code></pre>
+                <p>Since this is a little awkward, it’s recommended to wrap this with an npm build script in your <code>package.json</code>:</p>
+                <pre><code>&quot;scripts&quot;: {
+	&quot;build&quot;: &quot;./node_modules/.bin/fractive compile .&quot;,
+}
+</code></pre>
+                <p>Then you can just do <code>npm run build</code> to compile your story. In this use case, though, you’ll probably have some kind of build script already set up for all the rest of your non-Fractive code, so you may just want to integrate
+                    this command into that script however is most appropriate for your dev environment.</p>
+            </div>
+            <!-- source/start.md -->
+            <div id="Start" class="section" hidden="true">
+                <h1>What is Fractive?</h1>
+                <p>Fractive is a hypertext authoring tool, primarily intended for the creation of interactive fiction.</p>
+                <p>Stories are written in <a title="" target="_blank" href="https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet">Markdown&nbsp;<i class="fa fa-external-link" aria-hidden="true"></i></a>, and (optional) game logic is added with
+                    <a title="" target="_blank" href="https://www.javascript.com">Javascript&nbsp;<i class="fa fa-external-link" aria-hidden="true"></i></a>. The results are kind of like <a title="" target="_blank" href="https://twinery.org/2/">Twine&nbsp;<i class="fa fa-external-link" aria-hidden="true"></i></a>,
+                    but the authoring process is very different.</p>
+                <p>Fractive has three core goals:</p>
+                <ul>
+                    <li>Keep story text readable, unencumbered by the details of scripted game logic and with minimal additional syntax</li>
+                    <li>Don’t require any scripting at all for basic “choose your own adventure” style games, and use complete, standard Javascript for custom/advanced game logic</li>
+                    <li>Compile finished stories to portable HTML which can be played on any (reasonable) browser, platform, and device</li>
+                </ul>
+                <h1>Conventions</h1>
+                <p>Throughout this documentation you’ll see some links with symbols next to them:</p>
+                <p><i class="fa fa-external-link" aria-hidden="true"></i> indicates a link to something outside this guide. This will open in a new tab/window.</p>
+                <p><i class="fa fa-info-circle" aria-hidden="true"></i> appears on links which expand in-place to reveal more detailed information about the topic.</p>
+                <h1>Support</h1>
+                <p>Fractive is maintained on GitHub at <a title="" target="_blank" href="https://github.com/invicticide/fractive">https://github.com/invicticide/fractive&nbsp;<i class="fa fa-external-link" aria-hidden="true"></i></a></p>
+                <p>Bug reports and feature requests can be filed <a title="" target="_blank" href="https://github.com/invicticide/fractive/issues">here&nbsp;<i class="fa fa-external-link" aria-hidden="true"></i></a> (you will need a GitHub account). Please
+                    do a quick search for your issue before filing, to prevent duplicates.</p>
+                <h1>License</h1>
+                <p>Fractive is licensed under <a title="" target="_blank" href="https://github.com/invicticide/fractive/blob/dev/license.md">AGPL-3.0+&nbsp;<i class="fa fa-external-link" aria-hidden="true"></i></a>.</p>
+                <p><a title="" href="#" data-goto-section="QuickStart"><i class="fa fa-arrow-circle-right" aria-hidden="true"></i> Next: Quick start</a></p>
+            </div>
+            <!-- source/stories.md -->
+            <div id="Stories-Sections" class="section" hidden="true">
+                <h1>Sections</h1>
+                <p>Story text is written in <a title="" target="_blank" href="https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet">Markdown&nbsp;<i class="fa fa-external-link" aria-hidden="true"></i></a>, which is pretty close to plain text
+                    but with a few special formatting marks. Here’s a <a title="" target="_blank" href="https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet">cheat sheet&nbsp;<i class="fa fa-external-link" aria-hidden="true"></i></a> that
+                    should get you up to speed in just a few minutes.</p>
+                <p>You’ll write your story text in <strong>sections</strong>, each preceded by a special macro that looks like this: <code>{{SectionName}}</code>. Each section name (the part inside the double curly braces) must be unique within the story,
+                    and section names may not contain whitespace or punctuation: only letters and numbers. A simple section would look like this:</p>
+                <pre><code>{{Start}}
+
+You are in a maze of twisty little passages, all alike.
+</code></pre>
+                <p>Your story must contain one section called <code>{{Start}}</code> which is where the story begins.</p>
+                <p>You can create a link that takes the player to another section by creating a regular Markdown link and setting the URL to a macro that looks like this: <code>{@DestinationName}</code>:</p>
+                <pre><code>{{Start}}
+
+You are in a maze of twisty little passages, all alike.
+
+[Look around]({@LookAround})
+</code></pre>
+                <p>In this example, clicking the “Look around” link would transition the player to the section called <code>LookAround</code>.</p>
+                <p><a title="" href="#" data-goto-section="Stories-Macros"><i class="fa fa-arrow-circle-right" aria-hidden="true"></i> Next: Macros</a></p>
+            </div>
+            <div id="Stories-Macros" class="section" hidden="true">
+                <h1>Macros</h1>
+                <p>Macros are always enclosed in <code>{}</code>. There are several types, each denoted by a leading <strong>metacharacter</strong>:</p>
+                <ul>
+                    <li><code>@</code> denotes a <strong>section</strong> macro</li>
+                    <li><code>#</code> denotes a <strong>function</strong> macro</li>
+                    <li><code>$</code> denotes a <strong>variable</strong> macro</li>
+                </ul>
+                <p>In story text, they look like this:</p>
+                <pre><code>{{Start}}
+
+This is a section macro: {@SomeSection}
+This is a function macro: {#SomeFunction}
+This is a variable macro: {$SomeVariable}
+</code></pre>
+                <h1>Macros in story text</h1>
+                <p>When used directly in the story text, macros behave like so:</p>
+                <ul>
+                    <li><code>@</code> section macros are replaced with the contents of the named section</li>
+                    <li><code>#</code> function macros call the named Javascript function and then replace themselves with the text returned by that function (see <a title="" href="#" data-goto-section="Scripting-FunctionMacros">Scripting: Function macros</a>                        for details)</li>
+                    <li><code>$</code> variable macros are replaced with the value of the named Javascript variable (see <a title="" href="#" data-goto-section="Scripting-VariableMacros">Scripting: Variable macros</a> for details)</li>
+                </ul>
+                <p>For example, writing this:</p>
+                <pre><code>{{Start}}
+
+You have {$NumApples} apples.
+</code></pre>
+                <p>…would replace the <code>{$NumApples}</code> macro with the value of the <code>NumApples</code> variable, for a result like this:</p>
+                <pre><code>You have 42 apples.
+</code></pre>
+                <p>Macros are re-evaluated each time a section is entered, which means if you returned to this section again later in the story (after the value of the <code>NumApples</code> variable had changed) you would get a different result:</p>
+                <pre><code>You have 10 apples.
+</code></pre>
+                <h1>Macros as link destinations</h1>
+                <p>When used as a link destination, macros behave like so:</p>
+                <ul>
+                    <li><code>@</code> section macros navigate to the named section</li>
+                    <li><code>#</code> function macros call the named Javascript function (see <a title="" href="#" data-goto-section="Scripting-FunctionMacros">Scripting: Function macros</a> for details)</li>
+                    <li><code>$</code> variable macros are not valid as link destinations and will throw an error if used in this context</li>
+                </ul>
+                <p>For example, writing this:</p>
+                <pre><code>{{Start}}
+
+Let's go [elsewhere]({@Elsewhere}).
+</code></pre>
+                <p>…would create a link out of the word “elsewhere” which, when clicked, would navigate to the section called <code>Elsewhere</code>.</p>
+                <h1>Inline macros</h1>
+                <p>Link macros can also be extended with the optional keyword <code>:inline</code> which creates a link that expands to some other text in-place when clicked (the <i class="fa fa-info-circle" aria-hidden="true"></i> links in this documentation
+                    are an example of <code>:inline</code> behavior).</p>
+                <p>For example, you could write this:</p>
+                <pre><code>{{Start}}
+
+You are in [a maze]({$ExamineMaze:inline}) of twisty little passages, all alike.
+</code></pre>
+                <p>…then define the variable in a .js file:</p>
+                <pre><code>var ExamineMaze = &quot;the Maze of Doom, where few adventurers dare tread. It consists&quot;;
+</code></pre>
+                <p>Now when the player clicks on the <code>a maze</code> link, the link will be replaced with the value of the <code>ExamineMaze</code> variable, so they’ll see instead:</p>
+                <pre><code>You are in the Maze of Doom, where few adventurers dare tread. It consist of twisty little passages, all alike.
+</code></pre>
+                <p>Note that sections are block-level elements and will include paragraph breaks, so if you want to do an inline link in the middle of sentence, you’ll probably want to use a function or variable macro instead.</p>
+                <p><a title="" href="#" data-goto-section="Stories-Multimedia"><i class="fa fa-arrow-circle-right" aria-hidden="true"></i> Next: Multimedia</a></p>
+            </div>
+            <div id="Stories-Multimedia" class="section" hidden="true">
+                <h1>Multimedia</h1>
+                <p>You can add multimedia elements, like images or videos, to your Fractive stories. In most cases you’ll just put those files in <code>assets</code> and then source them in your Markdown file. For example, you can place images like this:</p>
+                <pre><code>![Image alt text](assets/image.png)
+</code></pre>
+                <p>Anything in <code>assets</code> gets copied over to your build output location when you publish your story, and the directory structure is preserved. (When writing asset paths in Markdown or Javascript, they should be relative to the project
+                    root, not the Markdown/Javascript file itself.)</p>
+                <p>Markdown also allows raw HTML, so you could embed e.g. a YouTube video using its normal embed code. A section with a video might look like this:</p>
+                <pre><code>{{VideoSection}}
+
+Here's a video!
+
+&lt;iframe width=&quot;854&quot; height=&quot;480&quot; src=&quot;https://www.youtube.com/embed/dQw4w9WgXcQ&quot; frameborder=&quot;0&quot; gesture=&quot;media&quot; allowfullscreen&gt;&lt;/iframe&gt;
+</code></pre>
+                <p><a title="" href="#" data-goto-section="Stories-Templates"><i class="fa fa-arrow-circle-right" aria-hidden="true"></i> Next: Templates</a></p>
+            </div>
+            <div id="Stories-Aliases" class="section" hidden="true">
+                <h1>Aliases</h1>
+                <p>Since Markdown also accepts HTML, you could style some text like this:</p>
+                <pre><code>In this story, some things are &lt;span style=&quot;color:red&quot;&gt;displayed in red&lt;/span&gt;!
+</code></pre>
+                <p>While functional, this looks ugly and makes your story text harder to read. It’s also a lot to type out, and if you’re going to be styling things consistently, you have to copy the same HTML snippet over and over again, which creates an
+                    opportunity for bugs to arise.</p>
+                <p>To solve this problem (and others like it) you can define custom macros, called <strong>aliases</strong>, which expand to other text or markup at compile-time. In your <code>fractive.json</code> simply add some rules to the <code>aliases</code>                    field, like this:</p>
+                <pre><code>&quot;aliases&quot;: [
+	{ &quot;alias&quot;: &quot;red&quot;, &quot;replaceWith&quot;: &quot;&lt;span style='color:red'&gt;&quot;, &quot;end&quot;: &quot;&lt;/span&gt;&quot; },
+	{ &quot;alias&quot;: &quot;blue&quot;, &quot;replaceWith&quot;: &quot;&lt;span style='color:blue'&gt;&quot;, &quot;end&quot;: &quot;&lt;/span&gt;&quot; }
+],
+</code></pre>
+                <p>Then refer to the alias in your story text like this:</p>
+                <pre><code>In this story, some things are {red}displayed in red{/red}!
+</code></pre>
+                <p>When you build your story, all instances of <code>{red}</code> will be replaced with <code>&lt;span style='color:red'&gt;</code> and all instances of <code>{/red}</code> will be replaced with <code>&lt;/span&gt;</code>. If later you wanted
+                    to change all your red text to a more specific shade of red (for example) you could simply edit your alias like this, then rebuild your story and all existing usages of the <code>{red}</code> alias would be automatically updated:</p>
+                <pre><code>&quot;aliases&quot;: [
+	{ &quot;alias&quot;: &quot;red&quot;, &quot;replaceWith&quot;: &quot;&lt;span style='color:#ff8888'&gt;&quot;, &quot;end&quot;: &quot;&lt;/span&gt;&quot; },
+	{ &quot;alias&quot;: &quot;blue&quot;, &quot;replaceWith&quot;: &quot;&lt;span style='color:#8888ff'&gt;&quot;, &quot;end&quot;: &quot;&lt;/span&gt;&quot; }
+],
+</code></pre>
+                <p>The <code>end</code> property of an alias is optional. Aliases are replaced with the <code>replaceWith</code> parameter, unless they contain a leading <code>/</code>, in which case they’re replaced with their <code>end</code> parameter
+                    instead.</p>
+                <p>Alias replacement happens before any other build steps take place, and is a (nearly) pure text replacement. That means you can replace aliases with macro definitions, and those macros will then be expanded normally. In other words, you
+                    could do something like this:</p>
+                <pre><code>&quot;aliases&quot;: [
+	{ &quot;alias&quot;: &quot;Home&quot;, &quot;replaceWith&quot;: &quot;{{Start}}&quot; }
+],
+</code></pre>
+                <p>And then in your story text do this:</p>
+                <pre><code>{Home}
+This is the beginning of my story, but I'm obstinate and don't want to use the normal \{{Start}} macro as my default section header.
+</code></pre>
+                <p>When you build this story, <code>{Home}</code> will get replaced with <code>{{Start}}</code> and then <em>voila</em>, you have a valid starting section by a different name! (This is a contrived example, but you get the idea.)</p>
+                <p>Finally, did you notice the <code>\{{Start}}</code> in the example text above? When a macro is preceded by a <code>\</code> character it is <strong>escaped</strong>, which means it’s not treated like a macro and is instead just rendered
+                    as-is. Escaping applies to aliases as well, so <code>{red}</code> will be replaced, but <code>\{red}</code> will not. You should only need to use this in the rare case that you have text that contains a macro (or just a <code>{</code>                    character) that needs to actually be shown to the player. (This documentation is one such example!)</p>
+                <p><a title="" href="#" data-goto-section="Scripting-Intro"><i class="fa fa-arrow-circle-right" aria-hidden="true"></i> Next: Intro to scripting</a></p>
+            </div>
+            <div id="Stories-Templates" class="section" hidden="true">
+                <h1>Templates</h1>
+                <p>You can control the visual layout and style of your story by providing a custom HTML template. When you create a new project, a basic <code>template.html</code> is created in your project root. You can edit or replace this at your leisure.</p>
+                <p>A template is a regular HTML file with a few special macros:</p>
+                <p><code>&lt;!--{script}--&gt;</code><br/>Indicates where story scripts should be inserted. Generally you should put this inside your <code>&lt;head&gt;</code>. You don’t need to include <code>&lt;script&gt;</code> tags; they’ll be added
+                    automatically by the compiler.</p>
+                <p><code>&lt;!--{story}--&gt;</code><br/>Indicates where story text should be inserted. Generally you should put this inside your <code>&lt;body&gt;</code>. It doesn’t really matter where, because this will all be hidden at startup anyway.</p>
+                <p><code>&lt;!--{backButton}--&gt;</code><br/>Indicates where the <code>backButtonHTML</code> defined in your <code>fractive.json</code> should be inserted, if <code>includeBackButton</code> is set to <code>true</code>. (See <a title="" href="#"
+                        data-goto-section="Projects-Configuration">Configuration</a> for details.)</p>
+                <p>You also need to define:</p>
+                <pre><code>&lt;div id=&quot;__currentSection&quot;&gt;&lt;/div&gt;
+</code></pre>
+                <p>…which should be empty. This is where the active section’s story text will be displayed on the page.</p>
+                <p>Optionally, you can also include:</p>
+                <pre><code>&lt;div id=&quot;__history&quot;&gt;&lt;/div&gt;
+</code></pre>
+                <p>…which should also be empty. This is where past sections will be displayed when history is enabled.</p>
+                <p>You can also style your game with custom CSS; just embed it in <code>&lt;style&gt;&lt;/style&gt;</code> tags at the top of your HTML template (or link to an external CSS file if you prefer). Fractive uses a few core CSS selectors you’ll
+                    want to override:</p>
+                <p><code>#__currentSection</code><br/>Covers the entire current section div, where active gameplay takes place.</p>
+                <p><code>#__history</code><br/>Covers the entire history div, where previous sections are displayed for reference.</p>
+                <p><code>.__inlineMacro</code><br/>Covers the expanded text that appears when the player clicks an <code>:inline</code> macro. The expanded text is wrapped in a span with this class.</p>
+                <p><code>.__disabledLink</code><br/>Covers <code>&lt;a&gt;</code> tags in sections that have been moved to the history. Those <code>&lt;a&gt;</code> tags are replaced with <code>&lt;span&gt;</code> with this class assigned.</p>
+                <p><a title="" href="#" data-goto-section="Stories-Aliases"><i class="fa fa-arrow-circle-right" aria-hidden="true"></i> Next: Aliases</a></p>
+            </div>
+            <!-- source/toc.md -->
+            <div id="TableOfContents" class="section" hidden="true">
+                <h1>Getting started</h1>
+                <p><a title="" href="#" data-goto-section="QuickStart">Quick start</a></p>
+                <h1>Projects</h1>
+                <p><a title="" href="#" data-goto-section="Projects-Intro">About projects</a></p>
+                <p><a title="" href="#" data-goto-section="Projects-Configuration">Configuration</a></p>
+                <p><a title="" href="#" data-goto-section="Projects-Publishing">Publishing</a></p>
+                <p><a title="" href="#" data-goto-section="Projects-Examples">Example projects</a></p>
+                <h1>Writing stories</h1>
+                <p><a title="" href="#" data-goto-section="Stories-Sections">Sections</a></p>
+                <p><a title="" href="#" data-goto-section="Stories-Macros">Macros</a></p>
+                <p><a title="" href="#" data-goto-section="Stories-Multimedia">Multimedia</a></p>
+                <p><a title="" href="#" data-goto-section="Stories-Templates">Templates</a></p>
+                <p><a title="" href="#" data-goto-section="Stories-Aliases">Aliases</a></p>
+                <h1>Scripting</h1>
+                <p><a title="" href="#" data-goto-section="Scripting-Intro">Intro to scripting</a></p>
+                <p><a title="" href="#" data-goto-section="Scripting-FunctionMacros">Function macros</a></p>
+                <p><a title="" href="#" data-goto-section="Scripting-VariableMacros">Variable macros</a></p>
+                <p><a title="" href="#" data-goto-section="Scripting-CoreAPI">Core API</a></p>
+                <p><a title="" href="#" data-goto-section="Scripting-EventHandlers">Event handlers</a></p>
+                <p><a title="" href="#" data-goto-section="Scripting-Extensions">Script extensions</a></p>
+                <p><a title="" href="#" data-goto-section="Scripting-EmbeddingFractive">Embedding Fractive</a></p>
+            </div>
+            <!-- source/tutorial.md -->
+            <div id="Tutorial-Start" class="section" hidden="true">
+                <p>start of the tutorial</p>
+            </div>
+            <div id="Tutorial-Environment" class="section" hidden="true">
+                <p>dev environment, tools, setup</p>
+            </div>
+            <div id="Tutorial-CreateProject" class="section" hidden="true">
+                <p>create a project</p>
+            </div>
+            <div id="Tutorial-FirstSections" class="section" hidden="true">
+                <p>write first couple sections and link them</p>
+            </div>
+            <div id="Tutorial-BuildProject" class="section" hidden="true">
+                <p>build the project</p>
+            </div>
+            <div id="Tutorial-TestProject" class="section" hidden="true">
+                <p>test the project</p>
+            </div>
+            <div id="Tutorial-Multimedia" class="section" hidden="true">
+                <p>add images, video</p>
+            </div>
+            <div id="Tutorial-CreateFunction" class="section" hidden="true">
+                <p>write a js function that affects game state</p>
+            </div>
+            <div id="Tutorial-FunctionMacros" class="section" hidden="true">
+                <p>create a function macro to call your function</p>
+            </div>
+            <div id="Tutorial-VariableMacros" class="section" hidden="true">
+                <p>add a variable macro to reveal the dynamic game state</p>
+            </div>
+            <div id="Tutorial-InlineLinks" class="section" hidden="true">
+                <p>add detail with inline links</p>
+            </div>
+            <div id="Tutorial-EventListener" class="section" hidden="true">
+                <p>do some work in an event listener</p>
+            </div>
+            <div id="Tutorial-Aliases" class="section" hidden="true">
+                <p>use aliases for inline styling</p>
+            </div>
+            <div id="Tutorial-CustomTemplate" class="section" hidden="true">
+                <p>customize the html template</p>
+            </div>
+            <div id="Tutorial-PublishProject" class="section" hidden="true">
+                <p>publish the project, what to upload</p>
+            </div>
+
+            <div id="__topNav">
+                <p>
+                    <a class="__topNav" href="javascript:;" onclick="Core.GotoPreviousSection();"><i class="fa fa-arrow-circle-left" aria-hidden="true"></i> Back</a>
+                </p>
+            </div>
+            <div id="__currentSection"></div>
+        </div>
+    </div>
+</body>
+
+</html>
+<script>
+    Core.BeginStory();
+</script>

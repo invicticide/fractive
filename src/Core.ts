@@ -23,13 +23,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 export namespace Core
 {
 	/**
+	 * Event listener to call just before the story begins, for user init code to run
+	 */
+	export let OnBeginStory : Array<() => void> = [];
+
+	/**
 	 * Event listener to call whenever the current section changes
 	 * @param id The id attribute of the new section
 	 * @param element The raw DOM element for the new section
 	 * @param tags Array of tags associated with the new section
-	 * @param goingBack True if section is changing as a result of the back button or GotoLastSection() being called
+	 * @param isRewind True if section is changing as a result of RewindSection() being called
 	 */
-	export let OnGotoSection : Array<(id : string, element : Element, tags : string[], goingBack : boolean) => void> = [];
+	export let OnGotoSection : Array<(id : string, element : Element, tags : string[], isRewind : boolean) => void> = [];
 
 	/**
 	 * Subscribe to an event with a custom handler function. The handler will be called whenever the event occurs.
@@ -40,6 +45,11 @@ export namespace Core
 	{
 		switch(eventName)
 		{
+			case "OnBeginStory":
+			{
+				Core.OnBeginStory = Core.OnBeginStory.concat(handler);
+				break;
+			}
 			case "OnGotoSection":
 			{
 				Core.OnGotoSection = Core.OnGotoSection.concat(handler);
@@ -54,24 +64,37 @@ export namespace Core
 	}
 
 	/**
-	 * Access a global variable dynamically from the window by splitting its
-	 * name at any .'s in order to keep indexing recursively.
+	 * Begins the story. Notifies user code and navigates to the "Start" section.
 	 */
-	function RetrieveFromWindow(name : string, type) {
-		let targetObject = null;
-		let tokens = name.split('.');
+	// @ts-ignore This is never called code but a call to it is written into target HTML by the compiler
+	export function BeginStory()
+	{
+		for(let i = 0; i < OnBeginStory.length; i++) { OnBeginStory[i](); }
+		GotoSection("Start");
+	}
 
-		for(let i = 0; i < tokens.length; i++)
-		{
-			if(i === 0) { targetObject = window[tokens[0]]; }
-			else { targetObject = targetObject[tokens[i]]; }
-		}
-		if(targetObject === undefined)
-		{
-			return `{${type} "${name}" is not declared}`;
-		}
+	/**
+	 * Disable any hyperlinks in the given section, while preserving their original link tag in case they need to be re-enabled
+	 */
+	function DisableLinks(section : Element)
+	{
+		let links = section.getElementsByTagName("a");
 
-		return targetObject;
+		// We need to i++ because we don't actually remove the link tag,
+		// just leave it empty.
+		for(let i = 0; i < links.length; i++)
+		{
+			// Preserve the link tag, but keep it EMPTY, and leave it next to the content, so the
+			// disabling process can be reversed by the back button.
+			let linkTag : string = links[i].outerHTML.substring(0, links[i].outerHTML.indexOf(">") + 1);
+
+			// The content from inside the link will be moved outside the link tag
+			let contents : string = links[i].outerHTML.substring(
+				links[i].outerHTML.indexOf(">") + 1,
+				links[i].outerHTML.indexOf("</a>")
+			);
+			links[i].outerHTML = `<span class="__disabledLink" data-link-tag='${linkTag}'>${linkTag}${contents}</span>`;
+		}
 	}
 
 	/**
@@ -92,6 +115,26 @@ export namespace Core
 		for(let i = 0; i < root.children.length; i++)
 		{
 			EnableInlineMacros(root.children[i], tf);
+		}
+	}
+
+	/**
+	 * Re-enable disabled hyperlinks in the given section
+	 */
+	function EnableLinks(section : Element)
+	{
+		let links = section.getElementsByClassName("__disabledLink");
+
+		// Stripping each link modifies the collection as we iterate, so we don't need i++
+		for(let i = 0; i < links.length; /*NOP*/)
+		{
+			// Retrieve the link's original tag
+			let linkTag : string = links[i].getAttribute('data-link-tag');
+
+			// The content from inside the link will be moved back inside the link tag
+			let contents : string = links[i].innerHTML;
+
+			links[i].outerHTML = linkTag + contents + '</a>';
 		}
 	}
 
@@ -200,91 +243,23 @@ export namespace Core
 	}
 
 	/**
-	 * Disable any hyperlinks in the given section, while preserving their
-	 * original link tag in case they need to be re-enabled
+	 * Gets a copy of the given section, expands its macros, registers its links, and returns an Element
+	 * which is fully activated and ready to be displayed to the user.
+	 * @param id The name of the section to retrieve.
 	 */
-	function DisableLinks(section) {
-		let links = section.getElementsByTagName("a");
-
-		// We need to i++ because we don't actually remove the link tag,
-		// just leave it empty.
-		for(let i = 0; i < links.length; i++)
-		{
-			// Preserve the link tag, but keep it EMPTY, and leave it next
-			// to the content, so the disabling process can be reversed by
-			// the back button.
-			let linkTag : string = links[i].outerHTML.substring(
-				0, links[i].outerHTML.indexOf(">") + 1);
-			// The content from inside the link will be moved outside the link tag
-			let contents : string = links[i].outerHTML.substring(
-				links[i].outerHTML.indexOf(">") + 1,
-				links[i].outerHTML.indexOf("</a>")
-			);
-			links[i].outerHTML = `<span class="__disabledLink" data-link-tag='${linkTag}'>${linkTag}${contents}</span>`;
-		}
-	}
-
-	/**
-	 * Re-enable disabled hyperlinks in the given section
-	 */
-	function EnableLinks(section) {
-		let links = section.getElementsByClassName("__disabledLink");
-
-		// Stripping each link modifies the collection as we iterate, so we don't need i++
-		for(let i = 0; i < links.length; /*NOP*/)
-		{
-			// Retrieve the link's original tag
-			let linkTag : string = links[i].getAttribute('data-link-tag');
-
-			// The content from inside the link will be moved back inside the link tag
-			let contents : string = links[i].innerHTML;
-
-			links[i].outerHTML = linkTag + contents + '</a>';
-		}
-	}
-
-	/**
-	 * Navigate to the given section.
-	 * @param id The string identifier of the section to navigate to.
-	 */
-	export function GotoSection(id : string) : void
+	export function GetSection(id : string) : Element
 	{
-		let history = document.getElementById("__history");
-		let currentSection = document.getElementById("__currentSection");
-
-		// Disable hyperlinks in the current section before moving it to history
-		DisableLinks(currentSection);
-
-		// Move the current section into the history section, keeping it in a div
-		// with its id as a data attribute
-		let previousSectionId = currentSection.getAttribute('data-id');
-
-		if (previousSectionId !== null) {
-			history.innerHTML += `<div class="__previousSection" data-id="${previousSectionId}">${currentSection.innerHTML}</div>`;
-			history.scrollTop = history.scrollHeight;
-		}
-
-		// Expand the destination section
 		let clone = ExpandSection(id);
 		clone.setAttribute('data-id', id);
-
 		EnableInlineMacros(clone, true);
 		RegisterLinks(clone);
-		clone.scrollTop = 0;
-
-		// Replace the div so as to restart CSS animations
-		// Replace the div so as to restart CSS animations (just replacing innerHTML does not do this!)
-		clone.id = "__currentSection";
-		currentSection.parentElement.replaceChild(clone, currentSection);
-
-		// Notify user script
-		for(let i = 0; i < OnGotoSection.length; i++) { OnGotoSection[i](id, clone, [], false); }
+		return clone;
 	}
 
 	/**
 	 * Go to the section declared in Markdown immediately after the current one.
 	 */
-	export function GotoNextSection() {
+	export function GotoAdjacentSection(offset : number) {
 		// Get the id of the current section
 		let currentSection = document.getElementById("__currentSection");
 		let currentSectionId = currentSection.getAttribute('data-id');
@@ -298,26 +273,51 @@ export namespace Core
 				break;
 		}
 
-		if (i+1>=sections.length) {
+		if (i+offset>=sections.length) {
 			console.log("Tried to go to next section when there were no more sections.");
 			return;
 		}
 
-		let nextSectionId = sections[i+1].getAttribute('id');
+		let nextSectionId = sections[i+offset].getAttribute('id');
 		GotoSection(nextSectionId);
 	}
 
 	/**
-	 * Navigate to the previous section as it was
-	 * before transitioning to the current one.
+	 * Go to the next section declared in the story's Markdown files.
 	 */
-	export function GotoLastSection() {
+	export function GotoNextSection()
+	{
+		GotoAdjacentSection(1);
+	}
+
+	/**
+	 * Go to the previous section declared in the story's Markdown files.
+	 * Not to be confused with RewindSection(), which reverse's the player/reader's story flow.
+	 */
+	 export function GotoPreviousSection()
+	 {
+		 GotoAdjacentSection(-1);
+	 }
+
+	/**
+	 * Rewind to the section the player/reader just barely visited.
+	 */
+	export function RewindSection()
+	{
 		let history = document.getElementById("__history");
+		if(history === null)
+		{
+			console.error("History is not supported in this template (the __history element is missing)");
+			return;
+		}
+
 		let currentSection = document.getElementById("__currentSection");
 
 		// Retrieve the most recent section
 		let previousSections = history.getElementsByClassName('__previousSection');
 		let previousSection = previousSections[previousSections.length - 1];
+		if(!previousSection) { return; }
+
 		let id = previousSection.getAttribute('data-id');
 		let clone = previousSection.cloneNode(true) as Element;
 
@@ -335,6 +335,39 @@ export namespace Core
 
 		// Notify user script
 		for(let i = 0; i < OnGotoSection.length; i++) { OnGotoSection[i](id, clone, [], true); }
+	}
+
+	/**
+	 * Navigate to the given section.
+	 * @param id The string identifier of the section to navigate to.
+	 */
+	export function GotoSection(id : string) : void
+	{
+		let history : Element = document.getElementById("__history");
+		let currentSection : Element = document.getElementById("__currentSection");
+
+		// Disable hyperlinks in the current section before moving it to history
+		DisableLinks(currentSection);
+
+		// Move the current section into the history section, keeping it in a div
+		// with its id as a data attribute
+		let previousSectionId = currentSection.getAttribute('data-id');
+		if(previousSectionId !== null && history !== null)
+		{
+			history.innerHTML += `<div class="__previousSection" data-id="${previousSectionId}">${currentSection.innerHTML}</div>`;
+			history.scrollTop = history.scrollHeight;
+		}
+
+		// Get a copy of the new section that's ready to display
+		let clone : Element = GetSection(id);
+		clone.scrollTop = 0;
+		clone.id = "__currentSection";
+
+		// Replace the div so as to restart CSS animations (just replacing innerHTML does not do this!)
+		currentSection.parentElement.replaceChild(clone, currentSection);
+
+		// Notify user script
+		for(let i = 0; i < OnGotoSection.length; i++) { OnGotoSection[i](id, clone, [], false); }
 	}
 
 	/**
@@ -382,6 +415,28 @@ export namespace Core
 	}
 
 	/**
+	 * Access a global variable dynamically from the window by splitting its name at any .'s in order to keep indexing recursively.
+	 * This is like what you'd expect window["foo.bar.baz"] would do... if that syntax were legal.
+	 */
+	function RetrieveFromWindow(name : string, type)
+	{
+		let targetObject = null;
+		let tokens = name.split('.');
+
+		for(let i = 0; i < tokens.length; i++)
+		{
+			if(i === 0) { targetObject = window[tokens[0]]; }
+			else { targetObject = targetObject[tokens[i]]; }
+		}
+		if(targetObject === undefined)
+		{
+			return `{${type} "${name}" is not declared}`;
+		}
+
+		return targetObject;
+	}
+
+	/**
 	 * Replaces the element having the given id, with the given html (used mainly for :inline macros).
 	 * Only replaces the element that's in the __currentSection div; doesn't affect the hidden story text.
 	 * @param id The id of the element to be replaced
@@ -415,15 +470,5 @@ export namespace Core
 				break;
 			}
 		}
-	}
-
-	/**
-	 * Show or hide the history section
-	 * @param tf If true, show history. If false, hide history.
-	 */
-	export function ShowHistory(tf : boolean)
-	{
-		let history = document.getElementById("__history");
-		history.hidden = !tf;
 	}
 }
