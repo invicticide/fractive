@@ -115,7 +115,7 @@ List of globs indicating files to ignore. All files sourced by this list will be
 
 	"template": "template.html"
 
-Specifies the HTML template file to use for formatting the story.
+Specifies the HTML template file to use for formatting the story. (To use one of Fractive's built-in example templates, you can write the path like `\{examples}/basic.html`.)
 
 ## output
 
