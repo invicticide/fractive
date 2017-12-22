@@ -40,6 +40,5 @@
             "prepend": false
         }
     },
-    "includeBackButton": true,
-    "backButtonHTML": "Back"
+    "includeBackButton": false
 }

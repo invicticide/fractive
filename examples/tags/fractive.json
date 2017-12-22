@@ -1,6 +1,6 @@
 {
 	"title": "basic",
-	"template": "../../templates/basic.html",
+	"template": "{examples}/basic.html",
 	"linkTooltips": true,
 	"linkTags": {
 		"external": {

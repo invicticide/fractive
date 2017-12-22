@@ -9,7 +9,7 @@ Once Node.js is installed, open a command line and install Fractive:
 Fractive is now globally available on the command line. Type:
 
 	fractive help
-	
+
 ...to launch the user guide and start learning how to use Fractive!
 
 ## Contributing
