@@ -87,7 +87,7 @@ export namespace Core
 			// Preserve the link tag, but keep it EMPTY, and leave it next to the content, so the
 			// disabling process can be reversed by the back button.
 			let linkTag : string = links[i].outerHTML.substring(0, links[i].outerHTML.indexOf(">") + 1);
-			
+
 			// The content from inside the link will be moved outside the link tag
 			let contents : string = links[i].outerHTML.substring(
 				links[i].outerHTML.indexOf(">") + 1,
@@ -166,7 +166,9 @@ export namespace Core
 			{
 				// Return the result of the named function call
 				let targetFunction = RetrieveFromWindow(macro.substring(1), 'function');
-				return targetFunction().toString();
+				let result = targetFunction();
+
+				return (result === undefined ? '' : result.toString());
 			}
 			case '$':
 			{
@@ -319,7 +321,7 @@ export namespace Core
 		let clone : Element = GetSection(id);
 		clone.scrollTop = 0;
 		clone.id = "__currentSection";
-		
+
 		// Replace the div so as to restart CSS animations (just replacing innerHTML does not do this!)
 		currentSection.parentElement.replaceChild(clone, currentSection);
 
