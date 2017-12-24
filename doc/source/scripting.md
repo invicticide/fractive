@@ -171,6 +171,12 @@ Travel to the section we just came from. You can hook this up to a "Back" link i
 
 Advances the story to the named section. This is exactly the same thing that happens when the player clicks a link to a section macro. The advantage to calling this in Javascript is you could retrieve the target section name from a variable, or build it dynamically (use with care!)
 
+## Core.RefreshCurrentSection
+
+	Core.RefreshCurrentSection()
+
+Reloads the current section without creating a new history entry. Not commonly used.
+
 [{icon-forward} Next: Event handlers]({@Scripting-EventHandlers})
 
 {{Scripting-EventHandlers}}
@@ -190,16 +196,20 @@ Subscribe to this event and it'll be called immediately before the story begins.
 
 ## OnGotoSection
 
-	Core.AddEventListener("OnGotoSection", function(id, element, tags, isGoingBack)
+	Core.AddEventListener("OnGotoSection", function(id, element, tags, reason)
 	\{
 		// Handle the event here
 	});
 
-Subscribe to this event and it'll be called whenever the current section changes. You'll receive the ID (section name) of the target section, the HTML `Element` representing it (this will be the new state of the `__currentSection` div), an array of tags (strings), and an `isGoingBack` flag.
+Subscribe to this event and it'll be called whenever the current section changes. You'll receive the ID (section name) of the target section, the HTML `Element` representing it (this will be the new state of the `__currentSection` div), an array of tags (strings), and a `reason` enum.
 
 Tags are not currently used, but in the future you'll be able to assign them to sections and then do whatever you want with them.
 
-The `isGoingBack` flag is normally false, but will be true if we're transitioning back to a previous section (e.g. because the player clicked the "back" link). That gives your script a chance to revert any custom game state.
+The `reason` enum provides context for why we're going to this section now. It's a value from `Core.EGotoSectionReason` as follows:
+
+- **Core.EGotoSectionReason.Goto**: Going directly to the section. This is the context when the player clicks a section link.
+- **Core.EGotoSectionReason.Back**: Going back to this section in history. In this context, you should undo any appropriate game state.
+- **Core.EGotoSectionReason.Refresh**: Refreshing this section in place via a call to `Core.RefreshCurrentSection()`.
 
 [{icon-forward} Next: Script extensions]({@Scripting-Extensions})
 

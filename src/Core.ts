@@ -20,21 +20,30 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * Core functionality including section navigation and macro expansion.
  */
 
-export namespace Core
+ export namespace Core
 {
+	export enum EGotoSectionReason
+	{
+		Goto,		// Going directly to the section
+		Back,		// Going back to this section in history
+		Refresh,	// Refreshing this section in place
+	}
+
+	let CurrentSectionId : string = "";
+
 	/**
 	 * Event listener to call just before the story begins, for user init code to run
 	 */
-	export let OnBeginStory : Array<() => void> = [];
+	let OnBeginStory : Array<() => void> = [];
 
 	/**
 	 * Event listener to call whenever the current section changes
 	 * @param id The id attribute of the new section
 	 * @param element The raw DOM element for the new section
 	 * @param tags Array of tags associated with the new section
-	 * @param isGoingBack True if section is changing as a result of GotoPreviousSection() being called
+	 * @param reason Provides context for why we're navigating to this section now
 	 */
-	export let OnGotoSection : Array<(id : string, element : Element, tags : string[], isGoingBack : boolean) => void> = [];
+	let OnGotoSection : Array<(id : string, element : Element, tags : string[], reason : EGotoSectionReason) => void> = [];
 
 	/**
 	 * Subscribe to an event with a custom handler function. The handler will be called whenever the event occurs.
@@ -47,12 +56,13 @@ export namespace Core
 		{
 			case "OnBeginStory":
 			{
-				Core.OnBeginStory = Core.OnBeginStory.concat(handler);
+				OnBeginStory = OnBeginStory.concat(handler);
 				break;
 			}
 			case "OnGotoSection":
+			case "OnGoToSection":
 			{
-				Core.OnGotoSection = Core.OnGotoSection.concat(handler);
+				OnGotoSection = OnGotoSection.concat(handler);
 				break;
 			}
 			default:
@@ -293,8 +303,11 @@ export namespace Core
 		currentSection.parentElement.replaceChild(clone, currentSection);
 
 		// Notify user script
-		for(let i = 0; i < OnGotoSection.length; i++) { OnGotoSection[i](id, clone, [], true); }
+		for(let i = 0; i < OnGotoSection.length; i++) { OnGotoSection[i](id, clone, [], EGotoSectionReason.Back); }
+	
+		CurrentSectionId = id;
 	}
+	export function GoToPreviousSection() { GotoPreviousSection(); } // Convenience alias
 
 	/**
 	 * Navigate to the given section.
@@ -326,7 +339,28 @@ export namespace Core
 		currentSection.parentElement.replaceChild(clone, currentSection);
 
 		// Notify user script
-		for(let i = 0; i < OnGotoSection.length; i++) { OnGotoSection[i](id, clone, [], false); }
+		for(let i = 0; i < OnGotoSection.length; i++) { OnGotoSection[i](id, clone, [], EGotoSectionReason.Goto); }
+
+		CurrentSectionId = id;
+	}
+	export function GoToSection(id : string) { GotoSection(id); } // Convenience alias
+
+	/**
+	 * Reloads the current section without creating a new history entry.
+	 */
+	export function RefreshCurrentSection()
+	{
+		let id : string = CurrentSectionId;
+		let clone : Element = GetSection(id);
+		clone.scrollTop = 0;
+		clone.id = "__currentSection";
+		
+		// Replace the div so as to restart CSS animations (just replacing innerHTML does not do this!)
+		let currentSection : Element = document.getElementById("__currentSection");
+		currentSection.parentElement.replaceChild(clone, currentSection);
+
+		// Notify user script
+		for(let i = 0; i < OnGotoSection.length; i++) { OnGotoSection[i](id, clone, [], EGotoSectionReason.Refresh); }
 	}
 
 	/**

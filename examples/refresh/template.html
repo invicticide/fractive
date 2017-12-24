@@ -1,0 +1,221 @@
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet"></link>
+		<style>
+			#__controls
+			{
+				position: fixed;
+				top: 0px;
+				left: 0px;
+				width: calc(100% - 80px);
+				height: 75px;
+				padding: 0px 40px;
+				background-color: #333333;
+				color: #BBBBBB;
+				font-family: Arial, Helvetica, sans-serif;
+				font-size: 13pt;
+			}
+			#__controls .controls-left {
+				float: left;
+				text-align: left;
+			}
+			#__controls .controls-right {
+				float: right;
+				text-align: right;
+			}
+			#__controls a:link, #__controls a:visited {
+				color: #FAFAFA;
+				text-decoration: none;
+			}
+			#__controls a:active, #__controls a:hover {
+				color: #FF6666;
+				text-decoration: none;
+			}
+			#__historyContainer
+			{
+				position: fixed;
+				top: 75px;
+				left: 0px;
+				height: 400px;
+				width: 100%;
+				overflow: auto;
+				background-color: #333333;
+			}
+			#__history *
+			{
+				max-width: 750px !important;
+				margin-left: auto !important;
+				margin-right: auto !important;
+				color: #777777 !important;
+				font-family: Arial, Helvetica, sans-serif !important;
+				font-size: 13pt !important;
+			}
+			#__history .__inlineMacro
+			{
+				animation: none;
+				color: #777777;
+			}
+			.__disabledLink
+			{
+				color: #777777;
+				text-decoration: underline;
+			}
+			#__content
+			{
+				position: absolute;
+				top: 75px;
+				left: 0px;
+				width: 100%;
+				overflow: auto;
+			}
+			#__currentSection
+			{
+				color: #555555;
+				animation: 1s textFadeIn;
+				max-width: 900px;
+				margin-left: auto;
+				margin-right: auto;
+			}
+			@keyframes textFadeIn
+			{
+				from { color: #FAFAFA; }
+				to { color: #555555; }
+			}
+			.__inlineMacro
+			{
+				animation: 1s inlineMacroFadeIn;
+				color: #a7826a;
+			}
+			@keyframes inlineMacroFadeIn
+			{
+				from { color: #FAFAFA; }
+				to { color: #a7826a; }
+			}
+			h1 {
+				font-family: Arial, Helvetica, sans-serif;
+				font-size: 56pt;
+				margin-top: 28pt;
+				margin-bottom: -4pt;
+				line-height: 0.9em;
+			}
+			h2 {
+				font-family: Arial, Helvetica, sans-serif;
+				font-size: 38pt;
+				margin-top: 19pt;
+				margin-bottom: -12pt;
+			}
+			h3 {
+				font-family: Arial, Helvetica, sans-serif;
+				font-size: 22pt;
+				text-transform: uppercase;
+				margin-top: 11pt;
+				margin-bottom: -8pt;
+			}
+			body {
+				background-color: #FAFAFA;
+			}
+			p {
+				font-family: Arial, Helvetica, sans-serif;
+				font-size: 16pt;
+				line-height: 1.5em;
+			}
+			a:link, a:visited {
+				color: #6666FF;
+			}
+			a:active, a:hover {
+				color: #FF6666;
+			}
+			li {
+				font-family: Arial, Helvetica, sans-serif;
+				font-size: 16pt;
+				line-height: 1.5em;
+				margin-left: 20px;
+			}
+			blockquote p {
+				font-family: Arial, Helvetica, sans-serif;
+				font-size: 16pt;
+				font-style: italic;
+				line-height: 1.5em;
+			}
+			pre {
+				font-family: "Courier New", "Courier", monospace;
+				font-size: 14pt;
+				background-color: #333333;
+				color: #BBBBBB;
+				line-height: 1.5em;
+				padding: 10px 20px;
+				max-height: 600px;
+				overflow: auto;
+			}
+			img {
+				margin: 20px 0px;
+			}
+			hr {
+				border: 0;
+				height: 1px;
+				background-image: linear-gradient(to right, rgba(0,0,0,0), rgba(0,0,0,0.75), rgba(0,0,0,0));
+				margin-top: 36pt;
+				margin-bottom: 36pt;
+			}
+		</style>
+		<!--{script}-->
+		<script>
+			function __Restart()
+			{
+				location.reload();
+			}
+			function __ToggleHistory()
+			{
+				var historyContainerDiv = document.getElementById("__historyContainer");
+				if(!historyContainerDiv) { return; }
+
+				var historyDiv = document.getElementById("__history");
+				if(!historyDiv) { return; }
+
+				var contentDiv = document.getElementById("__content");
+				if(!contentDiv) { return; }
+
+				// Toggle history visibility
+				historyContainerDiv.hidden = !historyContainerDiv.hidden;
+				historyDiv.hidden = historyContainerDiv.hidden;
+
+				// Scroll to bottom of history
+				historyContainerDiv.scrollTop = historyContainerDiv.scrollHeight;
+
+				// Adjust content position relative to history panel
+				var contentTop = 75 + (historyContainerDiv.hidden ? 0 : 425);
+				contentDiv.style.setProperty("top", contentTop);
+				contentDiv.style.setProperty("height", window.innerHeight - contentTop);
+			}
+			Core.AddEventListener("OnGotoSection", function(id, element, tags)
+			{
+				// Scroll to bottom of history
+				var historyContainerDiv = document.getElementById("__historyContainer");
+				if(historyContainerDiv) { historyContainerDiv.scrollTop = historyContainerDiv.scrollHeight; }
+
+				// Scroll to top of new content
+				var contentDiv = document.getElementById("__content");
+				if(contentDiv) { contentDiv.scrollTop = 0; }
+			});
+		</script>
+	</head>
+	<body>
+		<div id="__content">
+			<!--{story}-->
+			<div id="__currentSection"></div>
+		</div>
+		<div id="__historyContainer" hidden>
+			<div id="__history"></div>
+		</div>
+		<div id="__controls">
+			<p class="controls-left">
+				<!--{backButton}-->
+			</p>
+			<p class="controls-right">
+				<a href="#" onclick="__Restart()">Restart</a> -
+				<a href="#" onclick="__ToggleHistory()">Toggle History</a>
+			</p>
+		</div>
+	</body>
+</html>

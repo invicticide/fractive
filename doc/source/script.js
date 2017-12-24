@@ -5,7 +5,7 @@ Core.AddEventListener("OnBeginStory", () =>
 	sidebar.appendChild(Core.GetSection("TableOfContents"));
 });
 
-Core.AddEventListener("OnGotoSection", function(id, element, tags)
+Core.AddEventListener("OnGotoSection", function(id, element, tags, reason)
 {
 	// Scroll to top of new content
 	var contentDiv = document.getElementById("__contentContainer");
