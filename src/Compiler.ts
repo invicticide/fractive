@@ -278,7 +278,7 @@ export namespace Compiler
 
 		// Create or clean output directory
 		let cleanDir = path.resolve(projectPath, project.output);
-		if(!fs.existsSync(cleanDir)) { fs.mkdirSync(cleanDir); }
+		if(!fs.existsSync(cleanDir)) { CreateDirectory(cleanDir); }
 		else { CleanDirectoryRecursive(cleanDir, options); }
 
 		// Clear section info from any previous compilation
@@ -332,7 +332,7 @@ export namespace Compiler
 
 		// Create output directory
 		let outputDir = path.resolve(projectPath, project.output);
-		if(!fs.existsSync(outputDir)) { fs.mkdirSync(outputDir); }
+		if(!fs.existsSync(outputDir)) { CreateDirectory(outputDir); }
 
 		// Copy all our assets
 		for(let i = 0; i < targets.assetFiles.length; i++)
@@ -343,7 +343,7 @@ export namespace Compiler
 				let sourcePath = path.resolve(projectPath, targets.assetFiles[i]);
 				let destPath = path.resolve(outputDir, targets.assetFiles[i]);
 				let destDir = path.dirname(destPath);
-				if(!fs.existsSync(destDir)) { fs.mkdirSync(destDir); }
+				if(!fs.existsSync(destDir)) { CreateDirectory(destDir); }
 				fs.copyFileSync(sourcePath, destPath);
 			}
 		}
@@ -353,6 +353,25 @@ export namespace Compiler
 		let indexPath : string = path.resolve(outputDir, "index.html");
 		if(options.verbose || options.dryRun) { LogAction(indexPath.split(path.resolve(projectPath)).join(""), "output"); }
 		if(!options.dryRun) { fs.writeFileSync(indexPath, html, "utf8"); }
+	}
+
+	/**
+	 * Creates the target directory and all necessary parent directories. Equivalent to *nix 'mkdir -p'.
+	 * @param targetPath The path of the target directory to create
+	 */
+	function CreateDirectory(targetPath : string)
+	{
+		const separator = path.sep;
+		const initDir = (path.isAbsolute(targetPath) ? separator : "");
+		targetPath.split(separator).reduce(
+			(parentDir, childDir) =>
+			{
+				const currentPath = path.resolve(parentDir, childDir);
+				if(!fs.existsSync(currentPath)) { fs.mkdirSync(currentPath); }
+				return currentPath;
+			},
+			initDir
+		);
 	}
 
 	/**
