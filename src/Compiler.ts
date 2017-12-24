@@ -107,31 +107,6 @@ export namespace Compiler
 	let markdownWriter = null;
 
 	/**
-	 * Inserts the given html snippet into the template HTML at EVERY point where
-	 * a specially formatted comment appears: <!--{mark}-->
-	 * @param snippet The html to insert
-	 * @param template The template in which to insert
-	 * @param mark The mark at which to insert Html
-	 * @param required Whether the mark is required or not. Default: true
-	 * @return The complete resulting html file contents
-	 */
-	function InsertHtmlAtMark(snippet : string, template : string, mark : string, required : boolean = true) : string
-	{
-		// The mark has to be placed inside an HTML comment formatted like so:
-		let markComment : string = `<!--{${mark}}-->`;
-
-		// Throw an error if the mark doesn't exist
-		if (template.indexOf(markComment) === -1 && required)
-		{
-			console.log(`Template file must contain mark: ${markComment}`);
-			process.exit(1);
-		}
-
-		// Insert the snippet
-		return template.split(markComment).join(snippet);
-	}
-
-	/**
 	 * Inserts the given story text (html) and scripts (javascript) into an html template, and returns the complete resulting html file contents
 	 * @param html The html-formatted story text to insert into the template
 	 * @param javascript The javascript story scripts to insert into the template
@@ -278,7 +253,7 @@ export namespace Compiler
 
 		// Create or clean output directory
 		let cleanDir = path.resolve(projectPath, project.output);
-		if(!fs.existsSync(cleanDir)) { CreateDirectory(cleanDir); }
+		if(!fs.existsSync(cleanDir)) { CreateDirectoryRecursive(cleanDir); }
 		else { CleanDirectoryRecursive(cleanDir, options); }
 
 		// Clear section info from any previous compilation
@@ -332,7 +307,7 @@ export namespace Compiler
 
 		// Create output directory
 		let outputDir = path.resolve(projectPath, project.output);
-		if(!fs.existsSync(outputDir)) { CreateDirectory(outputDir); }
+		if(!fs.existsSync(outputDir)) { CreateDirectoryRecursive(outputDir); }
 
 		// Copy all our assets
 		for(let i = 0; i < targets.assetFiles.length; i++)
@@ -343,7 +318,7 @@ export namespace Compiler
 				let sourcePath = path.resolve(projectPath, targets.assetFiles[i]);
 				let destPath = path.resolve(outputDir, targets.assetFiles[i]);
 				let destDir = path.dirname(destPath);
-				if(!fs.existsSync(destDir)) { CreateDirectory(destDir); }
+				if(!fs.existsSync(destDir)) { CreateDirectoryRecursive(destDir); }
 				fs.copyFileSync(sourcePath, destPath);
 			}
 		}
@@ -359,7 +334,7 @@ export namespace Compiler
 	 * Creates the target directory and all necessary parent directories. Equivalent to *nix 'mkdir -p'.
 	 * @param targetPath The path of the target directory to create
 	 */
-	function CreateDirectory(targetPath : string)
+	function CreateDirectoryRecursive(targetPath : string)
 	{
 		const separator = path.sep;
 		const initDir = (path.isAbsolute(targetPath) ? separator : "");
@@ -421,6 +396,31 @@ export namespace Compiler
 		return fs.readFileSync(filepath, "utf8");
 	}
 
+		/**
+	 * Inserts the given html snippet into the template HTML at EVERY point where
+	 * a specially formatted comment appears: <!--{mark}-->
+	 * @param snippet The html to insert
+	 * @param template The template in which to insert
+	 * @param mark The mark at which to insert Html
+	 * @param required Whether the mark is required or not. Default: true
+	 * @return The complete resulting html file contents
+	 */
+	function InsertHtmlAtMark(snippet : string, template : string, mark : string, required : boolean = true) : string
+	{
+		// The mark has to be placed inside an HTML comment formatted like so:
+		let markComment : string = `<!--{${mark}}-->`;
+
+		// Throw an error if the mark doesn't exist
+		if (template.indexOf(markComment) === -1 && required)
+		{
+			console.log(`Template file must contain mark: ${markComment}`);
+			process.exit(1);
+		}
+
+		// Insert the snippet
+		return template.split(markComment).join(snippet);
+	}
+
 	/**
 	 * Replace a substring of a node's content with a <span> having the given data attributes.
 	 * @param rootNode The root node to modify. Should contain text content.
@@ -476,6 +476,35 @@ export namespace Compiler
 	}
 
 	/**
+	* Check if a URL is considered external and its link should be marked with the external link mark defined in snap.json
+	* @param url The URL string to check
+	*/
+	function IsExternalLink(url : string)
+	{
+		let tokens : Array<string> = url.split("/");
+		switch(tokens[0].toLowerCase())
+		{
+			case "http:":
+			case "https:":
+			case "mailto:":
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Logs a consistently formatted file action to stdout
+	 * @param filePath The path of the file an action was performed on
+	 * @param action The action that was performed
+	 */
+	function LogAction(filePath : string, action: string)
+	{
+		console.log(`  ${clc.green(action)} ${path.relative(projectPath, filePath)}`);
+	}
+
+	/**
 	 * Dumps the given AST to the console in a tree-like format.
 	 * This doesn't render the AST; it's just a debug visualization of its current structure.
 	 * @param ast The AST to display
@@ -503,16 +532,6 @@ export namespace Compiler
 			}
 			if(event.node.isContainer && event.entering) { indent++; }
 		}
-	}
-
-	/**
-	 * Logs a consistently formatted file action to stdout
-	 * @param filePath The path of the file an action was performed on
-	 * @param action The action that was performed
-	 */
-	function LogAction(filePath : string, action: string)
-	{
-		console.log(`  ${clc.green(action)} ${path.relative(projectPath, filePath)}`);
 	}
 
 	/**
@@ -715,25 +734,6 @@ export namespace Compiler
 		}
 
 		return true;
-	}
-
-	/**
-	* Check if a URL is considered external and its link should be marked with the external link mark defined in snap.json
-	* @param url The URL string to check
-	*/
-	function IsExternalLink(url : string)
-	{
-		let tokens : Array<string> = url.split("/");
-		switch(tokens[0].toLowerCase())
-		{
-			case "http:":
-			case "https:":
-			case "mailto:":
-			{
-				return true;
-			}
-		}
-		return false;
 	}
 
 	/**
