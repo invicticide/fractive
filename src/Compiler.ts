@@ -100,8 +100,10 @@ export interface CompilerOptions
 export namespace Compiler
 {
 	let project : FractiveProject = null;
+	let projectPath : string = "";
 	let nextInlineID : number = 0;
 	let sectionCount : number = 0;
+	let sections = {};
 
 	/**
 	 * Inserts the given html snippet into the template HTML at EVERY point where
@@ -242,7 +244,10 @@ export namespace Compiler
 	 */
 	export function Compile(buildPath : string, options : CompilerOptions) : void
 	{
-		let basePath = path.dirname(buildPath);
+		// Clear section info from any previous compilation
+		sections = {};
+
+		projectPath = path.dirname(buildPath);
 
 		// Load the target project file and overlay it onto the ProjectDefaults. This allows user-made project
 		// files to only specify those properties which they want to override.
@@ -274,13 +279,13 @@ export namespace Compiler
 		if(options.dryRun) { console.log(clc.red("\n(This is a dry run. No output files will be written.)\n")); }
 
 		// Create or clean output directory
-		let cleanDir = path.resolve(basePath, project.output);
+		let cleanDir = path.resolve(projectPath, project.output);
 		if(!fs.existsSync(cleanDir)) { fs.mkdirSync(cleanDir); }
 		else { CleanDirectoryRecursive(cleanDir, options); }
 
 		// Gather all our target files to build
 		let globOptions = {
-			cwd: basePath,
+			cwd: projectPath,
 			expandDirectories: true,
 			ignore: project.ignore.concat(`${project.output}/**`),
 			matchBase: true,
@@ -299,7 +304,7 @@ export namespace Compiler
 		for(let i = 0; i < targets.markdownFiles.length; i++)
 		{
 			if(options.verbose || options.dryRun) { LogAction(targets.markdownFiles[i], "render"); }
-			var rendered = RenderFile(path.resolve(basePath, targets.markdownFiles[i]), options);
+			var rendered = RenderFile(path.resolve(projectPath, targets.markdownFiles[i]), options);
 			if(rendered === null) { errorCount++; }
 			else { html += `<!-- ${targets.markdownFiles[i]} -->\n${rendered}\n`; }
 		}
@@ -310,14 +315,14 @@ export namespace Compiler
 		for(let i = 0; i < targets.javascriptFiles.length; i++)
 		{
 			if(options.verbose || options.dryRun) { LogAction(targets.javascriptFiles[i], "import"); }
-			javascript += `// ${targets.javascriptFiles[i]}\n${ImportFile(path.resolve(basePath, targets.javascriptFiles[i]))}\n`;
+			javascript += `// ${targets.javascriptFiles[i]}\n${ImportFile(path.resolve(projectPath, targets.javascriptFiles[i]))}\n`;
 		}
 
 		// Wrap our compiled html with a page template
-		html = ApplyTemplate(basePath, html, javascript);
+		html = ApplyTemplate(projectPath, html, javascript);
 
 		// Create output directory
-		let outputDir = path.resolve(basePath, project.output);
+		let outputDir = path.resolve(projectPath, project.output);
 		if(!fs.existsSync(outputDir)) { fs.mkdirSync(outputDir); }
 
 		// Copy all our assets
@@ -326,7 +331,7 @@ export namespace Compiler
 			if(options.verbose || options.dryRun) { LogAction(targets.assetFiles[i], "copy"); }
 			if(!options.dryRun)
 			{
-				let sourcePath = path.resolve(basePath, targets.assetFiles[i]);
+				let sourcePath = path.resolve(projectPath, targets.assetFiles[i]);
 				let destPath = path.resolve(outputDir, targets.assetFiles[i]);
 				let destDir = path.dirname(destPath);
 				if(!fs.existsSync(destDir)) { fs.mkdirSync(destDir); }
@@ -337,7 +342,7 @@ export namespace Compiler
 		// Write the final index.html. We report this after copying assets, even though we actually prepared it before,
 		// because it feels more natural to have the last reported output file be the file that actually runs our game.
 		let indexPath : string = path.resolve(outputDir, "index.html");
-		if(options.verbose || options.dryRun) { LogAction(indexPath.split(path.resolve(basePath)).join(""), "output"); }
+		if(options.verbose || options.dryRun) { LogAction(indexPath.split(path.resolve(projectPath)).join(""), "output"); }
 		if(!options.dryRun) { fs.writeFileSync(indexPath, html, "utf8"); }
 	}
 
@@ -479,7 +484,7 @@ export namespace Compiler
 	 */
 	function LogAction(filePath : string, action: string)
 	{
-		console.log(`  ${clc.green(action)} ${filePath}`);
+		console.log(`  ${clc.green(action)} ${path.relative(projectPath, filePath)}`);
 	}
 
 	/**
@@ -503,11 +508,11 @@ export namespace Compiler
 		{
 			let line : number = node.sourcepos[0][0] + (lineOffset !== undefined ? lineOffset : 0);
 			let column : number = node.sourcepos[0][1] + (columnOffset !== undefined ? columnOffset : 0);
-			LogError(`${filePath} (${line},${column}): ${text}`);
+			LogError(`${path.relative(projectPath, filePath)} (${line},${column}): ${text}`);
 		}
 		else
 		{
-			LogError(`${filePath}: ${text}`);
+			LogError(`${path.relative(projectPath, filePath)}: ${text}`);
 		}
 	}
 
@@ -935,8 +940,25 @@ export namespace Compiler
 						// Begin a new section
 						if(node.parent)
 						{
+							let sectionName : string = macro.substring(2, macro.length - 2);
+
+							// Check for duplicate section names
+							if(sections[sectionName] !== undefined)
+							{
+								LogParseError(`Section "${sectionName}" was already defined in "${sections[sectionName].sourceFile}" on line "${sections[sectionName].lineNumber}"`, filepath, node, lineOffset, columnOffset);
+								return false;
+							}
+							else
+							{
+								sections[sectionName] = {
+									sourceFile : path.relative(projectPath, filepath),
+									lineNumber : lineOffset
+								};
+							}
+
+							// Build the section source div
 							var insertedNode = new commonmark.Node("html_inline", node.sourcepos); // TODO: Real sourcepos
-							insertedNode.literal = `${sectionCount > 0 ? "</div>\n" : ""}<div id="${macro.substring(2, macro.length - 2)}" class="section" hidden="true">`;
+							insertedNode.literal = `${sectionCount > 0 ? "</div>\n" : ""}<div id="${sectionName}" class="section" hidden="true">`;
 							if(node.prev)
 							{
 								LogParseError(`Section macro "${macro}" must be defined in its own paragraph/on its own line`, filepath, node, lineOffset, columnOffset);
@@ -953,6 +975,7 @@ export namespace Compiler
 								LogParseError(`Section macro "${macro}" cannot be defined inside another block element`, filepath, node, lineOffset, columnOffset);
 								return false;
 							}
+							
 							sectionCount++;
 						}
 						else
