@@ -730,6 +730,16 @@ output: &quot;build&quot;,
                 <pre><code>&quot;backButtonHTML&quot;: &quot;Back&quot;
 </code></pre>
                 <p>If <code>includeBackButton</code> is <code>true</code>, this is the HTML snippet that will be inserted into the final story HTML in place of the <code>&lt;!--{backButton}--&gt;</code> macro in the template file.</p>
+                <h2>hardLineBreaks</h2>
+                <pre><code>&quot;hardLineBreaks&quot;: true
+</code></pre>
+                <p>If true, single line breaks in Markdown source will be replaced with <code>&lt;br/&gt;</code> in the rendered HTML source. If false, they’ll be replaced with <code>\n</code>, unless the line is suffixed by two or more spaces (see the
+                    <a
+                        title="" target="_blank" href="https://daringfireball.net/projects/markdown/syntax#p">official Markdown spec&nbsp;<i class="fa fa-external-link" aria-hidden="true"></i></a> for details).</p>
+                <h2>smartPunctuation</h2>
+                <pre><code>&quot;smartPunctuation&quot;: true
+</code></pre>
+                <p>If true, replace straight quotes with smart quotes, – with en-dash, — with em-dash, and … with ellipsis.</p>
                 <p><a title="" href="#" data-goto-section="Projects-Publishing"><i class="fa fa-arrow-circle-right" aria-hidden="true"></i> Next: Publishing</a></p>
             </div>
             <div id="Projects-Configuration-Globs" class="section" hidden="true">

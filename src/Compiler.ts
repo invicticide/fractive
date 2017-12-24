@@ -29,12 +29,9 @@ import * as util from "util";
 
 // Set up the Markdown parser and renderer
 import * as commonmark from "commonmark";
-const markdownReader = new commonmark.Parser({smart: true});
-const markdownWriter = new commonmark.HtmlRenderer({softbreak: "<br/>"});
 
-// Beautification
+// Source formatting
 import * as beautifier from "js-beautify";
-// Minification
 import * as minifier from "html-minifier";
 
 // Project file validation and overlay support
@@ -74,7 +71,9 @@ export let ProjectDefaults : FractiveProject = {
 		}
 	},
 	includeBackButton: true,
-	backButtonHtml: "Back"
+	backButtonHtml: "Back",
+	hardLineBreaks: true,
+	smartPunctuation: true
 };
 import * as globby from "globby";
 
@@ -104,6 +103,8 @@ export namespace Compiler
 	let nextInlineID : number = 0;
 	let sectionCount : number = 0;
 	let sections = {};
+	let markdownReader = null;
+	let markdownWriter = null;
 
 	/**
 	 * Inserts the given html snippet into the template HTML at EVERY point where
@@ -244,9 +245,6 @@ export namespace Compiler
 	 */
 	export function Compile(buildPath : string, options : CompilerOptions) : void
 	{
-		// Clear section info from any previous compilation
-		sections = {};
-
 		projectPath = path.dirname(buildPath);
 
 		// Load the target project file and overlay it onto the ProjectDefaults. This allows user-made project
@@ -282,6 +280,17 @@ export namespace Compiler
 		let cleanDir = path.resolve(projectPath, project.output);
 		if(!fs.existsSync(cleanDir)) { fs.mkdirSync(cleanDir); }
 		else { CleanDirectoryRecursive(cleanDir, options); }
+
+		// Clear section info from any previous compilation
+		sections = {};
+
+		// Setup the Markdown parser and renderer
+		markdownReader = new commonmark.Parser({
+			smart: project.smartPunctuation
+		});
+		markdownWriter = new commonmark.HtmlRenderer({
+			softbreak: (project.hardLineBreaks ? "<br/>" : "\n")
+		});
 
 		// Gather all our target files to build
 		let globOptions = {

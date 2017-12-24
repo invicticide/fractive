@@ -184,6 +184,18 @@ If `true`, the value of `backButtonHTML` will be inserted into the final story H
 
 If `includeBackButton` is `true`, this is the HTML snippet that will be inserted into the final story HTML in place of the `<!--\{backButton}-->` macro in the template file.
 
+## hardLineBreaks
+
+	"hardLineBreaks": true
+
+If true, single line breaks in Markdown source will be replaced with `<br/>` in the rendered HTML source. If false, they'll be replaced with `\n`, unless the line is suffixed by two or more spaces (see the [official Markdown spec](https://daringfireball.net/projects/markdown/syntax#p) for details).
+
+## smartPunctuation
+
+	"smartPunctuation": true
+
+If true, replace straight quotes with smart quotes, -- with en-dash, --- with em-dash, and ... with ellipsis.
+
 [{icon-forward} Next: Publishing]({@Projects-Publishing})
 
 {{Projects-Configuration-Globs}}
