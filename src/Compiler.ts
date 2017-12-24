@@ -938,6 +938,7 @@ export namespace Compiler
 			}
 			else if(node.literal[i] === '{')
 			{
+				let insertedNode = null;
 				let macro : string = null;
 				let braceCount : number = 1;
 				for(let j = i + 1; j < node.literal.length; j++)
@@ -960,7 +961,6 @@ export namespace Compiler
 					LogParseError(`Unterminated macro near "${node.literal.substring(i, i + 10)}" in text`, filepath, node, lineOffset, columnOffset);
 					return false;
 				}
-				var insertedNode;
 				switch(macro[1])
 				{
 					case "{":
@@ -985,7 +985,7 @@ export namespace Compiler
 							}
 
 							// Build the section source div
-							var insertedNode = new commonmark.Node("html_inline", node.sourcepos); // TODO: Real sourcepos
+							insertedNode = new commonmark.Node("html_inline", node.sourcepos); // TODO: Real sourcepos
 							insertedNode.literal = `${sectionCount > 0 ? "</div>\n" : ""}<div id="${sectionName}" class="section" hidden="true">`;
 							if(node.prev)
 							{
@@ -994,8 +994,44 @@ export namespace Compiler
 							}
 							else if(node.parent.type === "paragraph")
 							{
-								// This is the most common case for correctly-formatted section declarations
+								// Move the new div node after the containing paragraph so it gets parsed
 								node.parent.insertAfter(insertedNode);
+
+								// Anything else in the containing paragraph needs to get moved to a new paragraph after the new div node
+								// so it doesn't get silently swallowed
+								let newParagraph = new commonmark.Node("paragraph", node.sourcepos); // TODO: Real sourcepos
+								let nodesMoved : number = 0;
+								let bSkippedFirstBreak : boolean = false;
+								while((event = walker.next()))
+								{
+									if(event.node.type === "paragraph" && !event.entering) { break; }
+									
+									// A common user pattern is a section declaration with the first line of the section text following
+									// a softbreak instead of a paragraph break. We need to swallow that softbreak (and only that one);
+									// otherwise we'll get unexpected whitespace at the top of the section text in the final render.
+									if(event.node.type === "softbreak" && !bSkippedFirstBreak)
+									{
+										bSkippedFirstBreak = true;
+										continue;
+									}
+									
+									newParagraph.appendChild(event.node);
+									++nodesMoved;
+								}
+								
+								// If there's additional text on the same line as the section declaration, make sure we pick it up too!
+								let remainderNode = new commonmark.Node("text", node.sourcepos); // TODO: Real sourcepos
+								remainderNode.literal = StripLeadingWhitespace(node.literal.substring(macro.length));
+								newParagraph.prependChild(remainderNode);
+
+								// Only append the new paragraph if we actually put something in it; otherwise we'll get an empty
+								// paragraph which will just introduce mysterious whitespace in the final render
+								if(nodesMoved > 0 || remainderNode.literal.length > 0)
+								{
+									insertedNode.insertAfter(newParagraph);
+								}
+								
+								// Unlink the old containing paragraph, which should now be empty
 								node.parent.unlink();
 							}
 							else
@@ -1187,5 +1223,22 @@ export namespace Compiler
 
 		// The escaped macro was not terminated, so we're probably just escaping a single brace
 		return startIndex + 1;
+	}
+
+	/**
+	 * Returns the given string with all leading whitespace stripped
+	 * @param s The string to strip
+	 * @returns The given string with all leading whitespace stripped. If the given string contains only whitespace, an empty string is returned.
+	 */
+	function StripLeadingWhitespace(s : string) : string
+	{
+		for(let i = 0; i < s.length; i++)
+		{
+			if(s[i] !== " " && s[i] !== "\t" && s[i] !== "\n")
+			{
+				return s.substring(i);
+			}
+		}
+		return "";
 	}
 }
