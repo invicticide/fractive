@@ -29,8 +29,6 @@ export namespace Core
 		Refresh,	// Refreshing this section in place
 	}
 
-	let CurrentSectionId : string = "";
-
 	/**
 	 * Event listener to call just before the story begins, for user init code to run
 	 */
@@ -84,6 +82,40 @@ export namespace Core
 	}
 
 	/**
+	 * Returns true if the given element is and contains only inline elements, or false if it is or contains any block-level elements
+	 * @param html The html blob to check
+	 * @param context Parent element to use for styling context, since the enclosing styling could potentially modify the block/inline status of the root or any of its children. If null, the document root is used.
+	 */
+	function CanBeInline(html : string, context : Element) : boolean
+	{
+		// Create a temporary element to render the given html with styling
+		let root : Element = document.createElement("span");
+		if(context) { context.appendChild(root); }
+		else { document.appendChild(root); }
+		root.innerHTML = html;
+
+		let scan = function(e : Element)
+		{
+			if(getComputedStyle(e, "").display === "block")
+			{
+				return false;
+			}
+			for(let i = 0; i < e.children.length; i++)
+			{
+				if(scan(e.children[i]) === false) { return false; }
+			}
+			return true;
+		};
+		let result = scan(root);
+
+		// Remove the temporary element
+		if(context) { context.removeChild(root); }
+		else { document.removeChild(root); }
+
+		return result;
+	}
+
+	/**
 	 * Disable any hyperlinks in the given section, while preserving their original link tag in case they need to be re-enabled
 	 */
 	function DisableLinks(section : Element)
@@ -103,7 +135,7 @@ export namespace Core
 				links[i].outerHTML.indexOf(">") + 1,
 				links[i].outerHTML.indexOf("</a>")
 			);
-			links[i].outerHTML = `<span class="__disabledLink" data-link-tag='${linkTag}'>${linkTag}${contents}</span>`;
+			links[i].outerHTML = `<span class="__disabledLink" data-link-tag='${linkTag}'>${contents}</span>`;
 		}
 	}
 
@@ -175,16 +207,31 @@ export namespace Core
 			case '#':
 			{
 				// Return the result of the named function call
-				let targetFunction = RetrieveFromWindow(macro.substring(1), 'function');
-				let result = targetFunction();
-
-				return (result === undefined ? '' : result.toString());
+				let functionName : string = macro.substring(1);
+				let targetFunction = RetrieveFromWindow(functionName, 'function');
+				if(targetFunction !== null && targetFunction !== undefined)
+				{
+					let result = targetFunction();
+					return (result ? result.toString() : "");
+				}
+				else
+				{
+					return `{function "${functionName}" is not defined}`;
+				}
 			}
 			case '$':
 			{
 				// Return the value of the named variable
-				let targetVariable = RetrieveFromWindow(macro.substring(1), 'variable');
-				return targetVariable.toString();
+				let variableName : string = macro.substring(1);
+				let targetVariable = RetrieveFromWindow(variableName, 'variable');
+				if(targetVariable !== null && targetVariable !== undefined)
+				{
+					return targetVariable.toString();
+				}
+				else
+				{
+					return `{variable "${variableName}" is not defined}`;
+				}
 			}
 			default:
 			{
@@ -268,12 +315,29 @@ export namespace Core
 		return clone;
 	}
 
+	/**
+	 * Get the id of the section currently displayed.
+	 */
+	export function GetCurrentSectionId() : string
+	{
+		let currentSection : Element = document.getElementById("__currentSection")
+		return currentSection.getAttribute("data-id");
+	}
+
   /**
    * Get a list of the tags a section was declared with.
    */
   export function GetSectionTags(id : string) : Array<string>
   {
     let sectionDiv = document.getElementById(id);
+
+		if (sectionDiv === null)
+		{
+			let message : string = `Tried to retrieve the tags of an undeclared section: ${id}`;
+			console.error(message);
+			return [`{Error: ${message}}`];
+		}
+
     let tagDeclarations = sectionDiv.getAttribute("data-tags");
     return tagDeclarations.split(',');
   }
@@ -283,8 +347,7 @@ export namespace Core
    */
   export function GetCurrentSectionTags() : Array<string>
   {
-		// TODO this doesn't work because for some reason, CurrentSectionId is empty string when called (at least from Start)
-    return GetSectionTags(CurrentSectionId);
+    return GetSectionTags(GetCurrentSectionId());
   }
 
   /*
@@ -347,9 +410,7 @@ export namespace Core
 		currentSection.parentElement.replaceChild(clone, currentSection);
 
 		// Notify user script
-		for(let i = 0; i < OnGotoSection.length; i++) { OnGotoSection[i](id, clone, GetSectionTags(id), EGotoSectionReason.Back); }
-
-		CurrentSectionId = id;
+		for(let i = 0; i < OnGotoSection.length; i++) { OnGotoSection[i](id, clone, [], EGotoSectionReason.Back); }
 	}
 	export function GoToPreviousSection() { GotoPreviousSection(); } // Convenience alias
 
@@ -374,6 +435,9 @@ export namespace Core
 			history.scrollTop = history.scrollHeight;
 		}
 
+		// Set the current section id attribute to the new id, so that when expanding the new section,
+		// Core.GetCurrentSectionId() is functional
+		currentSection.setAttribute('data-id', id);
 		// Get a copy of the new section that's ready to display
 		let clone : Element = GetSection(id);
 		clone.scrollTop = 0;
@@ -383,9 +447,7 @@ export namespace Core
 		currentSection.parentElement.replaceChild(clone, currentSection);
 
 		// Notify user script
-		for(let i = 0; i < OnGotoSection.length; i++) { OnGotoSection[i](id, clone, GetSectionTags(id), EGotoSectionReason.Goto); }
-
-		CurrentSectionId = id;
+		for(let i = 0; i < OnGotoSection.length; i++) { OnGotoSection[i](id, clone, [], EGotoSectionReason.Goto); }
 	}
 	export function GoToSection(id : string) { GotoSection(id); } // Convenience alias
 
@@ -394,13 +456,13 @@ export namespace Core
 	 */
 	export function RefreshCurrentSection()
 	{
-		let id : string = CurrentSectionId;
+		let id = GetCurrentSectionId();
 		let clone : Element = GetSection(id);
 		clone.scrollTop = 0;
 		clone.id = "__currentSection";
 
 		// Replace the div so as to restart CSS animations (just replacing innerHTML does not do this!)
-		let currentSection : Element = document.getElementById("__currentSection");
+		let currentSection : Element = document.getElementById('__currentSection');
 		currentSection.parentElement.replaceChild(clone, currentSection);
 
 		// Notify user script
@@ -498,7 +560,7 @@ export namespace Core
 			}
 			if(bIsActive)
 			{
-				let replacement = document.createElement("span");
+				let replacement = document.createElement(CanBeInline(html, element.parentElement) ? "span" : "div");
 				replacement.className = "__inlineMacro";
 				replacement.innerHTML = html;
 				EnableInlineMacros(replacement, true);

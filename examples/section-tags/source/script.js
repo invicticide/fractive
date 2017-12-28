@@ -1,7 +1,7 @@
 Core.AddEventListener("OnGotoSection", function(id, element, tags, reason)
 {
+	console.log(Core.GetCurrentSectionId());
 	var currentSection = document.getElementById('__currentSection');
-	console.log('going to section' + id);
 	if (tags.indexOf("Tutorial") !== -1)
 	{
 		currentSection.innerHTML += `<p>Click on links to read through the story.</p>`;
@@ -17,7 +17,7 @@ Core.AddEventListener("OnGotoSection", function(id, element, tags, reason)
 });
 
 function listCurrentTags() {
-	return Core.GetSectionTags('Start').toString();
+	return Core.GetCurrentSectionTags().toString();
 }
 
 function listPerson1Sections() {
