@@ -20,7 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * Core functionality including section navigation and macro expansion.
  */
 
- export namespace Core
+export namespace Core
 {
 	export enum EGotoSectionReason
 	{
@@ -268,6 +268,49 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 		return clone;
 	}
 
+  /**
+   * Get a list of the tags a section was declared with.
+   */
+  export function GetSectionTags(id : string) : Array<string>
+  {
+    let sectionDiv = document.getElementById(id);
+    let tagDeclarations = sectionDiv.getAttribute("data-tags");
+    return tagDeclarations.split(',');
+  }
+
+  /**
+   * Get a list of the tags the current section was declared with.
+   */
+  export function GetCurrentSectionTags() : Array<string>
+  {
+    return GetSectionTags(CurrentSectionId);
+  }
+
+  /*
+   * Get a list of the id's of sections which were declared with the given tag
+   */
+  export function GetSectionsWithTag(tag : string) : Array<string>
+  {
+    let matchingSections : Array<string> = [];
+    let sections = document.getElementsByClassName("section");
+
+    // Check every section. If this ever needs better performance than O(N),
+    // we'll have to create a data structure at initialization, but that
+    // seems like overkill for now.
+    for (var i = 0; i < sections.length; ++i)
+    {
+      let sectionId = sections[i].getAttribute('id');
+      let sectionTags = GetSectionTags(sectionId);
+      if (sectionTags.indexOf(tag) !== -1)
+      {
+        matchingSections.push(sectionId);
+      }
+    }
+
+    return matchingSections;
+  }
+
+
 	/**
 	 * Navigate to the previous section as it was before transitioning to the current one.
 	 */
@@ -304,7 +347,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 		// Notify user script
 		for(let i = 0; i < OnGotoSection.length; i++) { OnGotoSection[i](id, clone, [], EGotoSectionReason.Back); }
-	
+
 		CurrentSectionId = id;
 	}
 	export function GoToPreviousSection() { GotoPreviousSection(); } // Convenience alias
@@ -354,7 +397,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 		let clone : Element = GetSection(id);
 		clone.scrollTop = 0;
 		clone.id = "__currentSection";
-		
+
 		// Replace the div so as to restart CSS animations (just replacing innerHTML does not do this!)
 		let currentSection : Element = document.getElementById("__currentSection");
 		currentSection.parentElement.replaceChild(clone, currentSection);
