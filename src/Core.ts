@@ -283,6 +283,7 @@ export namespace Core
    */
   export function GetCurrentSectionTags() : Array<string>
   {
+		// TODO this doesn't work because for some reason, CurrentSectionId is empty string when called (at least from Start)
     return GetSectionTags(CurrentSectionId);
   }
 
