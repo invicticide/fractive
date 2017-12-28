@@ -82,6 +82,40 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 	}
 
 	/**
+	 * Returns true if the given element is and contains only inline elements, or false if it is or contains any block-level elements
+	 * @param html The html blob to check
+	 * @param context Parent element to use for styling context, since the enclosing styling could potentially modify the block/inline status of the root or any of its children. If null, the document root is used.
+	 */
+	function CanBeInline(html : string, context : Element) : boolean
+	{
+		// Create a temporary element to render the given html with styling
+		let root : Element = document.createElement("span");
+		if(context) { context.appendChild(root); }
+		else { document.appendChild(root); }
+		root.innerHTML = html;
+
+		let scan = function(e : Element)
+		{
+			if(getComputedStyle(e, "").display === "block")
+			{
+				return false;
+			}
+			for(let i = 0; i < e.children.length; i++)
+			{
+				if(scan(e.children[i]) === false) { return false; }
+			}
+			return true;
+		};
+		let result = scan(root);
+
+		// Remove the temporary element
+		if(context) { context.removeChild(root); }
+		else { document.removeChild(root); }
+
+		return result;
+	}
+
+	/**
 	 * Disable any hyperlinks in the given section, while preserving their original link tag in case they need to be re-enabled
 	 */
 	function DisableLinks(section : Element)
@@ -464,7 +498,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 			}
 			if(bIsActive)
 			{
-				let replacement = document.createElement("span");
+				let replacement = document.createElement(CanBeInline(html, element.parentElement) ? "span" : "div");
 				replacement.className = "__inlineMacro";
 				replacement.innerHTML = html;
 				EnableInlineMacros(replacement, true);
