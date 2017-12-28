@@ -968,7 +968,27 @@ export namespace Compiler
 						// Begin a new section
 						if(node.parent)
 						{
-							let sectionName : string = macro.substring(2, macro.length - 2);
+							// Sections are declared {{SectionName: tag, tag2, ...}}
+							// All whitespace will be trimmed, so
+							// {{ SectionName : tag,tag2,  tag3 }} is also valid.
+							let macroContents : string = macro.substring(2, macro.length - 2);
+
+							let sectionName : string = macroContents;
+							let tags : Array<string> = [];
+
+							// If the macro contains ':' then part of it is tag declarations
+							if (macroContents.indexOf(":") !== -1)
+							{
+								// Only take the part preceding ':' as the section name
+								sectionName = macroContents.substring(0, macroContents.indexOf(":")).trim();
+								// Tokenize the tag declarations and strip whitespace
+								let tagDeclarations : string = macroContents.substring(macroContents.indexOf(":") + 1);
+								let tagTokens = tagDeclarations.split(',');
+								for (var j = 0; j < tagTokens.length; ++j)
+								{
+									tags.push(tagTokens[j].trim());
+								}
+							}
 
 							// Check for duplicate section names
 							if(sections[sectionName] !== undefined)
@@ -986,7 +1006,7 @@ export namespace Compiler
 
 							// Build the section source div
 							insertedNode = new commonmark.Node("html_inline", node.sourcepos); // TODO: Real sourcepos
-							insertedNode.literal = `${sectionCount > 0 ? "</div>\n" : ""}<div id="${sectionName}" class="section" hidden="true">`;
+							insertedNode.literal = `${sectionCount > 0 ? "</div>\n" : ""}<div id="${sectionName}" data-tags="${tags.toString()}" class="section" hidden="true">`;
 							if(node.prev)
 							{
 								LogParseError(`Section macro "${macro}" must be defined in its own paragraph/on its own line`, filepath, node, lineOffset, columnOffset);
@@ -1005,7 +1025,7 @@ export namespace Compiler
 								while((event = walker.next()))
 								{
 									if(event.node.type === "paragraph" && !event.entering) { break; }
-									
+
 									// A common user pattern is a section declaration with the first line of the section text following
 									// a softbreak instead of a paragraph break. We need to swallow that softbreak (and only that one);
 									// otherwise we'll get unexpected whitespace at the top of the section text in the final render.
@@ -1014,11 +1034,11 @@ export namespace Compiler
 										bSkippedFirstBreak = true;
 										continue;
 									}
-									
+
 									newParagraph.appendChild(event.node);
 									++nodesMoved;
 								}
-								
+
 								// If there's additional text on the same line as the section declaration, make sure we pick it up too!
 								let remainderNode = new commonmark.Node("text", node.sourcepos); // TODO: Real sourcepos
 								remainderNode.literal = StripLeadingWhitespace(node.literal.substring(macro.length));
@@ -1030,7 +1050,7 @@ export namespace Compiler
 								{
 									insertedNode.insertAfter(newParagraph);
 								}
-								
+
 								// Unlink the old containing paragraph, which should now be empty
 								node.parent.unlink();
 							}
@@ -1039,7 +1059,7 @@ export namespace Compiler
 								LogParseError(`Section macro "${macro}" cannot be defined inside another block element`, filepath, node, lineOffset, columnOffset);
 								return false;
 							}
-							
+
 							sectionCount++;
 						}
 						else

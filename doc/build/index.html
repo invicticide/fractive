@@ -551,7 +551,7 @@
     <div id="__contentContainer">
         <div id="__content">
             <!-- source/introduction.md -->
-            <div id="QuickStart" class="section" hidden="true">
+            <div id="QuickStart" data-tags="" class="section" hidden="true">
                 <h1>Quick start</h1>
                 <p><a title="" href="javascript:;" data-replace-with="@QuickStart-Installation" id="_inline-0"><strong>If you haven’t installed Fractive yet, click here</strong>&nbsp;<i class="fa fa-info-circle" aria-hidden="true"></i></a></p>
                 <p>Create a new story project:</p>
@@ -587,7 +587,7 @@ Your story begins here.
                 <p>You now know enough to create interactive fiction stories both simple and complex. However, Fractive is capable of much more than this!</p>
                 <p><a title="" href="#" data-goto-section="Projects-Intro"><i class="fa fa-arrow-circle-right" aria-hidden="true"></i> Next: Projects</a></p>
             </div>
-            <div id="QuickStart-Installation" class="section" hidden="true">
+            <div id="QuickStart-Installation" data-tags="" class="section" hidden="true">
                 <p>Fractive is built on <a title="" target="_blank" href="https://nodejs.org">Node.js&nbsp;<i class="fa fa-external-link" aria-hidden="true"></i></a>, so you’ll need to install that if you don’t already have it. (Fractive currently targets
                     version 8.9.0 LTS.)</p>
                 <p>Once Node.js is installed, open a command line and install Fractive:</p>
@@ -596,7 +596,7 @@ Your story begins here.
                 <p>Fractive is now globally available on the command line. Type <code>fractive</code> to see usage instructions.</p>
             </div>
             <!-- source/projects.md -->
-            <div id="Projects-Intro" class="section" hidden="true">
+            <div id="Projects-Intro" data-tags="" class="section" hidden="true">
                 <h1>About projects</h1>
                 <p>Story text is written in Markdown (.md) files, and game logic is written in Javascript (.js) files. These files, plus any additional assets (images, etc.) are kept together in a Fractive <strong>project</strong>. You can create a new project
                     like this:</p>
@@ -623,7 +623,7 @@ output: &quot;build&quot;,
 </code></pre>
                 <p><a title="" href="#" data-goto-section="Projects-Configuration"><i class="fa fa-arrow-circle-right" aria-hidden="true"></i> Next: Project configuration </a></p>
             </div>
-            <div id="Projects-Configuration" class="section" hidden="true">
+            <div id="Projects-Configuration" data-tags="" class="section" hidden="true">
                 <h1>Project configuration</h1>
                 <p>This page lists all the configuration options available in the <code>fractive.json</code> project file.</p>
                 <h1>Project metadata</h1>
@@ -742,7 +742,7 @@ output: &quot;build&quot;,
                 <p>If true, replace straight quotes with smart quotes, – with en-dash, — with em-dash, and … with ellipsis.</p>
                 <p><a title="" href="#" data-goto-section="Projects-Publishing"><i class="fa fa-arrow-circle-right" aria-hidden="true"></i> Next: Publishing</a></p>
             </div>
-            <div id="Projects-Configuration-Globs" class="section" hidden="true">
+            <div id="Projects-Configuration-Globs" data-tags="" class="section" hidden="true">
                 <p>If you’re not familiar with glob syntax, here are the basics:</p>
                 <ul>
                     <li><code>source/text.md</code> targets just that one file</li>
@@ -752,16 +752,16 @@ output: &quot;build&quot;,
                     <li><code>source/**</code> targets all files of any type in all subdirectories of “source”, including “source” itself</li>
                 </ul>
             </div>
-            <div id="Projects-Configuration-AssetFiles" class="section" hidden="true">
+            <div id="Projects-Configuration-AssetFiles" data-tags="" class="section" hidden="true">
                 <p>For most stories these will probably be multimedia files like images and video clips, but technically assets can be anything, even Markdown and Javascript files. Markdown files included by <code>assets</code> will NOT be compiled as story
                     text, and Javascript files included by <code>assets</code> will NOT be embedded in the output <code>index.html</code>.</p>
             </div>
-            <div id="Projects-Configuration-WhatToIgnore" class="section" hidden="true">
+            <div id="Projects-Configuration-WhatToIgnore" data-tags="" class="section" hidden="true">
                 <p>Ignores are most useful when you have an <code>assets</code> wildcard like <code>assets/**</code> but then there are a few files or file types within it that you <em>don’t</em> want, like <code>.DS_Store</code> files and similar.</p>
                 <p>Another use case might be for game art. If you made your art with Photoshop and saved PSDs into an <code>assets</code> folder and then exported PNGs alongside them, you might want to include <code>assets/**</code> and then ignore <code>assets/**/*.psd</code>.
                     That way when you build the project it’ll only copy over the PNGs and leave the PSDs behind.</p>
             </div>
-            <div id="Projects-Configuration-WhenToUseLinkTooltips" class="section" hidden="true">
+            <div id="Projects-Configuration-WhenToUseLinkTooltips" data-tags="" class="section" hidden="true">
                 <p>Link tooltips can be useful for debugging, as the tooltip will show the actual macro a link is targeting. For example, if you have a link like this:</p>
                 <pre><code>[Go somewhere]({@SomeSection})
 </code></pre>
@@ -769,11 +769,11 @@ output: &quot;build&quot;,
                 <pre><code>{@SomeSection}
 </code></pre>
             </div>
-            <div id="Projects-Examples" class="section" hidden="true">
+            <div id="Projects-Examples" data-tags="" class="section" hidden="true">
                 <h1>Example projects</h1>
                 <p>Example projects can be found in the <code>examples</code> folder in your Fractive install location.</p>
             </div>
-            <div id="Projects-Publishing" class="section" hidden="true">
+            <div id="Projects-Publishing" data-tags="" class="section" hidden="true">
                 <h1>Publishing</h1>
                 <p>When you’re ready to share or test your story, you need to build it:</p>
                 <pre><code>fractive compile path/to/my/story
@@ -785,7 +785,7 @@ output: &quot;build&quot;,
                 <p><a title="" href="#" data-goto-section="Stories-Sections"><i class="fa fa-arrow-circle-right" aria-hidden="true"></i> Next: Sections</a></p>
             </div>
             <!-- source/scripting.md -->
-            <div id="Scripting-Intro" class="section" hidden="true">
+            <div id="Scripting-Intro" data-tags="" class="section" hidden="true">
                 <h1>Intro to scripting</h1>
                 <p>You can add logic to your Fractive stories using <a title="" target="_blank" href="https://www.javascript.com/">Javascript&nbsp;<i class="fa fa-external-link" aria-hidden="true"></i></a>.</p>
                 <p>By default, new projects contain a <code>source/script.js</code> which you can put your custom scripting in, but you can also add new .js files and link them into your story using the <code>scripts</code> property in <code>fractive.json</code>                    (see <a title="" href="#" data-goto-section="Projects-Configuration">Configuration</a> for details).</p>
@@ -793,7 +793,7 @@ output: &quot;build&quot;,
                     those variables and call those functions.</p>
                 <p><a title="" href="#" data-goto-section="Scripting-FunctionMacros"><i class="fa fa-arrow-circle-right" aria-hidden="true"></i> Next: Function macros</a></p>
             </div>
-            <div id="Scripting-FunctionMacros" class="section" hidden="true">
+            <div id="Scripting-FunctionMacros" data-tags="" class="section" hidden="true">
                 <h1>Function macros</h1>
                 <p>Function macros are denoted by the <code>#</code> metacharacter and they refer to Javascript functions. For example, the macro <code>{#Foo}</code> refers to the Javascript function <code>Foo()</code>. Function macros never pass any arguments,
                     but in some circumstances can accept a <code>string</code> return value (see below).</p>
@@ -850,7 +850,7 @@ Javascript says: [???]({#MyFunction:inline})
                 <p>The text that gets displayed is the return value of <code>MyFunction()</code> converted to a string by <code>MyFunction().toString()</code>.</p>
                 <p><a title="" href="#" data-goto-section="Scripting-VariableMacros"><i class="fa fa-arrow-circle-right" aria-hidden="true"></i> Next: Variable macros</a></p>
             </div>
-            <div id="Scripting-VariableMacros" class="section" hidden="true">
+            <div id="Scripting-VariableMacros" data-tags="" class="section" hidden="true">
                 <h1>Variable macros</h1>
                 <p>Variable macros are denoted by the <code>$</code> metacharacter and refer to Javascript variables. For example, the macro <code>{$Foo}</code> refers to the Javascript variable <code>Foo</code>.</p>
                 <h2>In story text</h2>
@@ -886,7 +886,7 @@ Javascript says: {$Foo}
                 <p>The text that gets displayed is the value of <code>Foo</code> converted to a string by <code>Foo.toString()</code>.</p>
                 <p><a title="" href="#" data-goto-section="Scripting-CoreAPI"><i class="fa fa-arrow-circle-right" aria-hidden="true"></i> Next: Core API</a></p>
             </div>
-            <div id="Scripting-CoreAPI" class="section" hidden="true">
+            <div id="Scripting-CoreAPI" data-tags="" class="section" hidden="true">
                 <h1>Core API</h1>
                 <p>Fractive exposes some useful Javascript functions to your story scripts.</p>
                 <h2>Core.BeginStory</h2>
@@ -914,7 +914,7 @@ Javascript says: {$Foo}
                 <p>Reloads the current section without creating a new history entry. Not commonly used.</p>
                 <p><a title="" href="#" data-goto-section="Scripting-EventHandlers"><i class="fa fa-arrow-circle-right" aria-hidden="true"></i> Next: Event handlers</a></p>
             </div>
-            <div id="Scripting-EventHandlers" class="section" hidden="true">
+            <div id="Scripting-EventHandlers" data-tags="" class="section" hidden="true">
                 <h1>Event handlers</h1>
                 <p>Fractive exposes events you can subscribe to, for when you want some code to be notified that something happened. To assign an event, declare a Javascript function in your story script and pass it to <code>Core.AddEventListener</code>.</p>
                 <h2>OnBeginStory</h2>
@@ -940,7 +940,7 @@ Javascript says: {$Foo}
                 </ul>
                 <p><a title="" href="#" data-goto-section="Scripting-Extensions"><i class="fa fa-arrow-circle-right" aria-hidden="true"></i> Next: Script extensions</a></p>
             </div>
-            <div id="Scripting-Extensions" class="section" hidden="true">
+            <div id="Scripting-Extensions" data-tags="" class="section" hidden="true">
                 <h1>Script extensions</h1>
                 <p>Since Fractive games allow unrestricted Javascript, you have the ability to extend your game beyond the “normal” hypertext fiction structure in potentially surprising ways. For example, you might choose to integrate your own or third-party
                     libraries to add things like interactive graphical gameplay sequences or network multiplayer.</p>
@@ -950,7 +950,7 @@ Javascript says: {$Foo}
                     way, they’ll simply be copied to your final build location instead of being embedded in the <code>index.html</code>. You can then edit your template with <code>&lt;script&gt;</code> tags to source those scripts however you need.</p>
                 <p><a title="" href="#" data-goto-section="Scripting-EmbeddingFractive"><i class="fa fa-arrow-circle-right" aria-hidden="true"></i> Next: Embedding Fractive</a></p>
             </div>
-            <div id="Scripting-EmbeddingFractive" class="section" hidden="true">
+            <div id="Scripting-EmbeddingFractive" data-tags="" class="section" hidden="true">
                 <h1>Embedding Fractive</h1>
                 <p>You can also import Fractive as an npm dependency into another project, e.g. if you wanted to embed Fractive into a larger game or application. If your host project is an NPM project (which is strongly recommended) then you can add Fractive
                     as a local dependency like this:</p>
@@ -974,7 +974,7 @@ Javascript says: {$Foo}
                     this command into that script however is most appropriate for your dev environment.</p>
             </div>
             <!-- source/start.md -->
-            <div id="Start" class="section" hidden="true">
+            <div id="Start" data-tags="" class="section" hidden="true">
                 <h1>What is Fractive?</h1>
                 <p>Fractive is a hypertext authoring tool, primarily intended for the creation of interactive fiction.</p>
                 <p>Stories are written in <a title="" target="_blank" href="https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet">Markdown&nbsp;<i class="fa fa-external-link" aria-hidden="true"></i></a>, and (optional) game logic is added with
@@ -999,7 +999,7 @@ Javascript says: {$Foo}
                 <p><a title="" href="#" data-goto-section="QuickStart"><i class="fa fa-arrow-circle-right" aria-hidden="true"></i> Next: Quick start</a></p>
             </div>
             <!-- source/stories.md -->
-            <div id="Stories-Sections" class="section" hidden="true">
+            <div id="Stories-Sections" data-tags="" class="section" hidden="true">
                 <h1>Sections</h1>
                 <p>Story text is written in <a title="" target="_blank" href="https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet">Markdown&nbsp;<i class="fa fa-external-link" aria-hidden="true"></i></a>, which is pretty close to plain text
                     but with a few special formatting marks. Here’s a <a title="" target="_blank" href="https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet">cheat sheet&nbsp;<i class="fa fa-external-link" aria-hidden="true"></i></a> that
@@ -1021,7 +1021,7 @@ You are in a maze of twisty little passages, all alike.
                 <p>In this example, clicking the “Look around” link would transition the player to the section called <code>LookAround</code>.</p>
                 <p><a title="" href="#" data-goto-section="Stories-Macros"><i class="fa fa-arrow-circle-right" aria-hidden="true"></i> Next: Macros</a></p>
             </div>
-            <div id="Stories-Macros" class="section" hidden="true">
+            <div id="Stories-Macros" data-tags="" class="section" hidden="true">
                 <h1>Macros</h1>
                 <p>Macros are always enclosed in <code>{}</code>. There are several types, each denoted by a leading <strong>metacharacter</strong>:</p>
                 <ul>
@@ -1084,7 +1084,7 @@ You are in [a maze]({$ExamineMaze:inline}) of twisty little passages, all alike.
                 <p>Note that sections are block-level elements and will include paragraph breaks, so if you want to do an inline link in the middle of sentence, you’ll probably want to use a function or variable macro instead.</p>
                 <p><a title="" href="#" data-goto-section="Stories-Multimedia"><i class="fa fa-arrow-circle-right" aria-hidden="true"></i> Next: Multimedia</a></p>
             </div>
-            <div id="Stories-Multimedia" class="section" hidden="true">
+            <div id="Stories-Multimedia" data-tags="" class="section" hidden="true">
                 <h1>Multimedia</h1>
                 <p>You can add multimedia elements, like images or videos, to your Fractive stories. In most cases you’ll just put those files in <code>assets</code> and then source them in your Markdown file. For example, you can place images like this:</p>
                 <pre><code>![Image alt text](assets/image.png)
@@ -1100,7 +1100,7 @@ Here's a video!
 </code></pre>
                 <p><a title="" href="#" data-goto-section="Stories-Templates"><i class="fa fa-arrow-circle-right" aria-hidden="true"></i> Next: Templates</a></p>
             </div>
-            <div id="Stories-Aliases" class="section" hidden="true">
+            <div id="Stories-Aliases" data-tags="" class="section" hidden="true">
                 <h1>Aliases</h1>
                 <p>Since Markdown also accepts HTML, you could style some text like this:</p>
                 <pre><code>In this story, some things are &lt;span style=&quot;color:red&quot;&gt;displayed in red&lt;/span&gt;!
@@ -1140,7 +1140,7 @@ This is the beginning of my story, but I'm obstinate and don't want to use the n
                     as-is. Escaping applies to aliases as well, so <code>{red}</code> will be replaced, but <code>\{red}</code> will not. You should only need to use this in the rare case that you have text that contains a macro (or just a <code>{</code>                    character) that needs to actually be shown to the player. (This documentation is one such example!)</p>
                 <p><a title="" href="#" data-goto-section="Scripting-Intro"><i class="fa fa-arrow-circle-right" aria-hidden="true"></i> Next: Intro to scripting</a></p>
             </div>
-            <div id="Stories-Templates" class="section" hidden="true">
+            <div id="Stories-Templates" data-tags="" class="section" hidden="true">
                 <h1>Templates</h1>
                 <p>You can control the visual layout and style of your story by providing a custom HTML template. When you create a new project, a basic <code>template.html</code> is created in your project root. You can edit or replace this at your leisure.</p>
                 <p>A template is a regular HTML file with a few special macros:</p>
@@ -1166,7 +1166,7 @@ This is the beginning of my story, but I'm obstinate and don't want to use the n
                 <p><a title="" href="#" data-goto-section="Stories-Aliases"><i class="fa fa-arrow-circle-right" aria-hidden="true"></i> Next: Aliases</a></p>
             </div>
             <!-- source/toc.md -->
-            <div id="TableOfContents" class="section" hidden="true">
+            <div id="TableOfContents" data-tags="" class="section" hidden="true">
                 <h1>Getting started</h1>
                 <p><a title="" href="#" data-goto-section="QuickStart">Quick start</a></p>
                 <h1>Projects</h1>
@@ -1190,49 +1190,49 @@ This is the beginning of my story, but I'm obstinate and don't want to use the n
                 <p><a title="" href="#" data-goto-section="Scripting-EmbeddingFractive">Embedding Fractive</a></p>
             </div>
             <!-- source/tutorial.md -->
-            <div id="Tutorial-Start" class="section" hidden="true">
+            <div id="Tutorial-Start" data-tags="" class="section" hidden="true">
                 <p>start of the tutorial</p>
             </div>
-            <div id="Tutorial-Environment" class="section" hidden="true">
+            <div id="Tutorial-Environment" data-tags="" class="section" hidden="true">
                 <p>dev environment, tools, setup</p>
             </div>
-            <div id="Tutorial-CreateProject" class="section" hidden="true">
+            <div id="Tutorial-CreateProject" data-tags="" class="section" hidden="true">
                 <p>create a project</p>
             </div>
-            <div id="Tutorial-FirstSections" class="section" hidden="true">
+            <div id="Tutorial-FirstSections" data-tags="" class="section" hidden="true">
                 <p>write first couple sections and link them</p>
             </div>
-            <div id="Tutorial-BuildProject" class="section" hidden="true">
+            <div id="Tutorial-BuildProject" data-tags="" class="section" hidden="true">
                 <p>build the project</p>
             </div>
-            <div id="Tutorial-TestProject" class="section" hidden="true">
+            <div id="Tutorial-TestProject" data-tags="" class="section" hidden="true">
                 <p>test the project</p>
             </div>
-            <div id="Tutorial-Multimedia" class="section" hidden="true">
+            <div id="Tutorial-Multimedia" data-tags="" class="section" hidden="true">
                 <p>add images, video</p>
             </div>
-            <div id="Tutorial-CreateFunction" class="section" hidden="true">
+            <div id="Tutorial-CreateFunction" data-tags="" class="section" hidden="true">
                 <p>write a js function that affects game state</p>
             </div>
-            <div id="Tutorial-FunctionMacros" class="section" hidden="true">
+            <div id="Tutorial-FunctionMacros" data-tags="" class="section" hidden="true">
                 <p>create a function macro to call your function</p>
             </div>
-            <div id="Tutorial-VariableMacros" class="section" hidden="true">
+            <div id="Tutorial-VariableMacros" data-tags="" class="section" hidden="true">
                 <p>add a variable macro to reveal the dynamic game state</p>
             </div>
-            <div id="Tutorial-InlineLinks" class="section" hidden="true">
+            <div id="Tutorial-InlineLinks" data-tags="" class="section" hidden="true">
                 <p>add detail with inline links</p>
             </div>
-            <div id="Tutorial-EventListener" class="section" hidden="true">
+            <div id="Tutorial-EventListener" data-tags="" class="section" hidden="true">
                 <p>do some work in an event listener</p>
             </div>
-            <div id="Tutorial-Aliases" class="section" hidden="true">
+            <div id="Tutorial-Aliases" data-tags="" class="section" hidden="true">
                 <p>use aliases for inline styling</p>
             </div>
-            <div id="Tutorial-CustomTemplate" class="section" hidden="true">
+            <div id="Tutorial-CustomTemplate" data-tags="" class="section" hidden="true">
                 <p>customize the html template</p>
             </div>
-            <div id="Tutorial-PublishProject" class="section" hidden="true">
+            <div id="Tutorial-PublishProject" data-tags="" class="section" hidden="true">
                 <p>publish the project, what to upload</p>
             </div>
 

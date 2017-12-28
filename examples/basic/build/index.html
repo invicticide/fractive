@@ -583,7 +583,7 @@ and something different if they don't.";
 <body>
     <div id="__content">
         <!-- source/text.md -->
-        <div id="Start" class="section" hidden="true">
+        <div id="Start" data-tags="" class="section" hidden="true">
             <h1>Welcome!</h1>
             <p>Welcome to fractive, a tool for creating hypertext fiction!</p>
             <p>Fractive stories are written in Markdown, and you can add (optional) game logic in Javascript. Stories consist of “sections”, which you might think of like one page of a book. Typically a section will give you a bit of narrative and then present
@@ -592,7 +592,7 @@ and something different if they don't.";
                 indicates where the story begins.</p>
             <p><a title="{@AnotherSection}" href="#" data-goto-section="AnotherSection">Link to another section</a></p>
         </div>
-        <div id="AnotherSection" class="section" hidden="true">
+        <div id="AnotherSection" data-tags="" class="section" hidden="true">
             <p>You just clicked a link that took you to another section! You create section links just like any ol’ Markdown link, but in place of the URL you put a special <em>macro</em> enclosed in single curly braces. There are three types of macros,
                 each denoted by a symbol:</p>
             <ul>
@@ -607,7 +607,7 @@ and something different if they don't.";
                     title="{@InlineMacros}" href="#" data-goto-section="InlineMacros">What else can I use macros for?</a>
             </p>
         </div>
-        <div id="InlineMacros" class="section" hidden="true">
+        <div id="InlineMacros" data-tags="" class="section" hidden="true">
             <p>Macros aren’t only for links; you can also use them to add dynamic text to your sections.</p>
             <blockquote>
                 <p><span data-expand-macro="#InlineFunction"></span></p>
@@ -624,16 +624,16 @@ and something different if they don't.";
             <p><a title="{@InlineExpansionSection:inline}" href="javascript:;" data-replace-with="@InlineExpansionSection" id="_inline-2">You can also do this with a section</a></p>
             <p><a title="{@AboutFormatting}" href="#" data-goto-section="AboutFormatting">Can I use Markdown styling?</a></p>
         </div>
-        <div id="InlineSection" class="section" hidden="true">
+        <div id="InlineSection" data-tags="" class="section" hidden="true">
             <p>This paragraph was written in an entirely different section, but it appears as part of the section you’re already reading. This might be useful if you have some boilerplate text that needs to follow the player around from place to place; you
                 could put it in a section and inline it, instead of copy-pasting the same sentences (or paragraphs) all over your story text.</p>
         </div>
-        <div id="InlineExpansionSection" class="section" hidden="true">
+        <div id="InlineExpansionSection" data-tags="" class="section" hidden="true">
             <p>Sections are kind of special though, in that they don’t actually appear inline <em>per se</em>, because they’re block-level elements (i.e. their own paragraphs) which means they’ll put a paragraph break where they appear. They still replace
                 their :inline macro link though, just like with variables and functions. When inline-expanding a section, you can still have paragraph breaks, <em>additional</em> <strong>formatting</strong>, and so on. And you can even inline sections
                 which themselves contain <a title="{#RaiseAlert}" href="#" data-call-function="RaiseAlert">macros</a>!</p>
         </div>
-        <div id="AboutFormatting" class="section" hidden="true">
+        <div id="AboutFormatting" data-tags="" class="section" hidden="true">
             <p>Story text is written in Markdown, which means we have access to <em>all kinds</em> of <strong>formatting</strong>, including:</p>
             <h1>Headers</h1>
             <h2>Sub-headers</h2>
@@ -647,7 +647,7 @@ and something different if they don't.";
                 a sidebar which (along with some custom Javascript) tracks your player’s inventory and stats as they move through the story.</p>
             <p><a title="{@LongStories}" href="#" data-goto-section="LongStories">How does fractive handle long/complicated stories?</a></p>
         </div>
-        <div id="LongStories" class="section" hidden="true">
+        <div id="LongStories" data-tags="" class="section" hidden="true">
             <p>Fractive’s main goal is to be the best tool for writing complex, dynamic hypertext fiction that has lots of branches and genuinely consequential choices. What you’re reading right now is produced by a <em>very</em> eary version of the tool,
                 so this goal isn’t fully realized yet, but it is the direction I’m heading.</p>
             <p>You can split long story text up into as many individual Markdown files as you like, and they can be named whatever you like. The same goes for game logic in Javascript; you could have separate .js files for each logical class, or for each
