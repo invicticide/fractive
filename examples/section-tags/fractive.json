@@ -1,0 +1,12 @@
+{
+	"title": "basic",
+	"template": "modified.html",
+	"assets": ["assets/**"],
+	"linkTooltips": true,
+	"linkTags": {
+		"external": {
+			"html": "&nbsp;<i class=\"fa fa-external-link\" aria-hidden=\"true\"></i>"
+		}
+	},
+	"backButtonHtml": "<i class=\"fa fa-arrow-left\" aria-hidden=\"true\"></i> Back"
+}

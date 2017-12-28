@@ -20,7 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * Core functionality including section navigation and macro expansion.
  */
 
- export namespace Core
+export namespace Core
 {
 	export enum EGotoSectionReason
 	{
@@ -316,6 +316,66 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 	}
 
 	/**
+	 * Get the id of the section currently displayed.
+	 */
+	export function GetCurrentSectionId() : string
+	{
+		let currentSection : Element = document.getElementById("__currentSection")
+		return currentSection.getAttribute("data-id");
+	}
+
+  /**
+   * Get a list of the tags a section was declared with.
+   */
+  export function GetSectionTags(id : string) : Array<string>
+  {
+    let sectionDiv = document.getElementById(id);
+
+		if (sectionDiv === null)
+		{
+			let message : string = `Tried to retrieve the tags of an undeclared section: ${id}`;
+			console.error(message);
+			return [`{Error: ${message}}`];
+		}
+
+    let tagDeclarations = sectionDiv.getAttribute("data-tags");
+    return tagDeclarations.split(',');
+  }
+
+  /**
+   * Get a list of the tags the current section was declared with.
+   */
+  export function GetCurrentSectionTags() : Array<string>
+  {
+    return GetSectionTags(GetCurrentSectionId());
+  }
+
+  /*
+   * Get a list of the id's of sections which were declared with the given tag
+   */
+  export function GetSectionsWithTag(tag : string) : Array<string>
+  {
+    let matchingSections : Array<string> = [];
+    let sections = document.getElementsByClassName("section");
+
+    // Check every section. If this ever needs better performance than O(N),
+    // we'll have to create a data structure at initialization, but that
+    // seems like overkill for now.
+    for (var i = 0; i < sections.length; ++i)
+    {
+      let sectionId = sections[i].getAttribute('id');
+      let sectionTags = GetSectionTags(sectionId);
+      if (sectionTags.indexOf(tag) !== -1)
+      {
+        matchingSections.push(sectionId);
+      }
+    }
+
+    return matchingSections;
+  }
+
+
+	/**
 	 * Navigate to the previous section as it was before transitioning to the current one.
 	 */
 	export function GotoPreviousSection()
@@ -350,7 +410,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 		currentSection.parentElement.replaceChild(clone, currentSection);
 
 		// Notify user script
-		for(let i = 0; i < OnGotoSection.length; i++) { OnGotoSection[i](id, clone, [], EGotoSectionReason.Back); }
+		for(let i = 0; i < OnGotoSection.length; i++) { OnGotoSection[i](id, clone, GetSectionTags(id), EGotoSectionReason.Back); }
 	}
 	export function GoToPreviousSection() { GotoPreviousSection(); } // Convenience alias
 
@@ -375,6 +435,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 			history.scrollTop = history.scrollHeight;
 		}
 
+		// Set the current section id attribute to the new id, so that when expanding the new section,
+		// Core.GetCurrentSectionId() is functional
+		currentSection.setAttribute('data-id', id);
 		// Get a copy of the new section that's ready to display
 		let clone : Element = GetSection(id);
 		clone.scrollTop = 0;
@@ -383,8 +446,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 		// Replace the div so as to restart CSS animations (just replacing innerHTML does not do this!)
 		currentSection.parentElement.replaceChild(clone, currentSection);
 
+		let tags = clone.getAttribute("data-tags").split(',');
 		// Notify user script
-		for(let i = 0; i < OnGotoSection.length; i++) { OnGotoSection[i](id, clone, [], EGotoSectionReason.Goto); }
+		for(let i = 0; i < OnGotoSection.length; i++) { OnGotoSection[i](id, clone, tags, EGotoSectionReason.Goto); }
 	}
 	export function GoToSection(id : string) { GotoSection(id); } // Convenience alias
 
@@ -393,18 +457,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 	 */
 	export function RefreshCurrentSection()
 	{
-		let currentSection : Element = document.getElementById("__currentSection");
-
-		let id : string = currentSection.getAttribute("data-id");
+		let id = GetCurrentSectionId();
 		let clone : Element = GetSection(id);
 		clone.scrollTop = 0;
-		clone.id = "__currentSection";		
+		clone.id = "__currentSection";
 
 		// Replace the div so as to restart CSS animations (just replacing innerHTML does not do this!)
+		let currentSection : Element = document.getElementById('__currentSection');
 		currentSection.parentElement.replaceChild(clone, currentSection);
 
 		// Notify user script
-		for(let i = 0; i < OnGotoSection.length; i++) { OnGotoSection[i](id, clone, [], EGotoSectionReason.Refresh); }
+		for(let i = 0; i < OnGotoSection.length; i++) { OnGotoSection[i](id, clone, GetSectionTags(id), EGotoSectionReason.Refresh); }
 	}
 
 	/**
