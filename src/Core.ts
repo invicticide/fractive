@@ -135,7 +135,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 				links[i].outerHTML.indexOf(">") + 1,
 				links[i].outerHTML.indexOf("</a>")
 			);
-			links[i].outerHTML = `<span class="__disabledLink" data-link-tag='${linkTag}'>${linkTag}${contents}</span>`;
+			links[i].outerHTML = `<span class="__disabledLink" data-link-tag='${linkTag}'>${contents}</span>`;
 		}
 	}
 
