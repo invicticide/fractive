@@ -410,7 +410,7 @@ export namespace Core
 		currentSection.parentElement.replaceChild(clone, currentSection);
 
 		// Notify user script
-		for(let i = 0; i < OnGotoSection.length; i++) { OnGotoSection[i](id, clone, [], EGotoSectionReason.Back); }
+		for(let i = 0; i < OnGotoSection.length; i++) { OnGotoSection[i](id, clone, GetSectionTags(id), EGotoSectionReason.Back); }
 	}
 	export function GoToPreviousSection() { GotoPreviousSection(); } // Convenience alias
 
@@ -446,8 +446,9 @@ export namespace Core
 		// Replace the div so as to restart CSS animations (just replacing innerHTML does not do this!)
 		currentSection.parentElement.replaceChild(clone, currentSection);
 
+		let tags = clone.getAttribute("data-tags").split(',');
 		// Notify user script
-		for(let i = 0; i < OnGotoSection.length; i++) { OnGotoSection[i](id, clone, [], EGotoSectionReason.Goto); }
+		for(let i = 0; i < OnGotoSection.length; i++) { OnGotoSection[i](id, clone, tags, EGotoSectionReason.Goto); }
 	}
 	export function GoToSection(id : string) { GotoSection(id); } // Convenience alias
 

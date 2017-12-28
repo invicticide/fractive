@@ -1,6 +1,6 @@
 {
 	"title": "basic",
-	"template": "{examples}/basic.html",
+	"template": "modified.html",
 	"assets": ["assets/**"],
 	"linkTooltips": true,
 	"linkTags": {

@@ -1,18 +1,30 @@
 Core.AddEventListener("OnGotoSection", function(id, element, tags, reason)
 {
-	console.log(Core.GetCurrentSectionId());
-	var currentSection = document.getElementById('__currentSection');
 	if (tags.indexOf("Tutorial") !== -1)
 	{
-		currentSection.innerHTML += `<p>Click on links to read through the story.</p>`;
+		document.getElementById('tutorialMessage').style.display = "block";
 	}
+	else
+	{
+		document.getElementById('tutorialMessage').style.display = "none";
+	}
+
 	if (tags.indexOf("Person1") !== -1)
 	{
-		currentSection.innerHTML = "<img src='assets/person1.png'></img>" + currentSection.innerHTML;
+		document.getElementById('person1').style.display = "block";
 	}
+	else
+	{
+		document.getElementById('person1').style.display = "none";
+	}
+
 	if (tags.indexOf("Person2") !== -1)
 	{
-		currentSection.innerHTML = "<img src='assets/person2.png'></img>" + currentSection.innerHTML;
+		document.getElementById('person2').style.display = "block";
+	}
+	else
+	{
+		document.getElementById('person2').style.display = "none";
 	}
 });
 
