@@ -175,16 +175,31 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 			case '#':
 			{
 				// Return the result of the named function call
-				let targetFunction = RetrieveFromWindow(macro.substring(1), 'function');
-				let result = targetFunction();
-
-				return (result === undefined ? '' : result.toString());
+				let functionName : string = macro.substring(1);
+				let targetFunction = RetrieveFromWindow(functionName, 'function');
+				if(targetFunction !== null && targetFunction !== undefined)
+				{
+					let result = targetFunction();
+					return (result ? result.toString() : "");
+				}
+				else
+				{
+					return `{function "${functionName}" is not defined}`;
+				}
 			}
 			case '$':
 			{
 				// Return the value of the named variable
-				let targetVariable = RetrieveFromWindow(macro.substring(1), 'variable');
-				return targetVariable.toString();
+				let variableName : string = macro.substring(1);
+				let targetVariable = RetrieveFromWindow(variableName, 'variable');
+				if(targetVariable !== null && targetVariable !== undefined)
+				{
+					return targetVariable.toString();
+				}
+				else
+				{
+					return `{variable "${variableName}" is not defined}`;
+				}
 			}
 			default:
 			{
