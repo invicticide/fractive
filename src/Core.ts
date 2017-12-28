@@ -346,7 +346,7 @@ export namespace Core
 		currentSection.parentElement.replaceChild(clone, currentSection);
 
 		// Notify user script
-		for(let i = 0; i < OnGotoSection.length; i++) { OnGotoSection[i](id, clone, [], EGotoSectionReason.Back); }
+		for(let i = 0; i < OnGotoSection.length; i++) { OnGotoSection[i](id, clone, GetSectionTags(id), EGotoSectionReason.Back); }
 
 		CurrentSectionId = id;
 	}
