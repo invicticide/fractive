@@ -29,8 +29,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 		Refresh,	// Refreshing this section in place
 	}
 
-	let CurrentSectionId : string = "";
-
 	/**
 	 * Event listener to call just before the story begins, for user init code to run
 	 */
@@ -319,8 +317,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 		// Notify user script
 		for(let i = 0; i < OnGotoSection.length; i++) { OnGotoSection[i](id, clone, [], EGotoSectionReason.Back); }
-	
-		CurrentSectionId = id;
 	}
 	export function GoToPreviousSection() { GotoPreviousSection(); } // Convenience alias
 
@@ -355,8 +351,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 		// Notify user script
 		for(let i = 0; i < OnGotoSection.length; i++) { OnGotoSection[i](id, clone, [], EGotoSectionReason.Goto); }
-
-		CurrentSectionId = id;
 	}
 	export function GoToSection(id : string) { GotoSection(id); } // Convenience alias
 
@@ -365,13 +359,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 	 */
 	export function RefreshCurrentSection()
 	{
-		let id : string = CurrentSectionId;
+		let currentSection : Element = document.getElementById("__currentSection");
+
+		let id : string = currentSection.getAttribute("data-id");
 		let clone : Element = GetSection(id);
 		clone.scrollTop = 0;
-		clone.id = "__currentSection";
-		
+		clone.id = "__currentSection";		
+
 		// Replace the div so as to restart CSS animations (just replacing innerHTML does not do this!)
-		let currentSection : Element = document.getElementById("__currentSection");
 		currentSection.parentElement.replaceChild(clone, currentSection);
 
 		// Notify user script
