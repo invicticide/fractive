@@ -42,6 +42,16 @@ export namespace Core
 	* @param reason Provides context for why we're navigating to this section now
 	*/
 	let OnGotoSection : Array<(id : string, element : Element, tags : string[], reason : EGotoSectionReason) => void> = [];
+
+	// Listen for DOM mutations on the __currentSection div, so we can reactivate links and such. This handles
+	// internal changes (e.g. GotoSection calls) as well as user code messing around with the DOM directly.
+	let currentSectionObserver : MutationObserver = new MutationObserver(OnCurrentSectionModified);
+	let currentSectionObserverConfig = {
+		childList: true,
+		attributes: true,
+		characterData: true,
+		subtree: true
+	}
 	
 	/**
 	* Subscribe to an event with a custom handler function. The handler will be called whenever the event occurs.
@@ -148,15 +158,20 @@ export namespace Core
 	*/
 	function EnableInlineMacros(root : Element, tf : boolean = true)
 	{
-		// Disabled ids have a _ in front of them. We want the active instance in the __currentSection div to be the
-		// only one that doesn't have that prefix.
-		if(tf && root.id.search("_inline\-") > -1) { root.id = root.id.substring(1); }
-		else if(!tf && root.id.search("inline\-") > -1) { root.id = `_${root.id}`; }
-		
-		// Recursively check all children
-		for(let i = 0; i < root.children.length; i++)
+		if(root.id)
 		{
-			EnableInlineMacros(root.children[i], tf);
+			// Disabled ids have a _ in front of them. We want the active instance in the __currentSection div to be the
+			// only one that doesn't have that prefix.
+			if(tf && root.id.search("_inline\-") > -1) { root.id = root.id.substring(1); }
+			else if(!tf && root.id.search("inline\-") > -1) { root.id = `_${root.id}`; }
+		}		
+		if(root.children)
+		{
+			// Recursively check all children
+			for(let i = 0; i < root.children.length; i++)
+			{
+				EnableInlineMacros(root.children[i], tf);
+			}
 		}
 	}
 	
@@ -277,8 +292,6 @@ export namespace Core
 					}
 					case "data-image-source-macro":
 					{
-						let source = ExpandMacro(element.attributes[i].value);
-						console.log(`Expanding ${element.tagName} with src attribute ${element.attributes[i].value} to "${source}"`); // temp
 						element.setAttribute("src", ExpandMacro(element.attributes[i].value));
 						expanded = true;
 					}
@@ -318,8 +331,6 @@ export namespace Core
 	{
 		let clone = ExpandSection(id);
 		clone.setAttribute('data-id', id);
-		EnableInlineMacros(clone, true);
-		RegisterLinks(clone);
 		return clone;
 	}
 	
@@ -362,37 +373,32 @@ export namespace Core
 	*/
 	export function GotoPreviousSection()
 	{
+		// Don't listen for changes while we're deactivating the current section
+		currentSectionObserver.disconnect();
+
 		let history = document.getElementById("__history");
 		if(history === null)
 		{
 			console.error("History is not supported in this template (the __history element is missing)");
 			return;
 		}
-		
-		let currentSection = document.getElementById("__currentSection");
-		
+				
 		// Retrieve the most recent section
 		let previousSections = history.getElementsByClassName('__previousSection');
 		let previousSection = previousSections[previousSections.length - 1];
 		if(!previousSection) { return; }
 		
+		// Replace the current section with the previous section
 		let id = previousSection.getAttribute('data-id');
 		let clone = previousSection.cloneNode(true) as Element;
-		
-		// Remove the most recent section from history, now that we're going back to it
-		history.removeChild(previousSection);
-		
 		EnableLinks(clone);
-		RegisterLinks(clone);
-		
-		clone.scrollTop = 0;
-		
-		// Replace the div so as to restart CSS animations (just replacing innerHTML does not do this!)
-		clone.id = "__currentSection";
-		currentSection.parentElement.replaceChild(clone, currentSection);
+		SetElementAsCurrentSection(clone);
 		
 		// Notify user script
 		for(let i = 0; i < OnGotoSection.length; i++) { OnGotoSection[i](id, clone, GetSectionTags(id), EGotoSectionReason.Back); }
+
+		// Remove the most recent section from history, now that we're going back to it
+		history.removeChild(previousSection);
 	}
 	export function GoToPreviousSection() { GotoPreviousSection(); } // Convenience alias
 	
@@ -402,14 +408,15 @@ export namespace Core
 	*/
 	export function GotoSection(id : string) : void
 	{
-		let history : Element = document.getElementById("__history");
-		let currentSection : Element = document.getElementById("__currentSection");
+		// Don't listen for changes while we're deactivating the current section
+		currentSectionObserver.disconnect();
 		
 		// Disable hyperlinks in the current section before moving it to history
+		let currentSection : Element = document.getElementById("__currentSection");
 		DisableLinks(currentSection);
 		
-		// Move the current section into the history section, keeping it in a div
-		// with its id as a data attribute
+		// Move the current section into the history section, keeping it in a div with its id as a data attribute
+		let history : Element = document.getElementById("__history");
 		let previousSectionId = currentSection.getAttribute('data-id');
 		if(previousSectionId !== null && history !== null)
 		{
@@ -419,32 +426,46 @@ export namespace Core
 		
 		// Get a copy of the new section that's ready to display
 		let clone : Element = GetSection(id);
-		clone.scrollTop = 0;
-		clone.id = "__currentSection";
-		
-		// Replace the div so as to restart CSS animations (just replacing innerHTML does not do this!)
-		currentSection.parentElement.replaceChild(clone, currentSection);
+		SetElementAsCurrentSection(clone);
 		
 		// Notify user script
 		for(let i = 0; i < OnGotoSection.length; i++) { OnGotoSection[i](id, clone, GetSectionTags(id), EGotoSectionReason.Goto); }
 	}
 	export function GoToSection(id : string) { GotoSection(id); } // Convenience alias
-	
+
+	/**
+	 * MutationObserver callback for when __currentSection has been modified in the DOM
+	 * @param mutations Array of MutationRecords
+	 */
+	function OnCurrentSectionModified(mutations)
+	{
+		for(let i = 0; i < mutations.length; i++)
+		{
+			// We only touch newly-added nodes, to prevent registering duplicate event listeners on existing nodes
+			for(let j = 0; j < mutations[i].addedNodes.length; j++)
+			{
+				let e : Element = mutations[i].addedNodes[j] as Element;
+				EnableInlineMacros(e, true);
+				RegisterLinks(e);
+			}
+		}
+	}
+
 	/**
 	* Reloads the current section without creating a new history entry.
 	*/
 	export function RefreshCurrentSection()
 	{
+		// Don't listen for changes while we're deactivating the current section
+		currentSectionObserver.disconnect();
+
 		let currentSection : Element = document.getElementById("__currentSection");
-		
 		let id : string = currentSection.getAttribute("data-id");
+
+		// Make a fresh copy of the source section and set that as the new current section, without updating history
 		let clone : Element = GetSection(id);
-		clone.scrollTop = 0;
-		clone.id = "__currentSection";
-		
-		// Replace the div so as to restart CSS animations (just replacing innerHTML does not do this!)
-		currentSection.parentElement.replaceChild(clone, currentSection);
-		
+		SetElementAsCurrentSection(clone);
+
 		// Notify user script
 		for(let i = 0; i < OnGotoSection.length; i++) { OnGotoSection[i](id, clone, GetSectionTags(id), EGotoSectionReason.Refresh); }
 	}
@@ -456,7 +477,7 @@ export namespace Core
 	*/
 	export function RegisterLinks(element : Element)
 	{
-		if(element.tagName.toLowerCase() == "a")
+		if(element.tagName && element.tagName.toLowerCase() == "a")
 		{
 			for(let i = 0; i < element.attributes.length; i++)
 			{
@@ -484,7 +505,7 @@ export namespace Core
 				}
 			}
 		}
-		if(element.hasChildNodes)
+		if(element.children)
 		{
 			for(let i = 0; i < element.children.length; i++)
 			{
@@ -549,5 +570,26 @@ export namespace Core
 				break;
 			}
 		}
+	}
+
+	/**
+	 * Replaces the __currentSection div with the given element, which becomes the new __currentSection div.
+	 * This does NOT update history, and should only be used internally.
+	 * @param e The element to set as the new current section
+	 */
+	function SetElementAsCurrentSection(e : Element) // Do not export
+	{
+		let currentSection : Element = document.getElementById("__currentSection");
+
+		e.scrollTop = 0;
+		e.id = "__currentSection";
+		EnableInlineMacros(e);
+		RegisterLinks(e);
+		
+		// Replace the div so as to restart CSS animations
+		currentSection.parentElement.replaceChild(e, currentSection);
+
+		// Activate DOM mutation observer for the new section
+		currentSectionObserver.observe(e, currentSectionObserverConfig);
 	}
 }
