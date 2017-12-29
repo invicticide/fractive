@@ -18,6 +18,8 @@
 
 [Sections]({@Stories-Sections})
 
+[Section tags]({@Stories-SectionTags})
+
 [Macros]({@Stories-Macros})
 
 [Multimedia]({@Stories-Multimedia})

@@ -22,6 +22,35 @@ You can create a link that takes the player to another section by creating a reg
 
 In this example, clicking the "Look around" link would transition the player to the section called `LookAround`.
 
+[{icon-forward} Next: Section tags]({@Stories-SectionTags})
+
+{{Stories-SectionTags}}
+
+# Section tags
+
+Sections can be optionally be given **tags**, which are just a list of identifiers you can use for any purpose in your custom scripts.
+
+To assign tags, declare a section like this:
+
+	\{{Start: Tag1, Tag2}}
+
+Everything after the `:` is a tag, and the list is comma-separated. In this example, the `Start` section is tagged with both `Tag1` and `Tag2`.
+
+In your scripts you can get the list of tags assigned to the current section:
+
+	var tags = Core.GetCurrentSectionTags();
+	for(var tag in tags) \{ ... }
+
+Or you can get the tags assigned to any given section:
+
+	var tags = Core.GetSectionTags("Start");
+	for(var tag in tags) \{ ... }
+
+Or you can get a list of all the sections that have the given tag assigned:
+
+	var sections = Core.GetSectionsWithTag("Tag1");
+	for(var section in sections) \{ ... }
+
 [{icon-forward} Next: Macros]({@Stories-Macros})
 
 {{Stories-Macros}}

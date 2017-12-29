@@ -605,7 +605,9 @@
         Core.AddEventListener("OnBeginStory", () => {
             // Populate the sidebar from the @TableOfContents section so it's easy to maintain
             var sidebar = document.getElementById("__sidebar");
-            sidebar.appendChild(Core.GetSection("TableOfContents"));
+            var toc = Core.GetSection("TableOfContents");
+            Core.RegisterLinks(toc);
+            sidebar.appendChild(toc);
         });
 
         Core.AddEventListener("OnGotoSection", function(id, element, tags, reason) {
@@ -1102,6 +1104,27 @@ You are in a maze of twisty little passages, all alike.
 [Look around]({@LookAround})
 </code></pre>
                 <p>In this example, clicking the “Look around” link would transition the player to the section called <code>LookAround</code>.</p>
+                <p><a title="" href="javascript:;" data-goto-section="Stories-SectionTags"><i class="fa fa-arrow-circle-right" aria-hidden="true"></i> Next: Section tags</a></p>
+            </div>
+            <div id="Stories-SectionTags" data-tags="" class="section" hidden="true">
+                <h1>Section tags</h1>
+                <p>Sections can be optionally be given <strong>tags</strong>, which are just a list of identifiers you can use for any purpose in your custom scripts.</p>
+                <p>To assign tags, declare a section like this:</p>
+                <pre><code>{{Start: Tag1, Tag2}}
+</code></pre>
+                <p>Everything after the <code>:</code> is a tag, and the list is comma-separated. In this example, the <code>Start</code> section is tagged with both <code>Tag1</code> and <code>Tag2</code>.</p>
+                <p>In your scripts you can get the list of tags assigned to the current section:</p>
+                <pre><code>var tags = Core.GetCurrentSectionTags();
+for(var tag in tags) { ... }
+</code></pre>
+                <p>Or you can get the tags assigned to any given section:</p>
+                <pre><code>var tags = Core.GetSectionTags(&quot;Start&quot;);
+for(var tag in tags) { ... }
+</code></pre>
+                <p>Or you can get a list of all the sections that have the given tag assigned:</p>
+                <pre><code>var sections = Core.GetSectionsWithTag(&quot;Tag1&quot;);
+for(var section in sections) { ... }
+</code></pre>
                 <p><a title="" href="javascript:;" data-goto-section="Stories-Macros"><i class="fa fa-arrow-circle-right" aria-hidden="true"></i> Next: Macros</a></p>
             </div>
             <div id="Stories-Macros" data-tags="" class="section" hidden="true">
@@ -1259,6 +1282,7 @@ This is the beginning of my story, but I'm obstinate and don't want to use the n
                 <p><a title="" href="javascript:;" data-goto-section="Projects-Examples">Example projects</a></p>
                 <h1>Writing stories</h1>
                 <p><a title="" href="javascript:;" data-goto-section="Stories-Sections">Sections</a></p>
+                <p><a title="" href="javascript:;" data-goto-section="Stories-SectionTags">Section tags</a></p>
                 <p><a title="" href="javascript:;" data-goto-section="Stories-Macros">Macros</a></p>
                 <p><a title="" href="javascript:;" data-goto-section="Stories-Multimedia">Multimedia</a></p>
                 <p><a title="" href="javascript:;" data-goto-section="Stories-Templates">Templates</a></p>
