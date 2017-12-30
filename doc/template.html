@@ -4,8 +4,8 @@
 		<link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet"></link>
 		<style>
 			:root {
-				--main-background-color: rgb(36, 29, 50);
-				--main-text-color: rgb(159, 146, 184);
+				--main-background-color: #FAFAFA;
+				--main-text-color: #555555;
 				--sidebar-background-color: rgb(66, 53, 90);
 				--sidebar-text-color: rgb(30, 25, 41);
 				--chapter-background-color: rgb(122, 99, 167);
@@ -15,7 +15,8 @@
 				--code-background-color: rgb(19, 18, 20);
 				--code-text-color: #b6a79e;
 				--inline-text-color: #a7826a;
-				--link-text-color: rgb(188, 152, 255);
+				--link-text-color: rgb(155, 101, 255);
+				--sidebar-link-text-color: rgb(188, 152, 255);
 				--link-hover-color: #FF6666;
 			}
 
@@ -61,7 +62,7 @@
 				font-size: 13pt;
 			}
 			#__sidebar a:link, #__sidebar a:visited {
-				color: var(--link-text-color);
+				color: var(--sidebar-link-text-color);
 				text-decoration: none;
 			}
 			#__sidebar a:active, #__sidebar a:hover {
@@ -82,8 +83,8 @@
 			}
 			#__content {
 				max-width: 900px;
-				margin-left: auto;
-				margin-right: auto;
+				margin-left: 50px;
+				margin-right: 50px;
 			}
 			#__topNav * {
 				font-size: 13pt;
@@ -153,7 +154,8 @@
 				background-color: var(--code-background-color);
 				padding: 10px 20px;
 				max-height: 600px;
-				overflow: auto;
+				white-space: pre-wrap;
+				overflow-y: auto;
 			}
 			code {
 				line-height: 1.25em;

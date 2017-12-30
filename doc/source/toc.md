@@ -2,6 +2,8 @@
 
 # Getting started
 
+[Home]({@Start})
+
 [Quick start]({@QuickStart})
 
 # Projects
