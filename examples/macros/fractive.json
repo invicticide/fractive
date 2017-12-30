@@ -1,5 +1,5 @@
 {
-	"title": "macros",
+	"title": "Macros Example",
 	"aliases": [
 		{ "alias": "TestAdjective", "replaceWith": "awesome" },
 		{ "alias": "red", "replaceWith": "<span style='color:#ff8888'>", "end": "</span>" }

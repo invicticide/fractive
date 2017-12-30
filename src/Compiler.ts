@@ -165,6 +165,9 @@ export namespace Compiler
 			template = InsertHtmlAtMark(backButtonHtml, template, 'backButton');
 		}
 
+		// Insert the story title from project metadata
+		template = InsertHtmlAtMark(project.title, template, 'title', false); // !required
+
 		// Auto-start at the "Start" section
 		template += "<script>Core.BeginStory();</script>";
 
@@ -413,7 +416,7 @@ export namespace Compiler
 		// Throw an error if the mark doesn't exist
 		if (template.indexOf(markComment) === -1 && required)
 		{
-			console.log(`Template file must contain mark: ${markComment}`);
+			LogError(`Template file does not contain mark ${markComment}`);
 			process.exit(1);
 		}
 

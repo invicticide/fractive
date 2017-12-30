@@ -1,5 +1,5 @@
 {
-	"title": "basic",
+	"title": "Basic Example",
 	"template": "{examples}/basic.html",
 	"linkTooltips": true,
 	"linkTags": {

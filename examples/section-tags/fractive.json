@@ -1,5 +1,5 @@
 {
-	"title": "basic",
+	"title": "Section Tags Example",
 	"template": "{examples}/basic.html",
 	"assets": [ "assets/**" ],
 	"linkTooltips": true,
