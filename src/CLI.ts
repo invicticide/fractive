@@ -155,23 +155,37 @@ function HandleArgs()
 				else { cp.execSync(`open ${examplesPath}`); }
 				return;
 			}
+
+			// unknown
+			default:
+			{
+				let message : string = `Unrecognized argument '${process.argv[i]}'`;
+				console.log(`\n${clc.red(message)}`);
+				ShowUsage();
+				process.exit(1);
+			}
 		}
 	}
 }
 
-if(process.argv.length < 3)
+function ShowUsage()
 {
 	console.log(``);
 	console.log(`Usage:`);
 	console.log(`${clc.green("fractive")} ${clc.blue("<command>")} ${clc.yellow("[options]")}`);
 	console.log(``);
-	console.log(`${clc.blue("help:")} Launch the Fractive user guide`);
-	console.log(`${clc.blue("compile:")} Compile an existing Fractive project`);
-	console.log(`${clc.blue("create:")} Create a new Fractive project`);
-	console.log(`${clc.blue("examples:")} Browse Fractive example projects`);
+	console.log(`${clc.blue("help")}        Launch the Fractive user guide`);
+	console.log(`${clc.blue("compile")}     Compile an existing Fractive project`);
+	console.log(`${clc.blue("create")}      Create a new Fractive project`);
+	console.log(`${clc.blue("examples")}    Browse Fractive example projects`);
 	console.log(``);
 	console.log(`Enter a command without ${clc.yellow("options")} to see usage instructions for that command`);
 	console.log(``);
+}
+
+if(process.argv.length < 3)
+{
+	ShowUsage();
 	process.exit(1);
 }
 else
