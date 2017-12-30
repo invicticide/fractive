@@ -1,5 +1,6 @@
 <html>
 	<head>
+		<title><!--{title}--></title>
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 		<link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet"></link>
 		<style>
@@ -12,9 +13,11 @@
 				--chapter-text-color: rgb(36, 29, 50);
 				--topic-background-color: rgb(36, 29, 50);
 				--topic-text-color: rgb(188, 152, 255);
-				--code-background-color: rgb(19, 18, 20);
-				--code-text-color: #b6a79e;
-				--inline-text-color: #a7826a;
+				--code-block-background-color: rgb(19, 18, 20);
+				--code-block-text-color: #bababa;
+				--code-inline-background-color: #e9e9e9;
+				--code-inline-text-color: #ff0000;
+				--inline-text-color: #bababa;
 				--link-text-color: rgb(155, 101, 255);
 				--sidebar-link-text-color: rgb(188, 152, 255);
 				--link-hover-color: #FF6666;
@@ -151,20 +154,27 @@
 				line-height: 1.5em;
 			}
 			pre {
-				background-color: var(--code-background-color);
+				background-color: var(--code-block-background-color);
 				padding: 10px 20px;
 				max-height: 600px;
 				white-space: pre-wrap;
 				overflow-y: auto;
 			}
-			code {
+			pre code {
 				line-height: 1.25em;
-				padding: 4px;
 				font-family: "Courier New", "Courier", monospace;
 				font-size: 14pt;
 				font-weight: bold;
-				background-color: var(--code-background-color);
-				color: var(--code-text-color);
+				background-color: var(--code-block-background-color);
+				color: var(--code-block-text-color);
+			}
+			code {
+				font-family: "Courier New", "Courier", monospace;
+				font-size: 12pt;
+				padding: 4px;
+				border-radius: 6px;
+				background-color: var(--code-inline-background-color);
+				color: var(--code-inline-text-color);
 			}
 			img {
 				margin: 20px 0px;

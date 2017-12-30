@@ -39,27 +39,19 @@ This page lists all the configuration options available in the `fractive.json` p
 
 # Project metadata
 
-None of the project metadata is currently used, but in the future it will be displayed to the player (e.g. on a standardized title page, in an online database of Fractive stories, etc.)
-
-## title
+Aside from the title, none of the project metadata is currently used, but in the future it will be displayed to the player (e.g. on a standardized title page, in an online database of Fractive stories, etc.)
 
 	"title": "My Project Title"
 
-Specifies the name of your story. This will be shown to the player, so it should be your actual story title, not a project code name or internal name.
-
-## author
+Specifies the name of your story. This will be shown to the player, so it should be your actual story title, not a project code name or internal name. The page title will also be set to this if the `<!--\{title}-->` mark is present in your template; see [Templates]({@Stories-Templates}) for details.
 
 	"author": "Your Name"
 
 Specifies who wrote the story. This could be your real name, an online nickname, a social media handle, or even a company name.
 
-## description
-
 	"description": "About your story"
 
 Give a brief (one or two sentences) description of your story.
-
-## website
 
 	"website": "Your website"
 
@@ -75,23 +67,17 @@ These are generally [globs](https://github.com/isaacs/node-glob#glob-primer) or 
 
 Paths are relative to the `fractive.json` project file.
 
-## markdown
-
 	"markdown": [
 		"source/**/*.md"
 	]
 
 List of globs indicating where story text (Markdown) files should be found. All files sourced by this list will be compiled as story text when you build the project.
 
-## javascript
-
 	"javascript": [
 		"source/**/*.js"
 	]
 
 List of globs indicating where Javascript files should be found. All files sourced by this list will be combined and embedded in the output `index.html` when you build the project.
-
-## assets
 
 	"assets": [
 		"assets/**"
@@ -101,8 +87,6 @@ List of globs indicating where asset files should be found. All files sourced by
 
 [What are asset files?]({@Projects-Configuration-AssetFiles:inline})
 
-## ignore
-
 	"ignore": [
 		"assets/.DS_Store"
 	]
@@ -111,13 +95,9 @@ List of globs indicating files to ignore. All files sourced by this list will be
 
 [What kinds of files should I ignore?]({@Projects-Configuration-WhatToIgnore:inline})
 
-## template
-
 	"template": "template.html"
 
 Specifies the HTML template file to use for formatting the story. (To use one of Fractive's built-in example templates, you can write the path like `\{examples}/basic.html`.)
-
-## output
 
 	"output": "build"
 
@@ -127,15 +107,11 @@ Specifies a directory name where the final `index.html` and asset files will be 
 
 These options affect how source text is interpreted and rendered into the final HTML.
 
-## aliases
-
 	"aliases": [
 		\{ "alias": "name", "replaceWith": "text", "end": "text" }
 	]
 
 List of alias definitions. See [Aliases]({@Stories-Aliases}) for details. Note that the `end` property is optional and may be omitted for aliases that don't need to use it.
-
-## outputFormat
 
 	"outputFormat": "prettify"
 
@@ -146,15 +122,11 @@ Specifies how the final HTML should be written:
 
 This option doesn't change how your story is displayed to the player at all, it just determines what the HTML source code looks like.
 
-## linkTooltips
-
 	"linkTooltips": false
 
 Specifies whether links should show a tooltip on mouseover which indicates their target location.
 
 [When is this useful?]({@Projects-Configuration-WhenToUseLinkTooltips:inline})
-
-## linkTags
 
 	"linkTags": \{
 		"external": \{ "html": "someCode", "prepend": false },
@@ -172,25 +144,17 @@ Link tags are custom HTML snippets which can be automatically appended (or prepe
 
 Whatever HTML you specify for `html` will be added immediately after the end of the link, unless `prepend` is `true`, in which case it'll be added immediately before the beginning of the link.
 
-## includeBackButton
-
 	"includeBackButton": true
 
 If `true`, the value of `backButtonHTML` will be inserted into the final story HTML. Where it gets inserted is determined by the location of the `<!--\{backButton}-->` macro in the template file. If the macro is not found, the `backButtonHTML` will be ignored.
-
-## backButtonHTML
 
 	"backButtonHTML": "Back"
 
 If `includeBackButton` is `true`, this is the HTML snippet that will be inserted into the final story HTML in place of the `<!--\{backButton}-->` macro in the template file.
 
-## hardLineBreaks
-
 	"hardLineBreaks": true
 
 If true, single line breaks in Markdown source will be replaced with `<br/>` in the rendered HTML source. If false, they'll be replaced with `\n`, unless the line is suffixed by two or more spaces (see the [official Markdown spec](https://daringfireball.net/projects/markdown/syntax#p) for details).
-
-## smartPunctuation
 
 	"smartPunctuation": true
 

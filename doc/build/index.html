@@ -1,6 +1,7 @@
 <html>
 
 <head>
+    <title>Fractive User Guide</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet"></link>
     <style>
@@ -13,9 +14,11 @@
             --chapter-text-color: rgb(36, 29, 50);
             --topic-background-color: rgb(36, 29, 50);
             --topic-text-color: rgb(188, 152, 255);
-            --code-background-color: rgb(19, 18, 20);
-            --code-text-color: #b6a79e;
-            --inline-text-color: #a7826a;
+            --code-block-background-color: rgb(19, 18, 20);
+            --code-block-text-color: #bababa;
+            --code-inline-background-color: #e9e9e9;
+            --code-inline-text-color: #ff0000;
+            --inline-text-color: #bababa;
             --link-text-color: rgb(155, 101, 255);
             --sidebar-link-text-color: rgb(188, 152, 255);
             --link-hover-color: #FF6666;
@@ -180,21 +183,29 @@
         }
 
         pre {
-            background-color: var(--code-background-color);
+            background-color: var(--code-block-background-color);
             padding: 10px 20px;
             max-height: 600px;
             white-space: pre-wrap;
             overflow-y: auto;
         }
 
-        code {
+        pre code {
             line-height: 1.25em;
-            padding: 4px;
             font-family: "Courier New", "Courier", monospace;
             font-size: 14pt;
             font-weight: bold;
-            background-color: var(--code-background-color);
-            color: var(--code-text-color);
+            background-color: var(--code-block-background-color);
+            color: var(--code-block-text-color);
+        }
+
+        code {
+            font-family: "Courier New", "Courier", monospace;
+            font-size: 12pt;
+            padding: 4px;
+            border-radius: 6px;
+            background-color: var(--code-inline-background-color);
+            color: var(--code-inline-text-color);
         }
 
         img {
@@ -714,20 +725,17 @@ output: &quot;build&quot;,
                 <h1>Project configuration</h1>
                 <p>This page lists all the configuration options available in the <code>fractive.json</code> project file.</p>
                 <h1>Project metadata</h1>
-                <p>None of the project metadata is currently used, but in the future it will be displayed to the player (e.g. on a standardized title page, in an online database of Fractive stories, etc.)</p>
-                <h2>title</h2>
+                <p>Aside from the title, none of the project metadata is currently used, but in the future it will be displayed to the player (e.g. on a standardized title page, in an online database of Fractive stories, etc.)</p>
                 <pre><code>&quot;title&quot;: &quot;My Project Title&quot;
 </code></pre>
-                <p>Specifies the name of your story. This will be shown to the player, so it should be your actual story title, not a project code name or internal name.</p>
-                <h2>author</h2>
+                <p>Specifies the name of your story. This will be shown to the player, so it should be your actual story title, not a project code name or internal name. The page title will also be set to this if the <code>&lt;!--{title}--&gt;</code> mark
+                    is present in your template; see <a title="" href="javascript:;" data-goto-section="Stories-Templates">Templates</a> for details.</p>
                 <pre><code>&quot;author&quot;: &quot;Your Name&quot;
 </code></pre>
                 <p>Specifies who wrote the story. This could be your real name, an online nickname, a social media handle, or even a company name.</p>
-                <h2>description</h2>
                 <pre><code>&quot;description&quot;: &quot;About your story&quot;
 </code></pre>
                 <p>Give a brief (one or two sentences) description of your story.</p>
-                <h2>website</h2>
                 <pre><code>&quot;website&quot;: &quot;Your website&quot;
 </code></pre>
                 <p>Give an online address where players can learn more about you, find more of your stories, etc. This could be your website URL, a social media handle, or even an email address. You can also just leave it blank if you prefer.</p>
@@ -736,49 +744,41 @@ output: &quot;build&quot;,
                 <p>These are generally <a title="" target="_blank" href="https://github.com/isaacs/node-glob#glob-primer">globs&nbsp;<i class="fa fa-external-link" aria-hidden="true"></i></a> or lists of globs.</p>
                 <p><a title="" href="javascript:;" data-replace-with="@Projects-Configuration-Globs" id="_inline-1">How do globs work?&nbsp;<i class="fa fa-info-circle" aria-hidden="true"></i></a></p>
                 <p>Paths are relative to the <code>fractive.json</code> project file.</p>
-                <h2>markdown</h2>
                 <pre><code>&quot;markdown&quot;: [
 	&quot;source/**/*.md&quot;
 ]
 </code></pre>
                 <p>List of globs indicating where story text (Markdown) files should be found. All files sourced by this list will be compiled as story text when you build the project.</p>
-                <h2>javascript</h2>
                 <pre><code>&quot;javascript&quot;: [
 	&quot;source/**/*.js&quot;
 ]
 </code></pre>
                 <p>List of globs indicating where Javascript files should be found. All files sourced by this list will be combined and embedded in the output <code>index.html</code> when you build the project.</p>
-                <h2>assets</h2>
                 <pre><code>&quot;assets&quot;: [
 	&quot;assets/**&quot;
 ]
 </code></pre>
                 <p>List of globs indicating where asset files should be found. All files sourced by this list will be copied to the output location, preserving their directory structure.</p>
                 <p><a title="" href="javascript:;" data-replace-with="@Projects-Configuration-AssetFiles" id="_inline-2">What are asset files?&nbsp;<i class="fa fa-info-circle" aria-hidden="true"></i></a></p>
-                <h2>ignore</h2>
                 <pre><code>&quot;ignore&quot;: [
 	&quot;assets/.DS_Store&quot;
 ]
 </code></pre>
                 <p>List of globs indicating files to ignore. All files sourced by this list will be ignored; they will NOT be compiled, embedded, copied, or otherwise processed.</p>
                 <p><a title="" href="javascript:;" data-replace-with="@Projects-Configuration-WhatToIgnore" id="_inline-3">What kinds of files should I ignore?&nbsp;<i class="fa fa-info-circle" aria-hidden="true"></i></a></p>
-                <h2>template</h2>
                 <pre><code>&quot;template&quot;: &quot;template.html&quot;
 </code></pre>
                 <p>Specifies the HTML template file to use for formatting the story. (To use one of Fractive’s built-in example templates, you can write the path like <code>{examples}/basic.html</code>.)</p>
-                <h2>output</h2>
                 <pre><code>&quot;output&quot;: &quot;build&quot;
 </code></pre>
                 <p>Specifies a directory name where the final <code>index.html</code> and asset files will be placed when the project is built.</p>
                 <h1>Formatting</h1>
                 <p>These options affect how source text is interpreted and rendered into the final HTML.</p>
-                <h2>aliases</h2>
                 <pre><code>&quot;aliases&quot;: [
 	{ &quot;alias&quot;: &quot;name&quot;, &quot;replaceWith&quot;: &quot;text&quot;, &quot;end&quot;: &quot;text&quot; }
 ]
 </code></pre>
                 <p>List of alias definitions. See <a title="" href="javascript:;" data-goto-section="Stories-Aliases">Aliases</a> for details. Note that the <code>end</code> property is optional and may be omitted for aliases that don’t need to use it.</p>
-                <h2>outputFormat</h2>
                 <pre><code>&quot;outputFormat&quot;: &quot;prettify&quot;
 </code></pre>
                 <p>Specifies how the final HTML should be written:</p>
@@ -787,12 +787,10 @@ output: &quot;build&quot;,
                     <li><code>minify</code>: Compact the final HTML by removing all unnecessary whitespace and symbols. This is difficult to read and debug, but is much smaller. Good for final release.</li>
                 </ul>
                 <p>This option doesn’t change how your story is displayed to the player at all, it just determines what the HTML source code looks like.</p>
-                <h2>linkTooltips</h2>
                 <pre><code>&quot;linkTooltips&quot;: false
 </code></pre>
                 <p>Specifies whether links should show a tooltip on mouseover which indicates their target location.</p>
                 <p><a title="" href="javascript:;" data-replace-with="@Projects-Configuration-WhenToUseLinkTooltips" id="_inline-4">When is this useful?&nbsp;<i class="fa fa-info-circle" aria-hidden="true"></i></a></p>
-                <h2>linkTags</h2>
                 <pre><code>&quot;linkTags&quot;: {
 	&quot;external&quot;: { &quot;html&quot;: &quot;someCode&quot;, &quot;prepend&quot;: false },
 	&quot;inline&quot;: { &quot;html&quot;: &quot;someCode&quot;, &quot;prepend&quot;: false },
@@ -808,22 +806,18 @@ output: &quot;build&quot;,
                     <li><code>function</code> links call a Javascript function when clicked, e.g. <code>{\#SomeFunction}</code></li>
                 </ul>
                 <p>Whatever HTML you specify for <code>html</code> will be added immediately after the end of the link, unless <code>prepend</code> is <code>true</code>, in which case it’ll be added immediately before the beginning of the link.</p>
-                <h2>includeBackButton</h2>
                 <pre><code>&quot;includeBackButton&quot;: true
 </code></pre>
                 <p>If <code>true</code>, the value of <code>backButtonHTML</code> will be inserted into the final story HTML. Where it gets inserted is determined by the location of the <code>&lt;!--{backButton}--&gt;</code> macro in the template file. If
                     the macro is not found, the <code>backButtonHTML</code> will be ignored.</p>
-                <h2>backButtonHTML</h2>
                 <pre><code>&quot;backButtonHTML&quot;: &quot;Back&quot;
 </code></pre>
                 <p>If <code>includeBackButton</code> is <code>true</code>, this is the HTML snippet that will be inserted into the final story HTML in place of the <code>&lt;!--{backButton}--&gt;</code> macro in the template file.</p>
-                <h2>hardLineBreaks</h2>
                 <pre><code>&quot;hardLineBreaks&quot;: true
 </code></pre>
                 <p>If true, single line breaks in Markdown source will be replaced with <code>&lt;br/&gt;</code> in the rendered HTML source. If false, they’ll be replaced with <code>\n</code>, unless the line is suffixed by two or more spaces (see the
                     <a
                         title="" target="_blank" href="https://daringfireball.net/projects/markdown/syntax#p">official Markdown spec&nbsp;<i class="fa fa-external-link" aria-hidden="true"></i></a> for details).</p>
-                <h2>smartPunctuation</h2>
                 <pre><code>&quot;smartPunctuation&quot;: true
 </code></pre>
                 <p>If true, replace straight quotes with smart quotes, – with en-dash, — with em-dash, and … with ellipsis.</p>
@@ -976,26 +970,21 @@ Javascript says: {$Foo}
             <div id="Scripting-CoreAPI" data-tags="" class="section" hidden="true">
                 <h1>Core API</h1>
                 <p>Fractive exposes some useful Javascript functions to your story scripts.</p>
-                <h2>Core.BeginStory</h2>
                 <pre><code>Core.BeginStory()
 </code></pre>
                 <p>Begins (or restarts) the story. You don’t need to call this to start the story initially; that happens automatically. But you might call this if you wanted to implement your own “Restart Story” link.</p>
                 <p>The difference between calling this vs. calling <code>Core.GotoSection(&quot;Start&quot;)</code> is that this function also calls any registered <code>OnBeginStory</code> <a title="" href="javascript:;" data-goto-section="Scripting-EventHandlers">event handlers</a>.</p>
-                <h2>Core.GetSection</h2>
                 <pre><code>Core.GetSection(&quot;SectionName&quot;)
 </code></pre>
                 <p>Gets a copy of the given section, expands its macros, registers its links, and returns an <code>Element</code> instance which is fully activated and ready to be displayed to the user, without actually navigating to that section. This function
                     is for advanced/unusual circumstances; for example, this documentation uses it to populate the table of contents in the sidebar. Normally you should just use <code>Core.GotoSection(&quot;SectionName&quot;)</code> instead.</p>
-                <h2>Core.GotoPreviousSection()</h2>
                 <pre><code>Core.GotoPrevousSection()
 </code></pre>
                 <p>Travel to the section we just came from. You can hook this up to a “Back” link if you want players to be able to undo their choices.</p>
-                <h2>Core.GotoSection</h2>
                 <pre><code>Core.GotoSection(&quot;SectionName&quot;)
 </code></pre>
                 <p>Advances the story to the named section. This is exactly the same thing that happens when the player clicks a link to a section macro. The advantage to calling this in Javascript is you could retrieve the target section name from a variable,
                     or build it dynamically (use with care!)</p>
-                <h2>Core.RefreshCurrentSection</h2>
                 <pre><code>Core.RefreshCurrentSection()
 </code></pre>
                 <p>Reloads the current section without creating a new history entry. Not commonly used.</p>
@@ -1044,9 +1033,11 @@ Javascript says: {$Foo}
                 <pre><code>npm install --save-dev fractive
 </code></pre>
                 <p>Then import it in your script file(s):</p>
-                <p><code>import * as fractive from &quot;fractive&quot;;</code></p>
+                <pre><code>import * as fractive from &quot;fractive&quot;;
+</code></pre>
                 <p>And invoke exported API functions like this:</p>
-                <p><code>fractive.Core.GotoSection(&quot;SomeSectionName&quot;);</code></p>
+                <pre><code>fractive.Core.GotoSection(&quot;SomeSectionName&quot;);
+</code></pre>
                 <p>This installs Fractive as a local dependency to your project. If this is your only Fractive install (i.e. you never do <code>npm install -g fractive</code>) then you won’t have <code>fractive</code> on your PATH, which means commands like
                     <code>fractive compile path/to/my/story</code> won’t work. Local installs place the <code>fractive</code> executable in your project’s <code>node_modules/.bin</code> directory, so you’ll need to invoke it like this:</p>
                 <pre><code>cd path/to/my/story
@@ -1217,8 +1208,16 @@ Here's a video!
                     opportunity for bugs to arise.</p>
                 <p>To solve this problem (and others like it) you can define custom macros, called <strong>aliases</strong>, which expand to other text or markup at compile-time. In your <code>fractive.json</code> simply add some rules to the <code>aliases</code>                    field, like this:</p>
                 <pre><code>&quot;aliases&quot;: [
-	{ &quot;alias&quot;: &quot;red&quot;, &quot;replaceWith&quot;: &quot;&lt;span style='color:red'&gt;&quot;, &quot;end&quot;: &quot;&lt;/span&gt;&quot; },
-	{ &quot;alias&quot;: &quot;blue&quot;, &quot;replaceWith&quot;: &quot;&lt;span style='color:blue'&gt;&quot;, &quot;end&quot;: &quot;&lt;/span&gt;&quot; }
+	{
+		&quot;alias&quot;: &quot;red&quot;,
+		&quot;replaceWith&quot;: &quot;&lt;span style='color:red'&gt;&quot;,
+		&quot;end&quot;: &quot;&lt;/span&gt;&quot;
+	},
+	{
+		&quot;alias&quot;: &quot;blue&quot;,
+		&quot;replaceWith&quot;: &quot;&lt;span style='color:blue'&gt;&quot;,
+		&quot;end&quot;: &quot;&lt;/span&gt;&quot;
+	}
 ],
 </code></pre>
                 <p>Then refer to the alias in your story text like this:</p>
@@ -1227,8 +1226,16 @@ Here's a video!
                 <p>When you build your story, all instances of <code>{red}</code> will be replaced with <code>&lt;span style='color:red'&gt;</code> and all instances of <code>{/red}</code> will be replaced with <code>&lt;/span&gt;</code>. If later you wanted
                     to change all your red text to a more specific shade of red (for example) you could simply edit your alias like this, then rebuild your story and all existing usages of the <code>{red}</code> alias would be automatically updated:</p>
                 <pre><code>&quot;aliases&quot;: [
-	{ &quot;alias&quot;: &quot;red&quot;, &quot;replaceWith&quot;: &quot;&lt;span style='color:#ff8888'&gt;&quot;, &quot;end&quot;: &quot;&lt;/span&gt;&quot; },
-	{ &quot;alias&quot;: &quot;blue&quot;, &quot;replaceWith&quot;: &quot;&lt;span style='color:#8888ff'&gt;&quot;, &quot;end&quot;: &quot;&lt;/span&gt;&quot; }
+	{
+		&quot;alias&quot;: &quot;red&quot;,
+		&quot;replaceWith&quot;: &quot;&lt;span style='color:#ff8888'&gt;&quot;,
+		&quot;end&quot;: &quot;&lt;/span&gt;&quot;
+	},
+	{
+		&quot;alias&quot;: &quot;blue&quot;,
+		&quot;replaceWith&quot;: &quot;&lt;span style='color:#8888ff'&gt;&quot;,
+		&quot;end&quot;: &quot;&lt;/span&gt;&quot;
+	}
 ],
 </code></pre>
                 <p>The <code>end</code> property of an alias is optional. Aliases are replaced with the <code>replaceWith</code> parameter, unless they contain a leading <code>/</code>, in which case they’re replaced with their <code>end</code> parameter
@@ -1236,7 +1243,10 @@ Here's a video!
                 <p>Alias replacement happens before any other build steps take place, and is a (nearly) pure text replacement. That means you can replace aliases with macro definitions, and those macros will then be expanded normally. In other words, you
                     could do something like this:</p>
                 <pre><code>&quot;aliases&quot;: [
-	{ &quot;alias&quot;: &quot;Home&quot;, &quot;replaceWith&quot;: &quot;{{Start}}&quot; }
+	{
+		&quot;alias&quot;: &quot;Home&quot;,
+		&quot;replaceWith&quot;: &quot;{{Start}}&quot;
+	}
 ],
 </code></pre>
                 <p>And then in your story text do this:</p>
@@ -1251,12 +1261,21 @@ This is the beginning of my story, but I'm obstinate and don't want to use the n
             <div id="Stories-Templates" data-tags="" class="section" hidden="true">
                 <h1>Templates</h1>
                 <p>You can control the visual layout and style of your story by providing a custom HTML template. When you create a new project, a basic <code>template.html</code> is created in your project root. You can edit or replace this at your leisure.</p>
-                <p>A template is a regular HTML file with a few special macros:</p>
-                <p><code>&lt;!--{script}--&gt;</code><br/>Indicates where story scripts should be inserted. Generally you should put this inside your <code>&lt;head&gt;</code>. You don’t need to include <code>&lt;script&gt;</code> tags; they’ll be added
-                    automatically by the compiler.</p>
-                <p><code>&lt;!--{story}--&gt;</code><br/>Indicates where story text should be inserted. Generally you should put this inside your <code>&lt;body&gt;</code>. It doesn’t really matter where, because this will all be hidden at startup anyway.</p>
-                <p><code>&lt;!--{backButton}--&gt;</code><br/>Indicates where the <code>backButtonHTML</code> defined in your <code>fractive.json</code> should be inserted, if <code>includeBackButton</code> is set to <code>true</code>. (See <a title="" href="javascript:;"
-                        data-goto-section="Projects-Configuration">Configuration</a> for details.)</p>
+                <h2>Marks</h2>
+                <p>A template is a regular HTML file with a few special <strong>marks</strong>:</p>
+                <pre><code>&lt;!--{script}--&gt;
+</code></pre>
+                <p>Indicates where story scripts should be inserted. Generally you should put this inside your <code>&lt;head&gt;</code>. You don’t need to include <code>&lt;script&gt;</code> tags; they’ll be added automatically by the compiler.</p>
+                <pre><code>&lt;!--{story}--&gt;
+</code></pre>
+                <p>Indicates where story text should be inserted. Generally you should put this inside your <code>&lt;body&gt;</code>. It doesn’t really matter where, because this will all be hidden at startup anyway.</p>
+                <pre><code>&lt;!--{backButton}--&gt;
+</code></pre>
+                <p>Indicates where the <code>backButtonHTML</code> defined in your <code>fractive.json</code> should be inserted, if <code>includeBackButton</code> is set to <code>true</code>. See <a title="" href="javascript:;" data-goto-section="Projects-Configuration">Configuration</a>                    for details.</p>
+                <pre><code>&lt;!--{title}--&gt;
+</code></pre>
+                <p>Optional mark which should appear in your <code>&lt;title&gt;</code> tag and will be replaced with the <code>title</code> field from your <code>fractive.json</code>. See <a href="@%7BProjects-Configuration%7D">Configuration</a> for details.</p>
+                <h2>Elements</h2>
                 <p>You also need to define:</p>
                 <pre><code>&lt;div id=&quot;__currentSection&quot;&gt;&lt;/div&gt;
 </code></pre>
@@ -1265,12 +1284,21 @@ This is the beginning of my story, but I'm obstinate and don't want to use the n
                 <pre><code>&lt;div id=&quot;__history&quot;&gt;&lt;/div&gt;
 </code></pre>
                 <p>…which should also be empty. This is where past sections will be displayed when history is enabled.</p>
+                <h2>Styling</h2>
                 <p>You can also style your game with custom CSS; just embed it in <code>&lt;style&gt;&lt;/style&gt;</code> tags at the top of your HTML template (or link to an external CSS file if you prefer). Fractive uses a few core CSS selectors you’ll
                     want to override:</p>
-                <p><code>#__currentSection</code><br/>Covers the entire current section div, where active gameplay takes place.</p>
-                <p><code>#__history</code><br/>Covers the entire history div, where previous sections are displayed for reference.</p>
-                <p><code>.__inlineMacro</code><br/>Covers the expanded text that appears when the player clicks an <code>:inline</code> macro. The expanded text is wrapped in a span with this class.</p>
-                <p><code>.__disabledLink</code><br/>Covers <code>&lt;a&gt;</code> tags in sections that have been moved to the history. Those <code>&lt;a&gt;</code> tags are replaced with <code>&lt;span&gt;</code> with this class assigned.</p>
+                <pre><code>#__currentSection
+</code></pre>
+                <p>Covers the entire current section div, where active gameplay takes place.</p>
+                <pre><code>#__history
+</code></pre>
+                <p>Covers the entire history div, where previous sections are displayed for reference.</p>
+                <pre><code>.__inlineMacro
+</code></pre>
+                <p>Covers the expanded text that appears when the player clicks an <code>:inline</code> macro. The expanded text is wrapped in a span with this class.</p>
+                <pre><code>.__disabledLink
+</code></pre>
+                <p>Covers <code>&lt;a&gt;</code> tags in sections that have been moved to the history. Those <code>&lt;a&gt;</code> tags are replaced with <code>&lt;span&gt;</code> with this class assigned.</p>
                 <p><a title="" href="javascript:;" data-goto-section="Stories-Aliases"><i class="fa fa-arrow-circle-right" aria-hidden="true"></i> Next: Aliases</a></p>
             </div>
             <!-- source/toc.md -->

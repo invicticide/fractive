@@ -164,8 +164,16 @@ While functional, this looks ugly and makes your story text harder to read. It's
 To solve this problem (and others like it) you can define custom macros, called **aliases**, which expand to other text or markup at compile-time. In your `fractive.json` simply add some rules to the `aliases` field, like this:
 
 	"aliases": [
-		\{ "alias": "red", "replaceWith": "<span style='color:red'>", "end": "</span>" },
-		\{ "alias": "blue", "replaceWith": "<span style='color:blue'>", "end": "</span>" }
+		\{
+			"alias": "red",
+			"replaceWith": "<span style='color:red'>",
+			"end": "</span>"
+		},
+		\{
+			"alias": "blue",
+			"replaceWith": "<span style='color:blue'>",
+			"end": "</span>"
+		}
 	],
 
 Then refer to the alias in your story text like this:
@@ -175,8 +183,16 @@ Then refer to the alias in your story text like this:
 When you build your story, all instances of `\{red}` will be replaced with `<span style='color:red'>` and all instances of `\{/red}` will be replaced with `</span>`. If later you wanted to change all your red text to a more specific shade of red (for example) you could simply edit your alias like this, then rebuild your story and all existing usages of the `\{red}` alias would be automatically updated:
 
 	"aliases": [
-		\{ "alias": "red", "replaceWith": "<span style='color:#ff8888'>", "end": "</span>" },
-		\{ "alias": "blue", "replaceWith": "<span style='color:#8888ff'>", "end": "</span>" }
+		\{
+			"alias": "red",
+			"replaceWith": "<span style='color:#ff8888'>",
+			"end": "</span>"
+		},
+		\{
+			"alias": "blue",
+			"replaceWith": "<span style='color:#8888ff'>",
+			"end": "</span>"
+		}
 	],
 
 The `end` property of an alias is optional. Aliases are replaced with the `replaceWith` parameter, unless they contain a leading `/`, in which case they're replaced with their `end` parameter instead.
@@ -184,7 +200,10 @@ The `end` property of an alias is optional. Aliases are replaced with the `repla
 Alias replacement happens before any other build steps take place, and is a (nearly) pure text replacement. That means you can replace aliases with macro definitions, and those macros will then be expanded normally. In other words, you could do something like this:
 
 	"aliases": [
-		\{ "alias": "Home", "replaceWith": "\{{Start}}" }
+		\{
+			"alias": "Home",
+			"replaceWith": "\{{Start}}"
+		}
 	],
 
 And then in your story text do this:
@@ -204,16 +223,27 @@ Finally, did you notice the `\\{{Start}}` in the example text above? When a macr
 
 You can control the visual layout and style of your story by providing a custom HTML template. When you create a new project, a basic `template.html` is created in your project root. You can edit or replace this at your leisure.
 
-A template is a regular HTML file with a few special macros:
+## Marks
 
-`<!--\{script}-->`
+A template is a regular HTML file with a few special **marks**:
+
+	<!--\{script}-->
+
 Indicates where story scripts should be inserted. Generally you should put this inside your `<head>`. You don't need to include `<script>` tags; they'll be added automatically by the compiler.
 
-`<!--\{story}-->`
+	<!--\{story}-->
+
 Indicates where story text should be inserted. Generally you should put this inside your `<body>`. It doesn't really matter where, because this will all be hidden at startup anyway.
 
-`<!--\{backButton}-->`
-Indicates where the `backButtonHTML` defined in your `fractive.json` should be inserted, if `includeBackButton` is set to `true	`. (See [Configuration]({@Projects-Configuration}) for details.)
+	<!--\{backButton}-->
+
+Indicates where the `backButtonHTML` defined in your `fractive.json` should be inserted, if `includeBackButton` is set to `true	`. See [Configuration]({@Projects-Configuration}) for details.
+
+	<!--\{title}-->
+
+Optional mark which should appear in your `<title>` tag and will be replaced with the `title` field from your `fractive.json`. See [Configuration](@{Projects-Configuration}) for details.
+
+## Elements
 
 You also need to define:
 
@@ -227,18 +257,24 @@ Optionally, you can also include:
 
 ...which should also be empty. This is where past sections will be displayed when history is enabled.
 
+## Styling
+
 You can also style your game with custom CSS; just embed it in `<style></style>` tags at the top of your HTML template (or link to an external CSS file if you prefer). Fractive uses a few core CSS selectors you'll want to override:
 
-`#__currentSection`
+	#__currentSection
+
 Covers the entire current section div, where active gameplay takes place.
 
-`#__history`
+	#__history
+
 Covers the entire history div, where previous sections are displayed for reference.
 
-`.__inlineMacro`
+	.__inlineMacro
+
 Covers the expanded text that appears when the player clicks an `:inline` macro. The expanded text is wrapped in a span with this class.
 
-`.__disabledLink`
+	.__disabledLink
+
 Covers `<a>` tags in sections that have been moved to the history. Those `<a>` tags are replaced with `<span>` with this class assigned.
 
 [{icon-forward} Next: Aliases]({@Stories-Aliases})
