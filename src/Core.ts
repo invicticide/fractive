@@ -93,14 +93,7 @@ export namespace Core
 		// Activate IDs by prepending '!' so they're unique from their source instances
 		if(element.id && element.id !== "__currentSection")
 		{
-			if(element.id[0] !== '!')
-			{
-				element.id = `!${element.id}`;
-			}
-			else
-			{
-				console.error(`Element with id '${element.id}' already starts with '!' which means it's either named illegally or is being activated twice`);
-			}
+			if(element.id[0] !== '!') { element.id = `!${element.id}`; }
 		}
 
 		// Recursively activate child elements
