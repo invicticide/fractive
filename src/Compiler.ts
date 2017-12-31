@@ -174,7 +174,9 @@ export namespace Compiler
 		if(project.outputFormat === 'minify')
 		{
 			return minifier.minify(template, {
+				caseSensitive: true,
 				collapseWhitespace: true,
+				log: OnMinifierLog,
 				minifyCSS: true,
 				minifyJS: true,
 				removeAttributeQuotes: true,
@@ -563,6 +565,43 @@ export namespace Compiler
 		else
 		{
 			LogError(`${path.relative(projectPath, filePath)}: ${text}`);
+		}
+	}
+
+	/**
+	 * Callback for html_minifier log events
+	 * @param data The log data (message, object, whatever) returned by the minifier
+	 */
+	function OnMinifierLog(data)
+	{
+		switch(typeof(data))
+		{
+			case "string":
+			{
+				if(data.indexOf("minified in:") < 0) { console.log(clc.yellow("Minifier: " + data)); }
+				break;
+			}
+			case "object":
+			{
+				if(data.message)
+				{
+					// UglifyJS log message (probably)
+					// TODO: Make this suck so much less => https://github.com/invicticide/fractive/issues/69
+					console.log(clc.yellow(`Minifier: ${data.message}\nThis isn't fatal; it just means Javascript was not minified.\nTry running CLI uglifyjs on the .js file(s) to narrow down the error.`));
+				}
+				else
+				{
+					console.log(clc.yellow(`"Minifier: Unrecognized object format in log... raw object follows:`));
+					console.log(data);
+				}
+				break;
+			}
+			default:
+			{
+				console.log(clc.yellow(`"Minifier: Unhandled data type '${typeof(data)}' in log... raw data follows:`));
+				console.log(data);
+				break;
+			}
 		}
 	}
 
