@@ -189,7 +189,7 @@
 				contentDiv.style.setProperty("top", contentTop);
 				contentDiv.style.setProperty("height", window.innerHeight - contentTop);
 			}
-			Core.AddEventListener("OnGotoSection", function(id, element, tags)
+			Core.AddEventListener("OnGotoSection", function(id, element, tags, reason)
 			{
 				// Scroll to bottom of history
 				var historyContainerDiv = document.getElementById("__historyContainer");
