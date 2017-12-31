@@ -3,7 +3,7 @@ Core.AddEventListener("OnBeginStory", () =>
 	// Populate the sidebar from the @TableOfContents section so it's easy to maintain
 	var sidebar = document.getElementById("__sidebar");
 	var toc = Core.GetSection("TableOfContents");
-	Core.RegisterLinks(toc);
+	Core.ActivateElement(toc);
 	sidebar.appendChild(toc);
 });
 

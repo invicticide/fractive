@@ -835,10 +835,7 @@ export namespace Compiler
 						{ attr: "href", value: "javascript:;" },
 						{ attr: "data-replace-with", value: url }
 					];
-
-					// Prepending _ to the id makes this :inline macro disabled by default. It gets enabled when it's moved
-					// into the __currentSection div.
-					return RewriteLinkNode(event.node, attrs, `_inline-${nextInlineID++}`);
+					return RewriteLinkNode(event.node, attrs, `inline-${nextInlineID++}`);
 				}
 			}
 			default:

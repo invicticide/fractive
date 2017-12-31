@@ -54,6 +54,66 @@ export namespace Core
 	}
 	
 	/**
+	* Recursively activates all links in the DOM subtree rooted at this element. This registers appropriate
+	* click handlers for each link based on the presence and type of data attributes on <a> tags.
+	* @param element The current root element to process
+	*/
+	export function ActivateElement(element : Element)
+	{
+		// Register click handlers for links
+		if(element.tagName && element.tagName.toLowerCase() == "a")
+		{
+			for(let i = 0; i < element.attributes.length; i++)
+			{
+				switch(element.attributes[i].name)
+				{
+					case "data-goto-section":
+					{
+						element.addEventListener("click", function() {
+							Core.GotoSection(element.attributes[i].value);
+						});
+						break;
+					}
+					case "data-call-function":
+					{
+						element.addEventListener("click", RetrieveFromWindow(element.attributes[i].value, 'function'));
+						break;
+					}
+					case "data-replace-with":
+					{
+						element.addEventListener("click", function() {
+							Core.ReplaceActiveElement(element.id, ExpandMacro(element.attributes[i].value));
+						});
+						break;
+					}
+				}
+			}
+		}
+
+		// Activate IDs by prepending '!' so they're unique from their source instances
+		if(element.id && element.id !== "__currentSection")
+		{
+			if(element.id[0] !== '!')
+			{
+				element.id = `!${element.id}`;
+			}
+			else
+			{
+				console.error(`Element with id '${element.id}' already starts with '!' which means it's either named illegally or is being activated twice`);
+			}
+		}
+
+		// Recursively activate child elements
+		if(element.children)
+		{
+			for(let i = 0; i < element.children.length; i++)
+			{
+				ActivateElement(element.children[i]);
+			}
+		}
+	}
+	
+	/**
 	* Subscribe to an event with a custom handler function. The handler will be called whenever the event occurs.
 	* @param eventName The name of the event to subscribe to
 	* @param handler The function that will be called when the event occurs
@@ -146,32 +206,6 @@ export namespace Core
 				links[i].outerHTML.indexOf("</a>")
 			);
 			links[i].outerHTML = `<span class="__disabledLink" data-link-tag='${linkTag}'>${contents}</span>`;
-		}
-	}
-	
-	/**
-	* Enable or disable :inline macros within the document subtree starting at the given root element.
-	* Nothing is returned, as the elements are modified in place. Disabled :inline macros simply have
-	* a _ prepended to their id attribute.
-	* @param root The root of the subtree to scan
-	* @param tf True to enable, false to disable
-	*/
-	function EnableInlineMacros(root : Element, tf : boolean = true)
-	{
-		if(root.id)
-		{
-			// Disabled ids have a _ in front of them. We want the active instance in the __currentSection div to be the
-			// only one that doesn't have that prefix.
-			if(tf && root.id.search("_inline\-") > -1) { root.id = root.id.substring(1); }
-			else if(!tf && root.id.search("inline\-") > -1) { root.id = `_${root.id}`; }
-		}		
-		if(root.children)
-		{
-			// Recursively check all children
-			for(let i = 0; i < root.children.length; i++)
-			{
-				EnableInlineMacros(root.children[i], tf);
-			}
 		}
 	}
 	
@@ -445,8 +479,7 @@ export namespace Core
 			for(let j = 0; j < mutations[i].addedNodes.length; j++)
 			{
 				let e : Element = mutations[i].addedNodes[j] as Element;
-				EnableInlineMacros(e, true);
-				RegisterLinks(e);
+				ActivateElement(e);
 			}
 		}
 	}
@@ -468,50 +501,6 @@ export namespace Core
 
 		// Notify user script
 		for(let i = 0; i < OnGotoSection.length; i++) { OnGotoSection[i](id, clone, GetSectionTags(id), EGotoSectionReason.Refresh); }
-	}
-	
-	/**
-	* Recursively activates all links in the DOM subtree rooted at this element. This registers appropriate
-	* click handlers for each link based on the presence and type of data attributes on <a> tags.
-	* @param element The current root element to process
-	*/
-	export function RegisterLinks(element : Element)
-	{
-		if(element.tagName && element.tagName.toLowerCase() == "a")
-		{
-			for(let i = 0; i < element.attributes.length; i++)
-			{
-				switch(element.attributes[i].name)
-				{
-					case "data-goto-section":
-					{
-						element.addEventListener("click", function() {
-							Core.GotoSection(element.attributes[i].value);
-						});
-						break;
-					}
-					case "data-call-function":
-					{
-						element.addEventListener("click", RetrieveFromWindow(element.attributes[i].value, 'function'));
-						break;
-					}
-					case "data-replace-with":
-					{
-						element.addEventListener("click", function() {
-							Core.ReplaceActiveElement(element.id, ExpandMacro(element.attributes[i].value));
-						});
-						break;
-					}
-				}
-			}
-		}
-		if(element.children)
-		{
-			for(let i = 0; i < element.children.length; i++)
-			{
-				RegisterLinks(element.children[i]);
-			}
-		}
 	}
 	
 	/**
@@ -537,39 +526,24 @@ export namespace Core
 	}
 	
 	/**
-	* Replaces the element having the given id, with the given html (used mainly for :inline macros).
+	* Replaces the element having the given id, with the given html.
 	* Only replaces the element that's in the __currentSection div; doesn't affect the hidden story text.
 	* @param id The id of the element to be replaced
 	* @param html The html to replace the element with
 	*/
 	export function ReplaceActiveElement(id : string, html : string)
 	{
-		for(let element = document.getElementById(id); element; element = document.getElementById(id))
-		{
-			if(!element) { continue; }
+		// Force the '!' prefix indicating an active element (i.e. one in the __currentSection div).
+		// Normal inline links will pass in an id that already has it, but user code might not, and
+		// we don't want them accidentally munging hidden source divs without realizing it.
+		let element = document.getElementById(id[0] === '!' ? id : `!${id}`);
+		if(!element) { return; }
 			
-			// Nodes with this id will exist in both the hidden story text and in the current section,
-			// but we only want to do the replacement in the current section
-			let bIsActive : boolean = false;
-			for(let parent = element.parentElement; parent; parent = parent.parentElement)
-			{
-				if(parent.id === "__currentSection")
-				{
-					bIsActive = true;
-					break;
-				}
-			}
-			if(bIsActive)
-			{
-				let replacement = document.createElement(CanBeInline(html, element.parentElement) ? "span" : "div");
-				replacement.className = "__inlineMacro";
-				replacement.innerHTML = html;
-				EnableInlineMacros(replacement, true);
-				RegisterLinks(replacement);
-				element.parentNode.replaceChild(replacement, element);
-				break;
-			}
-		}
+		let replacement = document.createElement(CanBeInline(html, element.parentElement) ? "span" : "div");
+		replacement.className = "__inlineMacro";
+		replacement.innerHTML = html;
+		ActivateElement(replacement);
+		element.parentNode.replaceChild(replacement, element);
 	}
 
 	/**
@@ -583,8 +557,7 @@ export namespace Core
 
 		e.scrollTop = 0;
 		e.id = "__currentSection";
-		EnableInlineMacros(e);
-		RegisterLinks(e);
+		ActivateElement(e);
 		
 		// Replace the div so as to restart CSS animations
 		currentSection.parentElement.replaceChild(e, currentSection);
