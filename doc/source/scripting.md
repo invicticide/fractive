@@ -58,7 +58,7 @@ In your Markdown story text, link to this function using a function macro:
 
 When the player clicks the "Say hello" link, a window will pop up with the text "Hello, world!"
 
-# Inline macros
+## Inline macros
 
 If you put a function macro as a link destination and add the `:inline` specifier, the function will be called when the player clicks the link, and the link will be replaced with any text the function returns.
 
