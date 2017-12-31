@@ -901,12 +901,12 @@ export namespace Compiler
 					}
 					case "$": // Variable link: behavior undefined
 					{
-						LogParseError("Variable macros can't be used as link destinations", filepath, event.node);
+						LogParseError(`Variable macros can't be used as link destinations: {${url}}`, filepath, event.node);
 						return false;
 					}
 					default: // Unknown macro
 					{
-						LogParseError("Unrecognized macro in link destination", filepath, event.node);
+						LogParseError(`Unrecognized macro in link destination: {${url}}`, filepath, event.node);
 						return false;
 					}
 				}
@@ -980,10 +980,11 @@ export namespace Compiler
 							let tags : Array<string> = [];
 
 							// If the macro contains ':' then part of it is tag declarations
-							if (macroContents.indexOf(":") !== -1)
+							if(macroContents.indexOf(":") !== -1)
 							{
 								// Only take the part preceding ':' as the section name
 								sectionName = macroContents.substring(0, macroContents.indexOf(":")).trim();
+
 								// Tokenize the tag declarations and strip whitespace
 								let tagDeclarations : string = macroContents.substring(macroContents.indexOf(":") + 1);
 								let tagTokens = tagDeclarations.split(',');
