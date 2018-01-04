@@ -901,10 +901,21 @@ export namespace Compiler
 						}
 						else
 						{
+							// Put together a list of attributes for this link
 							let attrs = [
-								{ attr: "href", value: "javascript:;" },
-								{ attr: "data-goto-section", value: url.substring(1) }
+								{ attr: "href", value: "javascript:;" }
 							];
+
+							// Section links following the pattern @^up or @^down are
+							// relative section links and get a different data attribute.
+							// ^ in Markdown expands to %5E for some reason.
+							if (url.length > 4 && url.substring(1, 4) === '%5E') {
+								attrs[attrs.length] = { attr: "data-goto-relative-section", value: url.substring(4) };
+							}
+							else {
+								attrs[attrs.length] = { attr: "data-goto-section", value: url.substring(1) };
+							}
+
 							return RewriteLinkNode(event.node, attrs, null);
 						}
 					}
