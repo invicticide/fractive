@@ -40,16 +40,69 @@ rewrite the last example like this:
 ...
 [Next](\{@^down})
 
+\{{Section2.5}}
+...
+[Next](\{@^down})
+
 \{{Section3}}
 ...
 [Next](\{@^down})
 ```
 
+Now no matter how many sections we insert between the existing ones,
+the linear flow will be preserved the way we expect it to.
+
 [Next]({@^down})
 
 {{Section3}}
 
-boop
+We can make things even easier on ourselves by declaring a aliases in `fractive.json`:
+
+```
+"aliases": [
+  \{ "alias": "up", "replaceWith": "[Back]({@^up})" },
+  \{ "alias": "down", "replaceWith": "[Forward]({@^down})" }
+]
+```
+
+These aliases will let us rewrite our Markdown one last time, even cleaner
+and with the added benefit of a back button wherever it's needed:
+
+```
+\{{Section1}}
+...
+\{down}
+
+\{{Section2}}
+...
+\{up} \{down}
+
+\{{Section2.5}}
+...
+\{up} \{down}
+
+\{{Section3}}
+...
+\{up} \{down}
+```
+
+{down}
+
+{{Section4}}
+
+Your story doesn't have to be completely linear for this to come in handy. Maybe
+you're making a branching story, but some scenes along the branches follow
+a linear structure. The `\{@^up}` and `\{@^down}` links aren't added to your
+sections automatically like the back button is, so you can use them when you need to,
+and drop them when you don't. [Or...]({@Section5:inline})
+
+We hope this feature comes in handy!
+
+{{Section5}}
+
+Or, you could even go crazy and write an OnGotoSection callback which detects
+sections that should link forward and backward, then adds the links automatically
+at the bottom.
 
 {{Section1Addendum}}
 

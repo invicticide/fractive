@@ -5,6 +5,6 @@
 	"includeBackButton": false,
 	"aliases": [
 		{ "alias": "up", "replaceWith": "[Back]({@^up})" },
-		{ "alias": "down", "replaceWith": "[Back]({@^down})" }
+		{ "alias": "down", "replaceWith": "[Forward]({@^down})" }
 	]
 }

@@ -689,14 +689,59 @@
 ...
 [Next]({@^down})
 
+{{Section2.5}}
+...
+[Next]({@^down})
+
 {{Section3}}
 ...
 [Next]({@^down})
 </code></pre>
+            <p>Now no matter how many sections we insert between the existing ones,<br/>the linear flow will be preserved the way we expect it to.</p>
             <p><a title="{@%5Edown}" href="javascript:;" data-goto-relative-section="down">Next</a></p>
         </div>
         <div id="Section3" data-tags="" class="section" hidden="true">
-            <p>boop</p>
+            <p>We can make things even easier on ourselves by declaring a aliases in <code>fractive.json</code>:</p>
+            <pre><code>&quot;aliases&quot;: [
+  { &quot;alias&quot;: &quot;up&quot;, &quot;replaceWith&quot;: &quot;[Back]({@^up})&quot; },
+  { &quot;alias&quot;: &quot;down&quot;, &quot;replaceWith&quot;: &quot;[Forward]({@^down})&quot; }
+]
+</code></pre>
+            <p>These aliases will let us rewrite our Markdown one last time, even cleaner<br/>and with the added benefit of a back button wherever it’s needed:</p>
+            <p>\<a title="{@%5Edown}" href="javascript:;" data-goto-relative-section="down">Forward</a></p>
+            <pre><code>{{Section1}}
+...
+\[Forward](</code></pre>
+            <pre><code><span data-expand-macro="@^down"></span></code></pre>
+            <pre><code>)
+
+{{Section2}}
+...
+{up} \[Forward](</code></pre>
+            <pre><code><span data-expand-macro="@^down"></span></code></pre>
+            <pre><code>)
+
+{{Section2.5}}
+...
+{up} \[Forward](</code></pre>
+            <pre><code><span data-expand-macro="@^down"></span></code></pre>
+            <pre><code>)
+
+{{Section3}}
+...
+{up} \[Forward](</code></pre>
+            <pre><code><span data-expand-macro="@^down"></span></code></pre>
+            <pre><code>)
+</code></pre>
+            <p><a title="{@%5Edown}" href="javascript:;" data-goto-relative-section="down">Forward</a></p>
+        </div>
+        <div id="Section4" data-tags="" class="section" hidden="true">
+            <p>Your story doesn’t have to be completely linear for this to come in handy. Maybe<br/>you’re making a branching story, but some scenes along the branches follow<br/>a linear structure. The <code>{@^up}</code> and <code>{@^down}</code> links
+                aren’t added to your<br/>sections automatically like the back button is, so you can use them when you need to,<br/>and drop them when you don’t. <a title="{@Section5:inline}" href="javascript:;" data-replace-with="@Section5" id="inline-0">Or…</a></p>
+            <p>We hope this feature comes in handy!</p>
+        </div>
+        <div id="Section5" data-tags="" class="section" hidden="true">
+            <p>Or, you could even go crazy and write an OnGotoSection callback which detects<br/>sections that should link forward and backward, then adds the links automatically<br/>at the bottom.</p>
         </div>
         <div id="Section1Addendum" data-tags="" class="section" hidden="true">
             <p>Now that we’ve added a section in between two others, we’ve created a problem.<br/>The story will skip from <code>@Section2</code> to <code>@Section3</code> because the links explicitly<br/>reference their destination sections by name. We
