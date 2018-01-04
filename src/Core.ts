@@ -70,21 +70,26 @@ export namespace Core
 					case "data-goto-section":
 					{
 						element.addEventListener("click", function() {
-							// Section links to @^up or @^down are interpreted specially.
-							if (element.attributes[i].value[0] == '^') {
-								switch (element.attributes[i].value.substring(1)) {
-									case 'up':
-										Core.GotoRelativeSection(-1);
-										break;
-									case 'down':
-										Core.GotoRelativeSection(1);
-										break;
-								}
-							}
-							else {
-								Core.GotoSection(element.attributes[i].value);
-							}
+							Core.GotoSection(element.attributes[i].value);
 						});
+						break;
+					}
+					case "data-goto-relative-section":
+					{
+						// Currently only two relative section macros exit, ^up and ^down
+						switch (element.attributes[i].value)
+						{
+							case 'up':
+								element.addEventListener("click", function() {
+									Core.GotoRelativeSection(-1);
+								});
+								break;
+							case 'down':
+								element.addEventListener("click", function() {
+									Core.GotoRelativeSection(1);
+								});
+								break;
+						}
 						break;
 					}
 					case "data-call-function":
@@ -249,8 +254,11 @@ export namespace Core
 		{
 			case '@':
 			{
+				// Don't try to expand special relative section macros @^up or @^down
+				if (macro[1] === '^') return macro;
+
 				let sectionName = macro.substring(1);
-				if(!document.getElementById(sectionName))
+				if(document.getElementById(sectionName) === null)
 				{
 					return `{section "${sectionName}" is not declared}`;
 				}
