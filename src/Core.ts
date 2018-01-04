@@ -487,6 +487,7 @@ export namespace Core
 		let nextSectionId = sections[i+offset].getAttribute('id');
 		GotoSection(nextSectionId);
 	}
+	export function GoToRelativeSection(offset : number) { GotoRelativeSection(offset); } // Convenience alias
 
  /**
 	* Navigate to the previous section as it was
