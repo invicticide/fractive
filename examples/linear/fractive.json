@@ -1,0 +1,10 @@
+{
+	"title": "Linear Story Example",
+	"template": "{examples}/basic.html",
+	"linkTooltips": true,
+	"includeBackButton": false,
+	"aliases": [
+		{ "alias": "up", "replaceWith": "[Back]({@^up})" },
+		{ "alias": "down", "replaceWith": "[Back]({@^down})" }
+	]
+}
