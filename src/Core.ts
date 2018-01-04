@@ -70,7 +70,20 @@ export namespace Core
 					case "data-goto-section":
 					{
 						element.addEventListener("click", function() {
-							Core.GotoSection(element.attributes[i].value);
+							// Section links to @^up or @^down are interpreted specially.
+							if (element.attributes[i].value[0] == '^') {
+								switch (element.attributes[i].value.substring(1)) {
+									case 'up':
+										Core.GotoRelativeSection(-1);
+										break;
+									case 'down':
+										Core.GotoRelativeSection(1);
+										break;
+								}
+							}
+							else {
+								Core.GotoSection(element.attributes[i].value);
+							}
 						});
 						break;
 					}
@@ -490,8 +503,6 @@ export namespace Core
 	export function GoToRelativeSection(offset : number) { GotoRelativeSection(offset); } // Convenience alias
 
  /**
-	* Navigate to the previous section as it was
-	* before transitioning to the current one.
 	* MutationObserver callback for when __currentSection has been modified in the DOM
 	* @param mutations Array of MutationRecords
 	*/
