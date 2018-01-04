@@ -108,7 +108,7 @@ at the bottom.
 
 Now that we've added a section in between two others, we've created a problem.
 The story will skip from `@Section2` to `@Section3` because the links explicitly
-reference their destination sections by name. We now remember to update the link
+reference their destination sections by name. We now must remember to update the link
 in `@Section2` so it points to `@Section2.5`.
 
 [Next]({@^down})
