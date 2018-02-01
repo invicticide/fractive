@@ -27,6 +27,9 @@ import * as fs from "fs";
 import * as path from "path";
 import * as util from "util";
 
+// XRegExp
+import * as XRegExp from "XRegExp";
+
 // Set up the Markdown parser and renderer
 import * as commonmark from "commonmark";
 
@@ -1176,18 +1179,37 @@ export namespace Compiler
 						let macro : string = markdown.substring(i, j + 1);
 						let macroName : string = macro.substring(bIsEnd ? 2 : 1, macro.length - 1);
 						let replacement: string = null;
+						let regexp = null;
+						let regexpToReplace = null;
+						let regexpReplacement: string = null;
 						for(let k = 0; k < project.aliases.length; k++)
 						{
-							if(macroName === project.aliases[k].alias)
+							let alias = project.aliases[k];
+
+							if (alias.hasOwnProperty('alias') && macroName === alias.alias)
 							{
-								replacement = (bIsEnd ? project.aliases[k].end : project.aliases[k].replaceWith);
+								replacement = (bIsEnd ? alias.end : alias.replaceWith);
 								break;
+							}
+							else if (alias.hasOwnProperty('regex'))
+							{
+								regexp = XRegExp(alias.regex);
+								regexpToReplace = XRegExp('{' + (bIsEnd ? '/' : '') + alias.regex + '}');
+								if (regexp.exec(macroName)) {
+									regexpReplacement = (bIsEnd ? alias.end : alias.replaceWith);
+								}
 							}
 						}
 						if(replacement)
 						{
 							// Replace all occurrences of this macro and jump the scan index to the end of this instance
 							markdown = markdown.split(macro).join(replacement);
+							i += replacement.length - 1;
+						}
+						else if (regexpReplacement)
+						{
+							replacement = XRegExp.replace(regexpToReplace, regexpToReplace, regexpReplacement);
+							markdown = XRegExp.replace(markdown, regexpToReplace, regexpReplacement, 'all');
 							i += replacement.length - 1;
 						}
 						break;

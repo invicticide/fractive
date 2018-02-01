@@ -38,6 +38,7 @@
 				"type": "object",
 				"properties": {
 					"alias": { "type": "string" },
+					"regex": { "type": "string" },
 					"replaceWith": { "type": "string" },
 					"end": { "type": "string" }
 				}
