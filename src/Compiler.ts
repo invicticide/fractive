@@ -1194,9 +1194,12 @@ export namespace Compiler
 							else if (alias.hasOwnProperty('regex'))
 							{
 								regexp = XRegExp(alias.regex);
+                                console.log(`Checking macro ${macroName} against regex ${alias.regex}`);
 								regexpToReplace = XRegExp('{' + (bIsEnd ? '/' : '') + alias.regex + '}');
+
 								if (regexp.exec(macroName)) {
 									regexpReplacement = (bIsEnd ? alias.end : alias.replaceWith);
+                                    break;
 								}
 							}
 						}
@@ -1208,6 +1211,7 @@ export namespace Compiler
 						}
 						else if (regexpReplacement)
 						{
+                            console.log(`Replacing macro ${macroName} with ${regexpReplacement}`);
 							replacement = XRegExp.replace(regexpToReplace, regexpToReplace, regexpReplacement);
 							markdown = XRegExp.replace(markdown, regexpToReplace, regexpReplacement, 'all');
 							i += replacement.length - 1;
