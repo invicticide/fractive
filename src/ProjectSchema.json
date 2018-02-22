@@ -40,7 +40,8 @@
 					"alias": { "type": "string" },
 					"regex": { "type": "string" },
 					"replaceWith": { "type": "string" },
-					"end": { "type": "string" }
+					"end": { "type": "string" },
+                    "debug": { "type": "boolean" }
 				}
 			},
 			"uniqueItems": true,
