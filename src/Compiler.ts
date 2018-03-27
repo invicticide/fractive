@@ -1194,19 +1194,19 @@ export namespace Compiler
 							else if (alias.hasOwnProperty('regex'))
 							{
 								regexp = XRegExp(alias.regex);
-                                if (alias.debug)
-                                {
-                                    console.log(`Checking macro ${macroName} against regex ${alias.regex}`);
-                                }
+								if (alias.debug)
+								{
+									console.log(`Checking macro ${macroName} against regex ${alias.regex}`);
+								}
 								regexpToReplace = XRegExp('{' + (bIsEnd ? '/' : '') + alias.regex + '}');
 
 								if (regexp.exec(macroName)) {
-                                    if (alias.debug)
-                                    {
-                                        console.log(`Replacing macro ${macroName} with ${regexpReplacement}`);
-                                    }
+									if (alias.debug)
+									{
+										console.log(`Replacing macro ${macroName} with ${regexpReplacement}`);
+									}
 									regexpReplacement = (bIsEnd ? alias.end : alias.replaceWith);
-                                    break;
+									break;
 								}
 							}
 						}
