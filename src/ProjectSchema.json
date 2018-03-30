@@ -4,10 +4,11 @@
 	"description": "",
 	"type": "object",
 	"properties": {
-		"title": { "type": "string", "description": "The game title that will be shown to players" },
+		"title": { "type": "string", "description": "The game title that will be shown to players and in OpenGraph cards" },
 		"author": { "type": "string", "description": "The author name that will be shown to players" },
-		"description": { "type": "string", "description": "The long-form game description that will be shown to players" },
-		"website": { "type": "string", "description": "A web URL that will be shown to players" },
+		"description": { "type": "string", "description": "The game description (one or two sentences) that will be shown to players and in OpenGraph cards" },
+		"website": { "type": "string", "description": "A web URL that will be shown to players, e.g. your website where players can find more of your work" },
+		"twitter": { "type": "string", "description": "Your Twitter handle that will be shown to players and in OpenGraph cards on Twitter" },
 		"markdown": {
 			"type": "array",
 			"items": { "type": "string" },

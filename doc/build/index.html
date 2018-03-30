@@ -2,6 +2,12 @@
 
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta property="og:title" content="Fractive User Guide" />
+    <meta property="og:description" content="Fractive is a Markdown-based hypertext authoring tool for writing interactive fiction. This interactive user guide explains how to set it up, use it to write stories, build and distribute those stories, and extend Fractive in new and creative ways."
+    />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:creator" content="@invicticide" />
+
     <link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet"></link>
     <style>
         :root {
@@ -621,7 +627,7 @@ ignore: [],
 template: &quot;template.html&quot;,
 output: &quot;build&quot;,
 </code></pre>
-                <p><a title="" href="#" data-goto-section="Projects-Configuration"><i class="fa fa-arrow-circle-right" aria-hidden="true"></i> Next: Project configuration </a></p>
+                <p><a title="" href="#" data-goto-section="Projects-Configuration"><i class="fa fa-arrow-circle-right" aria-hidden="true"></i> Next: Project configuration</a></p>
             </div>
             <div id="Projects-Configuration" class="section" hidden="true">
                 <h1>Project configuration</h1>
@@ -631,7 +637,8 @@ output: &quot;build&quot;,
                 <h2>title</h2>
                 <pre><code>&quot;title&quot;: &quot;My Project Title&quot;
 </code></pre>
-                <p>Specifies the name of your story. This will be shown to the player, so it should be your actual story title, not a project code name or internal name.</p>
+                <p>Specifies the name of your story. This will be shown to the player, so it should be your actual story title, not a project code name or internal name. This will also appear as the title in any OpenGraph card when this game is linked to
+                    on social media.</p>
                 <h2>author</h2>
                 <pre><code>&quot;author&quot;: &quot;Your Name&quot;
 </code></pre>
@@ -639,11 +646,15 @@ output: &quot;build&quot;,
                 <h2>description</h2>
                 <pre><code>&quot;description&quot;: &quot;About your story&quot;
 </code></pre>
-                <p>Give a brief (one or two sentences) description of your story.</p>
+                <p>Give a brief (one or two sentences) description of your story. This will also appear as the description in any OpenGraph card when this game is linked to on social media.</p>
                 <h2>website</h2>
                 <pre><code>&quot;website&quot;: &quot;Your website&quot;
 </code></pre>
                 <p>Give an online address where players can learn more about you, find more of your stories, etc. This could be your website URL, a social media handle, or even an email address. You can also just leave it blank if you prefer.</p>
+                <h2>twitter</h2>
+                <pre><code>&quot;twitter&quot;: &quot;@yourname&quot;
+</code></pre>
+                <p>If you specify your Twitter handle here, it will be linked in OpenGraph cards when this game is linked to on Twitter.</p>
                 <h1>File paths</h1>
                 <p>These options specify where in your project folder Fractive should look for different kinds of files, what should be included in a build, and what should be ignored.</p>
                 <p>These are generally <a title="" target="_blank" href="https://github.com/isaacs/node-glob#glob-primer">globs&nbsp;<i class="fa fa-external-link" aria-hidden="true"></i></a> or lists of globs.</p>

@@ -29,7 +29,7 @@ Finally, the `fractive.json` is your **project file**. It contains all your proj
 	template: "template.html",
 	output: "build",
 
-[{icon-forward} Next: Project configuration ]({@Projects-Configuration})
+[{icon-forward} Next: Project configuration]({@Projects-Configuration})
 
 {{Projects-Configuration}}
 
@@ -45,7 +45,7 @@ None of the project metadata is currently used, but in the future it will be dis
 
 	"title": "My Project Title"
 
-Specifies the name of your story. This will be shown to the player, so it should be your actual story title, not a project code name or internal name.
+Specifies the name of your story. This will be shown to the player, so it should be your actual story title, not a project code name or internal name. This will also appear as the title in any OpenGraph card when this game is linked to on social media.
 
 ## author
 
@@ -57,13 +57,19 @@ Specifies who wrote the story. This could be your real name, an online nickname,
 
 	"description": "About your story"
 
-Give a brief (one or two sentences) description of your story.
+Give a brief (one or two sentences) description of your story. This will also appear as the description in any OpenGraph card when this game is linked to on social media.
 
 ## website
 
 	"website": "Your website"
 
 Give an online address where players can learn more about you, find more of your stories, etc. This could be your website URL, a social media handle, or even an email address. You can also just leave it blank if you prefer.
+
+## twitter
+
+	"twitter": "@yourname"
+
+If you specify your Twitter handle here, it will be linked in OpenGraph cards when this game is linked to on Twitter.
 
 # File paths
 

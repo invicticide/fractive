@@ -42,7 +42,8 @@ export let ProjectDefaults : FractiveProject = {
 	title: "Untitled",
 	author: "Anonymous",
 	description: "An interactive story written in Fractive",
-	website: "fractive.io",
+	website: "",
+	twitter: "",
 	markdown: [ "source/**/*.md" ],
 	javascript: [ "source/**/*.js" ],
 	assets: [ "assets/**" ],
@@ -162,8 +163,19 @@ export namespace Compiler
 		if(project.includeBackButton)
 		{
 			let backButtonHtml = '<a href="javascript:Core.GotoPreviousSection();">' + project.backButtonHtml + '</a>';
-			template = InsertHtmlAtMark(backButtonHtml, template, 'backButton');
+			template = InsertHtmlAtMark(backButtonHtml, template, 'backButton', false); // !required
 		}
+
+		// Insert OpenGraph tags
+		let openGraphHtml = `<meta property="og:title" content="${project.title}"/>\n`;
+		openGraphHtml += `<meta property="og:description" content="${project.description}"/>\n`;
+		openGraphHtml += `<meta name="twitter:card" content="summary"/>\n`;
+		if(project.twitter.length > 0)
+		{
+			if(project.twitter[0] !== '@') { project.twitter = `@${project.twitter}`; }
+			openGraphHtml += `<meta name="twitter:creator" content="${project.twitter}"/>\n`;
+		}
+		template = InsertHtmlAtMark(openGraphHtml, template, 'opengraph', false); // !required
 
 		// Auto-start at the "Start" section
 		template += "<script>Core.BeginStory();</script>";
@@ -396,7 +408,7 @@ export namespace Compiler
 		return fs.readFileSync(filepath, "utf8");
 	}
 
-		/**
+	/**
 	 * Inserts the given html snippet into the template HTML at EVERY point where
 	 * a specially formatted comment appears: <!--{mark}-->
 	 * @param snippet The html to insert
