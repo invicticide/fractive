@@ -58,7 +58,7 @@ In your Markdown story text, link to this function using a function macro:
 
 When the player clicks the "Say hello" link, a window will pop up with the text "Hello, world!"
 
-# Inline macros
+## Inline macros
 
 If you put a function macro as a link destination and add the `:inline` specifier, the function will be called when the player clicks the link, and the link will be replaced with any text the function returns.
 
@@ -145,33 +145,23 @@ The text that gets displayed is the value of `Foo` converted to a string by `Foo
 
 Fractive exposes some useful Javascript functions to your story scripts.
 
-## Core.BeginStory
-
 	Core.BeginStory()
 
 Begins (or restarts) the story. You don't need to call this to start the story initially; that happens automatically. But you might call this if you wanted to implement your own "Restart Story" link.
 
 The difference between calling this vs. calling `Core.GotoSection("Start")` is that this function also calls any registered `OnBeginStory` [event handlers]({@Scripting-EventHandlers}).
 
-## Core.GetSection
-
 	Core.GetSection("SectionName")
 
 Gets a copy of the given section, expands its macros, registers its links, and returns an `Element` instance which is fully activated and ready to be displayed to the user, without actually navigating to that section. This function is for advanced/unusual circumstances; for example, this documentation uses it to populate the table of contents in the sidebar. Normally you should just use `Core.GotoSection("SectionName")` instead.
-
-## Core.GotoPreviousSection()
 
 	Core.GotoPrevousSection()
 
 Travel to the section we just came from. You can hook this up to a "Back" link if you want players to be able to undo their choices.
 
-## Core.GotoSection
-
 	Core.GotoSection("SectionName")
 
 Advances the story to the named section. This is exactly the same thing that happens when the player clicks a link to a section macro. The advantage to calling this in Javascript is you could retrieve the target section name from a variable, or build it dynamically (use with care!)
-
-## Core.RefreshCurrentSection
 
 	Core.RefreshCurrentSection()
 
@@ -235,11 +225,11 @@ You can also import Fractive as an npm dependency into another project, e.g. if 
 
  Then import it in your script file(s):
 
-```import * as fractive from "fractive";```
+	import * as fractive from "fractive";
 
 And invoke exported API functions like this:
 
-```fractive.Core.GotoSection("SomeSectionName");```
+	fractive.Core.GotoSection("SomeSectionName");
 
 This installs Fractive as a local dependency to your project. If this is your only Fractive install (i.e. you never do `npm install -g fractive`) then you won't have `fractive` on your PATH, which means commands like `fractive compile path/to/my/story` won't work. Local installs place the `fractive` executable in your project's `node_modules/.bin` directory, so you'll need to invoke it like this:
 

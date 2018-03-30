@@ -2,6 +2,8 @@
 
 # Getting started
 
+[Home]({@Start})
+
 [Quick start]({@QuickStart})
 
 # Projects
@@ -17,6 +19,8 @@
 # Writing stories
 
 [Sections]({@Stories-Sections})
+
+[Section tags]({@Stories-SectionTags})
 
 [Macros]({@Stories-Macros})
 

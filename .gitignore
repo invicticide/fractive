@@ -1,4 +1,5 @@
 *.DS_STORE
+Thumbs.db
 .local/
 .vscode/
 node_modules/**

@@ -2,7 +2,9 @@ Core.AddEventListener("OnBeginStory", () =>
 {
 	// Populate the sidebar from the @TableOfContents section so it's easy to maintain
 	var sidebar = document.getElementById("__sidebar");
-	sidebar.appendChild(Core.GetSection("TableOfContents"));
+	var toc = Core.GetSection("TableOfContents");
+	Core.ActivateElement(toc);
+	sidebar.appendChild(toc);
 });
 
 Core.AddEventListener("OnGotoSection", function(id, element, tags, reason)

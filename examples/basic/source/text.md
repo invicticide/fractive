@@ -2,7 +2,7 @@
 
 # Welcome!
 
-Welcome to fractive, a tool for creating hypertext fiction!
+Welcome to Fractive, a tool for creating hypertext fiction!
 
 Fractive stories are written in Markdown, and you can add (optional) game logic in Javascript. Stories consist of "sections", which you might think of like one page of a book. Typically a section will give you a bit of narrative and then present one or more choices to the player; each choice takes the story to a different section, and in a different direction.
 

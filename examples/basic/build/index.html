@@ -1,8 +1,9 @@
 <html>
 
 <head>
+    <title>Basic Example</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <meta property="og:title" content="basic" />
+    <meta property="og:title" content="Basic Example" />
     <meta property="og:description" content="An interactive story written in Fractive" />
     <meta name="twitter:card" content="summary" />
 
@@ -205,9 +206,57 @@
                 EGotoSectionReason[EGotoSectionReason["Back"] = 1] = "Back";
                 EGotoSectionReason[EGotoSectionReason["Refresh"] = 2] = "Refresh";
             })(EGotoSectionReason = Core.EGotoSectionReason || (Core.EGotoSectionReason = {}));
-            var CurrentSectionId = "";
             var OnBeginStory = [];
             var OnGotoSection = [];
+            var currentSectionObserver = new MutationObserver(OnCurrentSectionModified);
+            var currentSectionObserverConfig = {
+                childList: true,
+                attributes: true,
+                characterData: true,
+                subtree: true
+            };
+
+            function ActivateElement(element) {
+                if (element.tagName && element.tagName.toLowerCase() == "a") {
+                    var _loop_1 = function(i) {
+                        switch (element.attributes[i].name) {
+                            case "data-goto-section":
+                                {
+                                    element.addEventListener("click", function() {
+                                        Core.GotoSection(element.attributes[i].value);
+                                    });
+                                    break;
+                                }
+                            case "data-call-function":
+                                {
+                                    element.addEventListener("click", RetrieveFromWindow(element.attributes[i].value, 'function'));
+                                    break;
+                                }
+                            case "data-replace-with":
+                                {
+                                    element.addEventListener("click", function() {
+                                        Core.ReplaceActiveElement(element.id, ExpandMacro(element.attributes[i].value));
+                                    });
+                                    break;
+                                }
+                        }
+                    };
+                    for (var i = 0; i < element.attributes.length; i++) {
+                        _loop_1(i);
+                    }
+                }
+                if (element.id && element.id !== "__currentSection") {
+                    if (element.id[0] !== '!') {
+                        element.id = "!" + element.id;
+                    }
+                }
+                if (element.children) {
+                    for (var i = 0; i < element.children.length; i++) {
+                        ActivateElement(element.children[i]);
+                    }
+                }
+            }
+            Core.ActivateElement = ActivateElement;
 
             function AddEventListener(eventName, handler) {
                 switch (eventName) {
@@ -239,26 +288,40 @@
             }
             Core.BeginStory = BeginStory;
 
+            function CanBeInline(html, context) {
+                var root = document.createElement("span");
+                if (context) {
+                    context.appendChild(root);
+                } else {
+                    document.appendChild(root);
+                }
+                root.innerHTML = html;
+                var scan = function(e) {
+                    if (getComputedStyle(e, "").display === "block") {
+                        return false;
+                    }
+                    for (var i = 0; i < e.children.length; i++) {
+                        if (scan(e.children[i]) === false) {
+                            return false;
+                        }
+                    }
+                    return true;
+                };
+                var result = scan(root);
+                if (context) {
+                    context.removeChild(root);
+                } else {
+                    document.removeChild(root);
+                }
+                return result;
+            }
+
             function DisableLinks(section) {
                 var links = section.getElementsByTagName("a");
                 for (var i = 0; i < links.length; i++) {
                     var linkTag = links[i].outerHTML.substring(0, links[i].outerHTML.indexOf(">") + 1);
                     var contents = links[i].outerHTML.substring(links[i].outerHTML.indexOf(">") + 1, links[i].outerHTML.indexOf("</a>"));
-                    links[i].outerHTML = "<span class=\"__disabledLink\" data-link-tag='" + linkTag + "'>" + linkTag + contents + "</span>";
-                }
-            }
-
-            function EnableInlineMacros(root, tf) {
-                if (tf === void 0) {
-                    tf = true;
-                }
-                if (tf && root.id.search("_inline\-") > -1) {
-                    root.id = root.id.substring(1);
-                } else if (!tf && root.id.search("inline\-") > -1) {
-                    root.id = "_" + root.id;
-                }
-                for (var i = 0; i < root.children.length; i++) {
-                    EnableInlineMacros(root.children[i], tf);
+                    links[i].outerHTML = "<span class=\"__disabledLink\" data-link-tag='" + linkTag + "'>" + contents + "</span>";
                 }
             }
 
@@ -284,14 +347,24 @@
                         }
                     case '#':
                         {
-                            var targetFunction = RetrieveFromWindow(macro.substring(1), 'function');
-                            var result = targetFunction();
-                            return (result === undefined ? '' : result.toString());
+                            var functionName = macro.substring(1);
+                            var targetFunction = RetrieveFromWindow(functionName, 'function');
+                            if (targetFunction !== null && targetFunction !== undefined) {
+                                var result = targetFunction();
+                                return (result ? result.toString() : "");
+                            } else {
+                                return "{function \"" + functionName + "\" is not defined}";
+                            }
                         }
                     case '$':
                         {
-                            var targetVariable = RetrieveFromWindow(macro.substring(1), 'variable');
-                            return targetVariable.toString();
+                            var variableName = macro.substring(1);
+                            var targetVariable = RetrieveFromWindow(variableName, 'variable');
+                            if (targetVariable !== null && targetVariable !== undefined) {
+                                return targetVariable.toString();
+                            } else {
+                                return "{variable \"" + variableName + "\" is not defined}";
+                            }
                         }
                     default:
                         {
@@ -325,8 +398,6 @@
                                 }
                             case "data-image-source-macro":
                                 {
-                                    var source_1 = ExpandMacro(element.attributes[i].value);
-                                    console.log("Expanding " + element.tagName + " with src attribute " + element.attributes[i].value + " to \"" + source_1 + "\"");
                                     element.setAttribute("src", ExpandMacro(element.attributes[i].value));
                                     expanded = true;
                                 }
@@ -345,22 +416,46 @@
                 return sectionInstance;
             }
 
+            function GetCurrentSectionTags() {
+                return GetSectionTags("__currentSection");
+            }
+            Core.GetCurrentSectionTags = GetCurrentSectionTags;
+
             function GetSection(id) {
                 var clone = ExpandSection(id);
                 clone.setAttribute('data-id', id);
-                EnableInlineMacros(clone, true);
-                RegisterLinks(clone);
                 return clone;
             }
             Core.GetSection = GetSection;
 
+            function GetSectionsWithTag(tag) {
+                var matchingSections = [];
+                var sections = document.getElementsByClassName("section");
+                for (var i = 0; i < sections.length; ++i) {
+                    var sectionId = sections[i].getAttribute('id');
+                    var sectionTags = GetSectionTags(sectionId);
+                    if (sectionTags.indexOf(tag) !== -1) {
+                        matchingSections.push(sectionId);
+                    }
+                }
+                return matchingSections;
+            }
+            Core.GetSectionsWithTag = GetSectionsWithTag;
+
+            function GetSectionTags(id) {
+                var sectionDiv = document.getElementById(id);
+                var tagDeclarations = sectionDiv.getAttribute("data-tags");
+                return tagDeclarations.split(',');
+            }
+            Core.GetSectionTags = GetSectionTags;
+
             function GotoPreviousSection() {
+                currentSectionObserver.disconnect();
                 var history = document.getElementById("__history");
                 if (history === null) {
                     console.error("History is not supported in this template (the __history element is missing)");
                     return;
                 }
-                var currentSection = document.getElementById("__currentSection");
                 var previousSections = history.getElementsByClassName('__previousSection');
                 var previousSection = previousSections[previousSections.length - 1];
                 if (!previousSection) {
@@ -368,16 +463,12 @@
                 }
                 var id = previousSection.getAttribute('data-id');
                 var clone = previousSection.cloneNode(true);
-                history.removeChild(previousSection);
                 EnableLinks(clone);
-                RegisterLinks(clone);
-                clone.scrollTop = 0;
-                clone.id = "__currentSection";
-                currentSection.parentElement.replaceChild(clone, currentSection);
+                SetElementAsCurrentSection(clone);
                 for (var i = 0; i < OnGotoSection.length; i++) {
-                    OnGotoSection[i](id, clone, [], EGotoSectionReason.Back);
+                    OnGotoSection[i](id, clone, GetSectionTags(id), EGotoSectionReason.Back);
                 }
-                CurrentSectionId = id;
+                history.removeChild(previousSection);
             }
             Core.GotoPreviousSection = GotoPreviousSection;
 
@@ -387,22 +478,20 @@
             Core.GoToPreviousSection = GoToPreviousSection;
 
             function GotoSection(id) {
-                var history = document.getElementById("__history");
+                currentSectionObserver.disconnect();
                 var currentSection = document.getElementById("__currentSection");
                 DisableLinks(currentSection);
+                var history = document.getElementById("__history");
                 var previousSectionId = currentSection.getAttribute('data-id');
                 if (previousSectionId !== null && history !== null) {
                     history.innerHTML += "<div class=\"__previousSection\" data-id=\"" + previousSectionId + "\">" + currentSection.innerHTML + "</div>";
                     history.scrollTop = history.scrollHeight;
                 }
                 var clone = GetSection(id);
-                clone.scrollTop = 0;
-                clone.id = "__currentSection";
-                currentSection.parentElement.replaceChild(clone, currentSection);
+                SetElementAsCurrentSection(clone);
                 for (var i = 0; i < OnGotoSection.length; i++) {
-                    OnGotoSection[i](id, clone, [], EGotoSectionReason.Goto);
+                    OnGotoSection[i](id, clone, GetSectionTags(id), EGotoSectionReason.Goto);
                 }
-                CurrentSectionId = id;
             }
             Core.GotoSection = GotoSection;
 
@@ -411,55 +500,26 @@
             }
             Core.GoToSection = GoToSection;
 
+            function OnCurrentSectionModified(mutations) {
+                for (var i = 0; i < mutations.length; i++) {
+                    for (var j = 0; j < mutations[i].addedNodes.length; j++) {
+                        var e = mutations[i].addedNodes[j];
+                        ActivateElement(e);
+                    }
+                }
+            }
+
             function RefreshCurrentSection() {
-                var id = CurrentSectionId;
-                var clone = GetSection(id);
-                clone.scrollTop = 0;
-                clone.id = "__currentSection";
+                currentSectionObserver.disconnect();
                 var currentSection = document.getElementById("__currentSection");
-                currentSection.parentElement.replaceChild(clone, currentSection);
+                var id = currentSection.getAttribute("data-id");
+                var clone = GetSection(id);
+                SetElementAsCurrentSection(clone);
                 for (var i = 0; i < OnGotoSection.length; i++) {
-                    OnGotoSection[i](id, clone, [], EGotoSectionReason.Refresh);
+                    OnGotoSection[i](id, clone, GetSectionTags(id), EGotoSectionReason.Refresh);
                 }
             }
             Core.RefreshCurrentSection = RefreshCurrentSection;
-
-            function RegisterLinks(element) {
-                if (element.tagName == "A") {
-                    var _loop_1 = function(i) {
-                        switch (element.attributes[i].name) {
-                            case "data-goto-section":
-                                {
-                                    element.addEventListener("click", function() {
-                                        Core.GotoSection(element.attributes[i].value);
-                                    });
-                                    break;
-                                }
-                            case "data-call-function":
-                                {
-                                    element.addEventListener("click", RetrieveFromWindow(element.attributes[i].value, 'function'));
-                                    break;
-                                }
-                            case "data-replace-with":
-                                {
-                                    element.addEventListener("click", function() {
-                                        Core.ReplaceActiveElement(element.id, ExpandMacro(element.attributes[i].value));
-                                    });
-                                    break;
-                                }
-                        }
-                    };
-                    for (var i = 0; i < element.attributes.length; i++) {
-                        _loop_1(i);
-                    }
-                }
-                if (element.hasChildNodes) {
-                    for (var i = 0; i < element.children.length; i++) {
-                        RegisterLinks(element.children[i]);
-                    }
-                }
-            }
-            Core.RegisterLinks = RegisterLinks;
 
             function RetrieveFromWindow(name, type) {
                 var targetObject = null;
@@ -478,31 +538,28 @@
             }
 
             function ReplaceActiveElement(id, html) {
-                for (var element = document.getElementById(id); element; element = document.getElementById(id)) {
-                    if (!element) {
-                        continue;
-                    }
-                    var bIsActive = false;
-                    for (var parent_1 = element.parentElement; parent_1; parent_1 = parent_1.parentElement) {
-                        if (parent_1.id === "__currentSection") {
-                            bIsActive = true;
-                            break;
-                        }
-                    }
-                    if (bIsActive) {
-                        var replacement = document.createElement("span");
-                        replacement.className = "__inlineMacro";
-                        replacement.innerHTML = html;
-                        EnableInlineMacros(replacement, true);
-                        RegisterLinks(replacement);
-                        element.parentNode.replaceChild(replacement, element);
-                        break;
-                    }
+                var element = document.getElementById(id[0] === '!' ? id : "!" + id);
+                if (!element) {
+                    return;
                 }
+                var replacement = document.createElement(CanBeInline(html, element.parentElement) ? "span" : "div");
+                replacement.className = "__inlineMacro";
+                replacement.innerHTML = html;
+                ActivateElement(replacement);
+                element.parentNode.replaceChild(replacement, element);
             }
             Core.ReplaceActiveElement = ReplaceActiveElement;
+
+            function SetElementAsCurrentSection(e) {
+                var currentSection = document.getElementById("__currentSection");
+                e.scrollTop = 0;
+                e.id = "__currentSection";
+                ActivateElement(e);
+                currentSection.parentElement.replaceChild(e, currentSection);
+                currentSectionObserver.observe(e, currentSectionObserverConfig);
+            }
         })(Core = exports.Core || (exports.Core = {}));
-        //# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiQ29yZS5qcyIsInNvdXJjZVJvb3QiOiIiLCJzb3VyY2VzIjpbIi4uL3NyYy9Db3JlLnRzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiI7O0FBc0JDLElBQWlCLElBQUksQ0E0YnJCO0FBNWJBLFdBQWlCLElBQUk7SUFFckIsSUFBWSxrQkFLWDtJQUxELFdBQVksa0JBQWtCO1FBRTdCLDJEQUFJLENBQUE7UUFDSiwyREFBSSxDQUFBO1FBQ0osaUVBQU8sQ0FBQTtJQUNSLENBQUMsRUFMVyxrQkFBa0IsR0FBbEIsdUJBQWtCLEtBQWxCLHVCQUFrQixRQUs3QjtJQUVELElBQUksZ0JBQWdCLEdBQVksRUFBRSxDQUFDO0lBS25DLElBQUksWUFBWSxHQUF1QixFQUFFLENBQUM7SUFTMUMsSUFBSSxhQUFhLEdBQW1HLEVBQUUsQ0FBQztJQU92SCwwQkFBaUMsU0FBa0IsRUFBRSxPQUFvQjtRQUV4RSxNQUFNLENBQUEsQ0FBQyxTQUFTLENBQUMsQ0FDakIsQ0FBQztZQUNBLEtBQUssY0FBYztnQkFDbkIsQ0FBQztvQkFDQSxZQUFZLEdBQUcsWUFBWSxDQUFDLE1BQU0sQ0FBQyxPQUFPLENBQUMsQ0FBQztvQkFDNUMsS0FBSyxDQUFDO2dCQUNQLENBQUM7WUFDRCxLQUFLLGVBQWUsQ0FBQztZQUNyQixLQUFLLGVBQWU7Z0JBQ3BCLENBQUM7b0JBQ0EsYUFBYSxHQUFHLGFBQWEsQ0FBQyxNQUFNLENBQUMsT0FBTyxDQUFDLENBQUM7b0JBQzlDLEtBQUssQ0FBQztnQkFDUCxDQUFDO1lBQ0Q7Z0JBQ0EsQ0FBQztvQkFDQSxPQUFPLENBQUMsS0FBSyxDQUFDLDhCQUEyQixTQUFTLDRCQUF3QixDQUFDLENBQUM7b0JBQzVFLEtBQUssQ0FBQztnQkFDUCxDQUFDO1FBQ0YsQ0FBQztJQUNGLENBQUM7SUFyQmUscUJBQWdCLG1CQXFCL0IsQ0FBQTtJQU1EO1FBRUMsR0FBRyxDQUFBLENBQUMsSUFBSSxDQUFDLEdBQUcsQ0FBQyxFQUFFLENBQUMsR0FBRyxZQUFZLENBQUMsTUFBTSxF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 source/script.js
+        //# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiQ29yZS5qcyIsInNvdXJjZVJvb3QiOiIiLCJzb3VyY2VzIjpbIi4uL3NyYy9Db3JlLnRzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiI7O0FBc0JBLElBQWlCLElBQUksQ0EwaEJwQjtBQTFoQkQsV0FBaUIsSUFBSTtJQUVwQixJQUFZLGtCQUtYO0lBTEQsV0FBWSxrQkFBa0I7UUFFN0IsMkRBQUksQ0FBQTtRQUNKLDJEQUFJLENBQUE7UUFDSixpRUFBTyxDQUFBO0lBQ1IsQ0FBQyxFQUxXLGtCQUFrQixHQUFsQix1QkFBa0IsS0FBbEIsdUJBQWtCLFFBSzdCO0lBS0QsSUFBSSxZQUFZLEdBQXVCLEVBQUUsQ0FBQztJQVMxQyxJQUFJLGFBQWEsR0FBbUcsRUFBRSxDQUFDO0lBSXZILElBQUksc0JBQXNCLEdBQXNCLElBQUksZ0JBQWdCLENBQUMsd0JBQXdCLENBQUMsQ0FBQztJQUMvRixJQUFJLDRCQUE0QixHQUFHO1FBQ2xDLFNBQVMsRUFBRSxJQUFJO1FBQ2YsVUFBVSxFQUFFLElBQUk7UUFDaEIsYUFBYSxFQUFFLElBQUk7UUFDbkIsT0FBTyxFQUFFLElBQUk7S0FDYixDQUFBO0lBT0QseUJBQWdDLE9BQWlCO1FBR2hELEVBQUUsQ0FBQSxDQUFDLE9BQU8sQ0FBQyxPQUFPLElBQUksT0FBTyxDQUFDLE9BQU8sQ0FBQyxXQUFXLEVBQUUsSUFBSSxHQUFHLENBQUMsQ0FDM0QsQ0FBQztvQ0FDUSxDQUFDO2dCQUVSLE1BQU0sQ0FBQSxDQUFDLE9BQU8sQ0FBQyxVQUFVLENBQUMsQ0FBQyxDQUFDLENBQUMsSUFBSSxDQUFDLENBQ2xDLENBQUM7b0JBQ0EsS0FBSyxtQkFBbUI7d0JBQ3hCLENBQUM7NEJBQ0EsT0FBTyxDQUFDLGdCQUFnQixDQUFDLE9BQU8sRUFBRTtnQ0FDakMsSUFBSSxDQUFDLFdBQVcsQ0FBQyxPQUFPLENBQUMsVUFBVSxDQUFDLENBQUMsQ0FBQyxDQUFDLEtBQUssQ0FBQyxDQUFDOzRCQUMvQyxDQUFDLENBQUMsQ0FBQzs0QkFDSCxLQUFLLENB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// source/script.js
         function HideHistory() {
             Core.ShowHistory(false);
         }
@@ -568,7 +625,7 @@ and something different if they don't.";
             contentDiv.style.setProperty("top", contentTop);
             contentDiv.style.setProperty("height", window.innerHeight - contentTop);
         }
-        Core.AddEventListener("OnGotoSection", function(id, element, tags) {
+        Core.AddEventListener("OnGotoSection", function(id, element, tags, reason) {
             // Scroll to bottom of history
             var historyContainerDiv = document.getElementById("__historyContainer");
             if (historyContainerDiv) {
@@ -587,16 +644,16 @@ and something different if they don't.";
 <body>
     <div id="__content">
         <!-- source/text.md -->
-        <div id="Start" class="section" hidden="true">
+        <div id="Start" data-tags="" class="section" hidden="true">
             <h1>Welcome!</h1>
-            <p>Welcome to fractive, a tool for creating hypertext fiction!</p>
+            <p>Welcome to Fractive, a tool for creating hypertext fiction!</p>
             <p>Fractive stories are written in Markdown, and you can add (optional) game logic in Javascript. Stories consist of “sections”, which you might think of like one page of a book. Typically a section will give you a bit of narrative and then present
                 one or more choices to the player; each choice takes the story to a different section, and in a different direction.</p>
             <p>In Markdown, you declare the beginning of a new section by enclosing the section name (which must be unique!) in double curly braces. The section you’re reading right now is called <code>{{Start}}</code> which is a special section name that
                 indicates where the story begins.</p>
-            <p><a title="{@AnotherSection}" href="#" data-goto-section="AnotherSection">Link to another section</a></p>
+            <p><a title="{@AnotherSection}" href="javascript:;" data-goto-section="AnotherSection">Link to another section</a></p>
         </div>
-        <div id="AnotherSection" class="section" hidden="true">
+        <div id="AnotherSection" data-tags="" class="section" hidden="true">
             <p>You just clicked a link that took you to another section! You create section links just like any ol’ Markdown link, but in place of the URL you put a special <em>macro</em> enclosed in single curly braces. There are three types of macros,
                 each denoted by a symbol:</p>
             <ul>
@@ -606,12 +663,12 @@ and something different if they don't.";
             </ul>
             <p>So if you set the URL to <code>{@Start}</code> you’d have created a link back to the section called <code>Start</code>. If on the other hand you’d put <code>{#Start}</code> you’d have created a link that would call a Javascript function called
                 <code>Start</code>.</p>
-            <p><a title="{#FunctionLink}" href="#" data-call-function="FunctionLink">What does it look like when a link calls a Javascript function?</a><br/><a title="{#VariableLink}" href="#" data-call-function="VariableLink">What happens if I set the link URL to a variable macro?</a><br/>
+            <p><a title="{#FunctionLink}" href="javascript:;" data-call-function="FunctionLink">What does it look like when a link calls a Javascript function?</a><br/><a title="{#VariableLink}" href="javascript:;" data-call-function="VariableLink">What happens if I set the link URL to a variable macro?</a><br/>
                 <a
-                    title="{@InlineMacros}" href="#" data-goto-section="InlineMacros">What else can I use macros for?</a>
+                    title="{@InlineMacros}" href="javascript:;" data-goto-section="InlineMacros">What else can I use macros for?</a>
             </p>
         </div>
-        <div id="InlineMacros" class="section" hidden="true">
+        <div id="InlineMacros" data-tags="" class="section" hidden="true">
             <p>Macros aren’t only for links; you can also use them to add dynamic text to your sections.</p>
             <blockquote>
                 <p><span data-expand-macro="#InlineFunction"></span></p>
@@ -623,35 +680,35 @@ and something different if they don't.";
             </blockquote>
             <p>The inlined function and section above are indented, but that’s only because I prefaced them with the Markdown blockquote indicator for clarity. Inlines don’t inherently get any special styling, so you can inline things totally seamlessly
                 and your players will never know the difference.</p>
-            <p>Finally, you can create links which expand to text in-place, which is commonly used in e.g. <a title="https://twinery.org/2/" target="_blank" href="https://twinery.org/2/">Twine&nbsp;<i class="fa fa-external-link" aria-hidden="true"></i></a>                games for artistic effect. You can link to a <a title="{$InlineExpansionVariable:inline}" href="javascript:;" data-replace-with="$InlineExpansionVariable" id="_inline-0">variable</a>, or to the return value of a <a title="{#InlineExpansionFunction:inline}"
-                    href="javascript:;" data-replace-with="#InlineExpansionFunction" id="_inline-1">function</a>, and they’ll expand in-place.</p>
-            <p><a title="{@InlineExpansionSection:inline}" href="javascript:;" data-replace-with="@InlineExpansionSection" id="_inline-2">You can also do this with a section</a></p>
-            <p><a title="{@AboutFormatting}" href="#" data-goto-section="AboutFormatting">Can I use Markdown styling?</a></p>
+            <p>Finally, you can create links which expand to text in-place, which is commonly used in e.g. <a title="https://twinery.org/2/" target="_blank" href="https://twinery.org/2/">Twine&nbsp;<i class="fa fa-external-link" aria-hidden="true"></i></a>                games for artistic effect. You can link to a <a title="{$InlineExpansionVariable:inline}" href="javascript:;" data-replace-with="$InlineExpansionVariable" id="inline-0">variable</a>, or to the return value of a <a title="{#InlineExpansionFunction:inline}"
+                    href="javascript:;" data-replace-with="#InlineExpansionFunction" id="inline-1">function</a>, and they’ll expand in-place.</p>
+            <p><a title="{@InlineExpansionSection:inline}" href="javascript:;" data-replace-with="@InlineExpansionSection" id="inline-2">You can also do this with a section</a></p>
+            <p><a title="{@AboutFormatting}" href="javascript:;" data-goto-section="AboutFormatting">Can I use Markdown styling?</a></p>
         </div>
-        <div id="InlineSection" class="section" hidden="true">
+        <div id="InlineSection" data-tags="" class="section" hidden="true">
             <p>This paragraph was written in an entirely different section, but it appears as part of the section you’re already reading. This might be useful if you have some boilerplate text that needs to follow the player around from place to place; you
                 could put it in a section and inline it, instead of copy-pasting the same sentences (or paragraphs) all over your story text.</p>
         </div>
-        <div id="InlineExpansionSection" class="section" hidden="true">
+        <div id="InlineExpansionSection" data-tags="" class="section" hidden="true">
             <p>Sections are kind of special though, in that they don’t actually appear inline <em>per se</em>, because they’re block-level elements (i.e. their own paragraphs) which means they’ll put a paragraph break where they appear. They still replace
                 their :inline macro link though, just like with variables and functions. When inline-expanding a section, you can still have paragraph breaks, <em>additional</em> <strong>formatting</strong>, and so on. And you can even inline sections
-                which themselves contain <a title="{#RaiseAlert}" href="#" data-call-function="RaiseAlert">macros</a>!</p>
+                which themselves contain <a title="{#RaiseAlert}" href="javascript:;" data-call-function="RaiseAlert">macros</a>!</p>
         </div>
-        <div id="AboutFormatting" class="section" hidden="true">
+        <div id="AboutFormatting" data-tags="" class="section" hidden="true">
             <p>Story text is written in Markdown, which means we have access to <em>all kinds</em> of <strong>formatting</strong>, including:</p>
             <h1>Headers</h1>
             <h2>Sub-headers</h2>
             <ul>
                 <li>Unordered lists (like this one)</li>
                 <li>Ordered lists (1, 2, 3, 4…)</li>
-                <li>Links can also <a title="{#RaiseAlert}" href="#" data-call-function="RaiseAlert"><em>contain</em> <strong>formatting</strong></a></li>
+                <li>Links can also <a title="{#RaiseAlert}" href="javascript:;" data-call-function="RaiseAlert"><em>contain</em> <strong>formatting</strong></a></li>
             </ul>
             <p>Basically, anything Markdown can do, you can do in your story text! You can even inline <span style="color:#ff0000">raw HTML</span> which means you could do video embeds, HTML5 canvas, and all kinds of other fancy stuff.</p>
             <p>And of course, because fractive games are ultimately HTML in the end, you can create your own HTML template with whatever layout you want, and style it with CSS. For example, you could surround your game with a header and footer, or create
                 a sidebar which (along with some custom Javascript) tracks your player’s inventory and stats as they move through the story.</p>
-            <p><a title="{@LongStories}" href="#" data-goto-section="LongStories">How does fractive handle long/complicated stories?</a></p>
+            <p><a title="{@LongStories}" href="javascript:;" data-goto-section="LongStories">How does fractive handle long/complicated stories?</a></p>
         </div>
-        <div id="LongStories" class="section" hidden="true">
+        <div id="LongStories" data-tags="" class="section" hidden="true">
             <p>Fractive’s main goal is to be the best tool for writing complex, dynamic hypertext fiction that has lots of branches and genuinely consequential choices. What you’re reading right now is produced by a <em>very</em> eary version of the tool,
                 so this goal isn’t fully realized yet, but it is the direction I’m heading.</p>
             <p>You can split long story text up into as many individual Markdown files as you like, and they can be named whatever you like. The same goes for game logic in Javascript; you could have separate .js files for each logical class, or for each
@@ -660,12 +717,18 @@ and something different if they don't.";
             <p>In the future I’ll be exploring additional tools and visualizations to help authors understand, trace, and debug the complexity of large, deeply-branching narratives. Those tools and visualizers will likely be the most experimental, and pivotal,
                 aspects of fractive’s development.</p>
             <p>Anything you’d like to review?</p>
-            <p><a title="{#FunctionLink}" href="#" data-call-function="FunctionLink">What does it look like when a link calls a Javascript function?</a><br/><a title="{#VariableLink}" href="#" data-call-function="VariableLink">What happens if I set the link URL to a variable macro?</a><br/>
+            <p><a title="{#FunctionLink}" href="javascript:;" data-call-function="FunctionLink">What does it look like when a link calls a Javascript function?</a><br/><a title="{#VariableLink}" href="javascript:;" data-call-function="VariableLink">What happens if I set the link URL to a variable macro?</a><br/>
                 <a
-                    title="{@InlineMacros}" href="#" data-goto-section="InlineMacros">What else can I use macros for?</a><br/><a title="{@AboutFormatting}" href="#" data-goto-section="AboutFormatting">Can I use Markdown styling?</a></p>
+                    title="{@InlineMacros}" href="javascript:;" data-goto-section="InlineMacros">What else can I use macros for?</a><br/><a title="{@AboutFormatting}" href="javascript:;" data-goto-section="AboutFormatting">Can I use Markdown styling?</a></p>
         </div>
 
-        <div id="__currentSection"></div>
+        <div id="__currentSection">
+            <noscript>
+					<h1>Oh no!</h1>
+					<p>Fractive requires Javascript to run, but Javascript is currently disabled.</p>
+					<p>Please check your browser and plugin settings. You may need to enable Javascript in your browser and/or whitelist this URL in your script blocker if you're using one.</p>
+				</noscript>
+        </div>
     </div>
     <div id="__historyContainer" hidden>
         <div id="__history"></div>

@@ -27,6 +27,9 @@ import * as fs from "fs";
 import * as path from "path";
 import * as util from "util";
 
+// XRegExp
+import * as XRegExp from "XRegExp";
+
 // Set up the Markdown parser and renderer
 import * as commonmark from "commonmark";
 
@@ -177,13 +180,18 @@ export namespace Compiler
 		}
 		template = InsertHtmlAtMark(openGraphHtml, template, 'opengraph', false); // !required
 
+		// Insert the story title from project metadata
+		template = InsertHtmlAtMark(project.title, template, 'title', false); // !required
+
 		// Auto-start at the "Start" section
 		template += "<script>Core.BeginStory();</script>";
 
 		if(project.outputFormat === 'minify')
 		{
 			return minifier.minify(template, {
+				caseSensitive: true,
 				collapseWhitespace: true,
+				log: OnMinifierLog,
 				minifyCSS: true,
 				minifyJS: true,
 				removeAttributeQuotes: true,
@@ -425,7 +433,7 @@ export namespace Compiler
 		// Throw an error if the mark doesn't exist
 		if (template.indexOf(markComment) === -1 && required)
 		{
-			console.log(`Template file must contain mark: ${markComment}`);
+			LogError(`Template file does not contain mark ${markComment}`);
 			process.exit(1);
 		}
 
@@ -572,6 +580,43 @@ export namespace Compiler
 		else
 		{
 			LogError(`${path.relative(projectPath, filePath)}: ${text}`);
+		}
+	}
+
+	/**
+	 * Callback for html_minifier log events
+	 * @param data The log data (message, object, whatever) returned by the minifier
+	 */
+	function OnMinifierLog(data)
+	{
+		switch(typeof(data))
+		{
+			case "string":
+			{
+				if(data.indexOf("minified in:") < 0) { console.log(clc.yellow("Minifier: " + data)); }
+				break;
+			}
+			case "object":
+			{
+				if(data.message)
+				{
+					// UglifyJS log message (probably)
+					// TODO: Make this suck so much less => https://github.com/invicticide/fractive/issues/69
+					console.log(clc.yellow(`Minifier: ${data.message}\nThis isn't fatal; it just means Javascript was not minified.\nTry running CLI uglifyjs on the .js file(s) to narrow down the error.`));
+				}
+				else
+				{
+					console.log(clc.yellow(`"Minifier: Unrecognized object format in log... raw object follows:`));
+					console.log(data);
+				}
+				break;
+			}
+			default:
+			{
+				console.log(clc.yellow(`"Minifier: Unhandled data type '${typeof(data)}' in log... raw data follows:`));
+				console.log(data);
+				break;
+			}
 		}
 	}
 
@@ -844,10 +889,7 @@ export namespace Compiler
 						{ attr: "href", value: "javascript:;" },
 						{ attr: "data-replace-with", value: url }
 					];
-
-					// Prepending _ to the id makes this :inline macro disabled by default. It gets enabled when it's moved
-					// into the __currentSection div.
-					return RewriteLinkNode(event.node, attrs, `_inline-${nextInlineID++}`);
+					return RewriteLinkNode(event.node, attrs, `inline-${nextInlineID++}`);
 				}
 			}
 			default:
@@ -875,7 +917,7 @@ export namespace Compiler
 						else
 						{
 							let attrs = [
-								{ attr: "href", value: "#" },
+								{ attr: "href", value: "javascript:;" },
 								{ attr: "data-goto-section", value: url.substring(1) }
 							];
 							return RewriteLinkNode(event.node, attrs, null);
@@ -902,7 +944,7 @@ export namespace Compiler
 						else
 						{
 							let attrs = [
-								{ attr: "href", value: "#" },
+								{ attr: "href", value: "javascript:;" },
 								{ attr: "data-call-function", value: url.substring(1) }
 							];
 							return RewriteLinkNode(event.node, attrs, null);
@@ -910,12 +952,12 @@ export namespace Compiler
 					}
 					case "$": // Variable link: behavior undefined
 					{
-						LogParseError("Variable macros can't be used as link destinations", filepath, event.node);
+						LogParseError(`Variable macros can't be used as link destinations: {${url}}`, filepath, event.node);
 						return false;
 					}
 					default: // Unknown macro
 					{
-						LogParseError("Unrecognized macro in link destination", filepath, event.node);
+						LogParseError(`Unrecognized macro in link destination: {${url}}`, filepath, event.node);
 						return false;
 					}
 				}
@@ -980,7 +1022,28 @@ export namespace Compiler
 						// Begin a new section
 						if(node.parent)
 						{
-							let sectionName : string = macro.substring(2, macro.length - 2);
+							// Sections are declared {{SectionName: tag, tag2, ...}}
+							// All whitespace will be trimmed, so
+							// {{ SectionName : tag,tag2,  tag3 }} is also valid.
+							let macroContents : string = macro.substring(2, macro.length - 2);
+
+							let sectionName : string = macroContents;
+							let tags : Array<string> = [];
+
+							// If the macro contains ':' then part of it is tag declarations
+							if(macroContents.indexOf(":") !== -1)
+							{
+								// Only take the part preceding ':' as the section name
+								sectionName = macroContents.substring(0, macroContents.indexOf(":")).trim();
+
+								// Tokenize the tag declarations and strip whitespace
+								let tagDeclarations : string = macroContents.substring(macroContents.indexOf(":") + 1);
+								let tagTokens = tagDeclarations.split(',');
+								for (var j = 0; j < tagTokens.length; ++j)
+								{
+									tags.push(tagTokens[j].trim());
+								}
+							}
 
 							// Check for duplicate section names
 							if(sections[sectionName] !== undefined)
@@ -998,7 +1061,7 @@ export namespace Compiler
 
 							// Build the section source div
 							insertedNode = new commonmark.Node("html_inline", node.sourcepos); // TODO: Real sourcepos
-							insertedNode.literal = `${sectionCount > 0 ? "</div>\n" : ""}<div id="${sectionName}" class="section" hidden="true">`;
+							insertedNode.literal = `${sectionCount > 0 ? "</div>\n" : ""}<div id="${sectionName}" data-tags="${tags.toString()}" class="section" hidden="true">`;
 							if(node.prev)
 							{
 								LogParseError(`Section macro "${macro}" must be defined in its own paragraph/on its own line`, filepath, node, lineOffset, columnOffset);
@@ -1017,7 +1080,7 @@ export namespace Compiler
 								while((event = walker.next()))
 								{
 									if(event.node.type === "paragraph" && !event.entering) { break; }
-									
+
 									// A common user pattern is a section declaration with the first line of the section text following
 									// a softbreak instead of a paragraph break. We need to swallow that softbreak (and only that one);
 									// otherwise we'll get unexpected whitespace at the top of the section text in the final render.
@@ -1026,11 +1089,11 @@ export namespace Compiler
 										bSkippedFirstBreak = true;
 										continue;
 									}
-									
+
 									newParagraph.appendChild(event.node);
 									++nodesMoved;
 								}
-								
+
 								// If there's additional text on the same line as the section declaration, make sure we pick it up too!
 								let remainderNode = new commonmark.Node("text", node.sourcepos); // TODO: Real sourcepos
 								remainderNode.literal = StripLeadingWhitespace(node.literal.substring(macro.length));
@@ -1042,7 +1105,7 @@ export namespace Compiler
 								{
 									insertedNode.insertAfter(newParagraph);
 								}
-								
+
 								// Unlink the old containing paragraph, which should now be empty
 								node.parent.unlink();
 							}
@@ -1051,7 +1114,7 @@ export namespace Compiler
 								LogParseError(`Section macro "${macro}" cannot be defined inside another block element`, filepath, node, lineOffset, columnOffset);
 								return false;
 							}
-							
+
 							sectionCount++;
 						}
 						else
@@ -1128,18 +1191,47 @@ export namespace Compiler
 						let macro : string = markdown.substring(i, j + 1);
 						let macroName : string = macro.substring(bIsEnd ? 2 : 1, macro.length - 1);
 						let replacement: string = null;
+						let regexp = null;
+						let regexpToReplace = null;
+						let regexpReplacement: string = null;
 						for(let k = 0; k < project.aliases.length; k++)
 						{
-							if(macroName === project.aliases[k].alias)
+							let alias = project.aliases[k];
+
+							if (alias.hasOwnProperty('alias') && macroName === alias.alias)
 							{
-								replacement = (bIsEnd ? project.aliases[k].end : project.aliases[k].replaceWith);
+								replacement = (bIsEnd ? alias.end : alias.replaceWith);
 								break;
+							}
+							else if (alias.hasOwnProperty('regex'))
+							{
+								regexp = XRegExp(alias.regex);
+								if (alias.debug)
+								{
+									console.log(`Checking macro ${macroName} against regex ${alias.regex}`);
+								}
+								regexpToReplace = XRegExp('{' + (bIsEnd ? '/' : '') + alias.regex + '}');
+
+								if (regexp.exec(macroName)) {
+									if (alias.debug)
+									{
+										console.log(`Replacing macro ${macroName} with ${regexpReplacement}`);
+									}
+									regexpReplacement = (bIsEnd ? alias.end : alias.replaceWith);
+									break;
+								}
 							}
 						}
 						if(replacement)
 						{
 							// Replace all occurrences of this macro and jump the scan index to the end of this instance
 							markdown = markdown.split(macro).join(replacement);
+							i += replacement.length - 1;
+						}
+						else if (regexpReplacement)
+						{
+							replacement = XRegExp.replace(regexpToReplace, regexpToReplace, regexpReplacement);
+							markdown = XRegExp.replace(markdown, regexpToReplace, regexpReplacement, 'all');
 							i += replacement.length - 1;
 						}
 						break;

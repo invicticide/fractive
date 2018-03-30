@@ -38,7 +38,11 @@ Build the story project:
 
 Navigate to `path/to/my/story/build` and open up the `index.html` in a web browser to run your story!
 
-You now know enough to create interactive fiction stories both simple and complex. However, Fractive is capable of much more than this! 
+You now know enough to create interactive fiction stories both simple and complex. However, Fractive is capable of much more than this! You can browse the built-in examples to see other features by doing:
+
+	fractive examples
+
+Each folder in `examples` is its own Fractive **project**, which you'll learn about in the next section.
 
 [{icon-forward} Next: Projects]({@Projects-Intro})
 

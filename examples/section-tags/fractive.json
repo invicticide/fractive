@@ -1,6 +1,7 @@
 {
-	"title": "Basic Example",
+	"title": "Section Tags Example",
 	"template": "{examples}/basic.html",
+	"assets": [ "assets/**" ],
 	"linkTooltips": true,
 	"linkTags": {
 		"external": {
