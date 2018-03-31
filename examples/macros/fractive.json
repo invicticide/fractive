@@ -2,7 +2,10 @@
 	"title": "Macros Example",
 	"aliases": [
 		{ "alias": "TestAdjective", "replaceWith": "awesome" },
-		{ "alias": "red", "replaceWith": "<span style='color:#ff8888'>", "end": "</span>" }
+		{ "alias": "red", "replaceWith": "<span style='color:#ff8888'>", "end": "</span>" },
+		{ "alias": "issue79_emptyReplaceWith", "replaceWith": "" },
+		{ "alias": "issue79_emptyEnd", "replaceWith": "(open)", "end": "" },
+		{ "alias": "issue79_emptyBoth", "replaceWith": "", "end": "" }
 	],
 	"template": "{examples}/basic.html",
 	"linkTooltips": true,

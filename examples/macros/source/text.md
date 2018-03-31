@@ -25,6 +25,12 @@ Aliases are {TestAdjective}!
 
 Aliases can enable {red}clean inline styling{/red}!
 
+Testing alias with empty replaceWith/end (issue #79):
+
+- Empty replaceWith: "{issue79_emptyReplaceWith}"
+- Empty end: "{issue79_emptyEnd}content{/issue79_emptyEnd}"
+- Empty both: "{issue79_emptyBoth}content{/issue79_emptyBoth}"
+
 # Links
 
 [Link to a section]({@TestSection})

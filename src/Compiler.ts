@@ -201,7 +201,7 @@ export namespace Compiler
 				removeRedundantAttributes: true
 			});
 		}
-		else if (project.outputFormat === 'prettify')
+		else if(project.outputFormat === 'prettify')
 		{
 			return beautifier.html(template);
 		}
@@ -431,7 +431,7 @@ export namespace Compiler
 		let markComment : string = `<!--{${mark}}-->`;
 
 		// Throw an error if the mark doesn't exist
-		if (template.indexOf(markComment) === -1 && required)
+		if(template.indexOf(markComment) === -1 && required)
 		{
 			LogError(`Template file does not contain mark ${markComment}`);
 			process.exit(1);
@@ -1039,7 +1039,7 @@ export namespace Compiler
 								// Tokenize the tag declarations and strip whitespace
 								let tagDeclarations : string = macroContents.substring(macroContents.indexOf(":") + 1);
 								let tagTokens = tagDeclarations.split(',');
-								for (var j = 0; j < tagTokens.length; ++j)
+								for(var j = 0; j < tagTokens.length; ++j)
 								{
 									tags.push(tagTokens[j].trim());
 								}
@@ -1198,22 +1198,22 @@ export namespace Compiler
 						{
 							let alias = project.aliases[k];
 
-							if (alias.hasOwnProperty('alias') && macroName === alias.alias)
+							if(alias.hasOwnProperty('alias') && macroName === alias.alias)
 							{
 								replacement = (bIsEnd ? alias.end : alias.replaceWith);
 								break;
 							}
-							else if (alias.hasOwnProperty('regex'))
+							else if(alias.hasOwnProperty('regex'))
 							{
 								regexp = XRegExp(alias.regex);
-								if (alias.debug)
+								if(alias.debug)
 								{
 									console.log(`Checking macro ${macroName} against regex ${alias.regex}`);
 								}
 								regexpToReplace = XRegExp('{' + (bIsEnd ? '/' : '') + alias.regex + '}');
 
-								if (regexp.exec(macroName)) {
-									if (alias.debug)
+								if(regexp.exec(macroName)) {
+									if(alias.debug)
 									{
 										console.log(`Replacing macro ${macroName} with ${regexpReplacement}`);
 									}
@@ -1222,13 +1222,13 @@ export namespace Compiler
 								}
 							}
 						}
-						if(replacement)
+						if(replacement !== null)
 						{
 							// Replace all occurrences of this macro and jump the scan index to the end of this instance
 							markdown = markdown.split(macro).join(replacement);
 							i += replacement.length - 1;
 						}
-						else if (regexpReplacement)
+						else if(regexpReplacement !== null)
 						{
 							replacement = XRegExp.replace(regexpToReplace, regexpToReplace, regexpReplacement);
 							markdown = XRegExp.replace(markdown, regexpToReplace, regexpReplacement, 'all');
