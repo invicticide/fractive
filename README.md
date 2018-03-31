@@ -30,7 +30,11 @@ Install dependencies (this will also build Fractive for the first time):
 
 Fractive requires TypeScript 2.6, which is installed as a default dependency when you do `npm install` and invoked when you do `npm run build`. If you have a separate global install of TypeScript (e.g. at one point you did `npm install -g typescript`) you could also compile your changes by just doing `tsc` provided your global install is at least version 2.6. On Mac and *nix, you can use `which tsc` to find your global install, or on Windows, open the Node.js command prompt and do `where tsc`. That said, it's strongly recommended to just use `npm run build` instead.
 
-To test changes to Fractive locally, you'll want to create a story project that exercises those changes (see [Fractive projects](#fractive-projects) for details). Whenever you make a change to Fractive itself, rebuild Fractive and then rebuild the story project:
+To test changes to Fractive locally, you'll want to create a story project that exercises those changes:
+
+	fractive create path/to/test/story
+
+Then whenever you make a change to Fractive itself, rebuild Fractive and then rebuild the story project:
 
 	cd fractive
 	npm run build
