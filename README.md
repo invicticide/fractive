@@ -30,26 +30,23 @@ Install dependencies (this will also build Fractive for the first time):
 
 Fractive requires TypeScript 2.6, which is installed as a default dependency when you do `npm install` and invoked when you do `npm run build`. If you have a separate global install of TypeScript (e.g. at one point you did `npm install -g typescript`) you could also compile your changes by just doing `tsc` provided your global install is at least version 2.6. On Mac and *nix, you can use `which tsc` to find your global install, or on Windows, open the Node.js command prompt and do `where tsc`. That said, it's strongly recommended to just use `npm run build` instead.
 
-To test changes to Fractive locally, you'll want to create a story project that exercises those changes:
-
-	fractive create path/to/test/story
-
-Then whenever you make a change to Fractive itself, rebuild Fractive and then rebuild the story project:
-
-	cd fractive
-	npm run build
-	./node_modules/.bin/fractive compile path/to/test/story
-
-Note that everything in the `fractive/examples` folder is automatically built by `npm run build`, so one easy way to set up tests is to just create new story projects in there, e.g. `fractive/examples/my-test` and then just do `npm run build` to update everything.
-
-To test changes in a global install, first update your global install from your local repository like so:
+To get Fractive onto your PATH, update your global install from your local repository like so:
 
 	cd fractive
 	npm install -g .
 
-Then build your test story normally:
+Create a story project you can use for testing your changes:
 
+	fractive create path/to/test/story
+
+Whenever you make a change to Fractive, rebuild it (and redeploy your global install) and then rebuild your test project:
+
+	cd fractive
+	npm run build
+	npm run deploy
 	fractive compile path/to/test/story
+
+Note that everything in the `fractive/examples` folder is automatically built by `npm run build`, so an easier way to set up tests is to just create new story projects in there, e.g. `fractive/examples/my-test` and then just do `npm run build` to update everything. Using this method, you don't need to do `npm run deploy` after each change. (That said, you may not want to submit your new example(s) in any pull request.)
 
 # Who's making this?
 
