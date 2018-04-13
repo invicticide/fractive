@@ -1197,7 +1197,6 @@ export namespace Compiler
 						for(let k = 0; k < project.aliases.length; k++)
 						{
 							let alias = project.aliases[k];
-
 							if(alias.hasOwnProperty('alias') && macroName === alias.alias)
 							{
 								replacement = (bIsEnd ? alias.end : alias.replaceWith);
@@ -1211,27 +1210,22 @@ export namespace Compiler
 									console.log(`Checking macro ${macroName} against regex ${alias.regex}`);
 								}
 								regexpToReplace = XRegExp('{' + (bIsEnd ? '/' : '') + alias.regex + '}');
-
-								if(regexp.exec(macroName)) {
+								if(regexp.exec(macroName))
+								{
 									if(alias.debug)
 									{
 										console.log(`Replacing macro ${macroName} with ${regexpReplacement}`);
 									}
 									regexpReplacement = (bIsEnd ? alias.end : alias.replaceWith);
+									replacement = XRegExp.replace(macro, regexpToReplace, regexpReplacement, 'one');
 									break;
 								}
 							}
 						}
 						if(replacement !== null)
 						{
-							// Replace all occurrences of this macro and jump the scan index to the end of this instance
-							markdown = markdown.split(macro).join(replacement);
-							i += replacement.length - 1;
-						}
-						else if(regexpReplacement !== null)
-						{
-							replacement = XRegExp.replace(regexpToReplace, regexpToReplace, regexpReplacement);
-							markdown = XRegExp.replace(markdown, regexpToReplace, regexpReplacement, 'all');
+							// Replace this macro instance and jump the scan index to the end of the replacement
+							markdown = `${markdown.substring(0, i)}${replacement}${markdown.substring(j + 1)}`;
 							i += replacement.length - 1;
 						}
 						break;

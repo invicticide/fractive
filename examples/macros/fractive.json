@@ -5,7 +5,8 @@
 		{ "alias": "red", "replaceWith": "<span style='color:#ff8888'>", "end": "</span>" },
 		{ "alias": "issue79_emptyReplaceWith", "replaceWith": "" },
 		{ "alias": "issue79_emptyEnd", "replaceWith": "(open)", "end": "" },
-		{ "alias": "issue79_emptyBoth", "replaceWith": "", "end": "" }
+		{ "alias": "issue79_emptyBoth", "replaceWith": "", "end": "" },
+		{ "regex": "regex:(?<tag>[A-Za-z]+)", "replaceWith": "${tag}" }
 	],
 	"template": "{examples}/basic.html",
 	"linkTooltips": true,
