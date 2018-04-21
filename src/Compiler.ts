@@ -28,7 +28,7 @@ import * as path from "path";
 import * as util from "util";
 
 // XRegExp
-import * as XRegExp from "XRegExp";
+import * as XRegExp from "xregexp";
 
 // Set up the Markdown parser and renderer
 import * as commonmark from "commonmark";
