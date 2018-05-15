@@ -1,4 +1,4 @@
-{{Start}}
+{{Callbacks: Start}}
 
 This example tests script callbacks which can be assigned in user scripts, such as `Core.OnGotoSection` which is called whenever the current section changes. Try it out by [clicking here]({@SectionOne}).
 
@@ -6,4 +6,4 @@ This example tests script callbacks which can be assigned in user scripts, such 
 
 This is another section!
 
-[Back to start]({@Start})
+[Back to start]({@Callbacks})

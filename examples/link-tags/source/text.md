@@ -1,4 +1,4 @@
-{{Start}}
+{{LinkTags: Start}}
 
 # The joy of tagging links!
 
@@ -24,7 +24,7 @@ This example story defines all of the link tags. Take a look:
 [Some Inline Link]({$InlineExpansionVariable:inline})
 [Some Function Link]({#FunctionLink})
 [Some Inline Function Link]({#InlineExpansionFunction:inline})
-[Some Section Link]({@Start})
+[Some Section Link]({@LinkTags})
 
 **More info**:
 [Customizing tag appearance.]({@FontAwesome})

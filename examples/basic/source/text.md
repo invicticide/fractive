@@ -1,4 +1,4 @@
-{{Start}}
+{{Basic: Start}}
 
 # Welcome!
 
@@ -6,7 +6,7 @@ Welcome to Fractive, a tool for creating hypertext fiction!
 
 Fractive stories are written in Markdown, and you can add (optional) game logic in Javascript. Stories consist of "sections", which you might think of like one page of a book. Typically a section will give you a bit of narrative and then present one or more choices to the player; each choice takes the story to a different section, and in a different direction.
 
-In Markdown, you declare the beginning of a new section by enclosing the section name (which must be unique!) in double curly braces. The section you're reading right now is called `\{{Start}}` which is a special section name that indicates where the story begins.
+In Markdown, you declare the beginning of a new section by enclosing the section name (which must be unique!) in double curly braces with an optional list of tags. The section you're reading right now is called `Basic` and is declared as `\{{Basic: Start}}` which tags it as the first section to be shown in the story.
 
 [Link to another section]({@AnotherSection})
 

@@ -141,7 +141,21 @@ export namespace Core
 	export function BeginStory()
 	{
 		for(let i = 0; i < OnBeginStory.length; i++) { OnBeginStory[i](); }
-		GotoSection("Start");
+
+        // Starting section is defined with the "Start" tag.
+        let startSections = GetSectionsWithTag("Start");
+        if (startSections.length == 0)
+        {
+            console.error(`BeginStory(): no section is defined with the Start tag.`);
+        }
+        else if (startSections.length > 1)
+        {
+            console.error(`BeginStory(): multiple sections defined with the Start tag.`);
+        }
+        else
+        {
+            GotoSection(startSections[0]);
+        }
 	}
 	
 	/**
