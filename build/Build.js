@@ -104,24 +104,34 @@ function BuildExamples()
 {
 	console.log("Building examples...");
 
+  // List every file/directory in the examples folder to find story folders
 	let examples = fs.readdirSync("examples", "utf8");
+  // Construct full directory paths for stories and remove non-story
+  // files/directories from the list so progress reporting is valid
 	for(let i = 0; i < examples.length; i++)
 	{
 		// Ignore dotfiles (.git, .DS_Store, etc.)
-		if(examples[i][0] === ".") { examples.splice(i--, 1); }
+		if(examples[i][0] === ".") { examples.splice(i--, 1); continue; }
+    // Convert directories to be relative to fractive root
+    examples[i] = `examples/${examples[i]}`;
+    // Ignore directories without a fractive.json
+    if (!fs.existsSync(`${examples[i]}/fractive.json`)) { examples.splice(i--, 1); continue; }
 	}
+  // Attempt to build every folder with a story in it
 	for(let i = 0; i < examples.length; i++)
 	{
 		console.log(`  ${examples[i]} (${i + 1}/${examples.length})`);
 
-		let cmd = `node lib/CLI.js compile examples/${examples[i]} ${process.argv.slice(2).join(" ")}`;
+    // Build the directory in a child process and retrieve the result
+		let cmd = `node lib/CLI.js compile ${examples[i]} ${process.argv.slice(2).join(" ")}`;
 		let result = cp.spawnSync(cmd, [], { env : process.env, shell : true });
+    // Print any build output
 		if(result.stdout !== null)
 		{
 			let s = result.stdout.toString();
 			if(s.length > 0) { console.log(`${result.stdout.toString()}`); }
 		}		
-
+    // If an example build failed, interrupt the Fractive build.
 		if(result.status !== 0)
 		{
 			if(result.stderr !== null) { console.error(`\n${result.stderr.toString()}`); }
