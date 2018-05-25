@@ -10,8 +10,6 @@ You'll write your story text in **sections**, each preceded by a special macro t
 
 	You are in a maze of twisty little passages, all alike.
 
-Your story must contain one section called `\{{Start}}` which is where the story begins.
-
 You can create a link that takes the player to another section by creating a regular Markdown link and setting the URL to a macro that looks like this: `\{@DestinationName}`:
 
 	\{{Start}}
@@ -35,6 +33,10 @@ To assign tags, declare a section like this:
 	\{{Start: Tag1, Tag2}}
 
 Everything after the `:` is a tag, and the list is comma-separated. In this example, the `Start` section is tagged with both `Tag1` and `Tag2`.
+
+Every story must have one section tagged `Start` which is where the story begins:
+
+	\{{MyStory: Start}}
 
 In your scripts you can get the list of tags assigned to the current section:
 

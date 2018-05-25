@@ -1045,7 +1045,7 @@ Javascript says: {$Foo}
                     this command into that script however is most appropriate for your dev environment.</p>
             </div>
             <!-- source/start.md -->
-            <div id="Start" data-tags="" class="section" hidden="true">
+            <div id="Docs" data-tags="Start" class="section" hidden="true">
                 <h1>What is Fractive?</h1>
                 <p>Fractive is a hypertext authoring tool, primarily intended for the creation of interactive fiction.</p>
                 <p>Stories are written in <a title="" target="_blank" href="https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet">Markdown&nbsp;<i class="fa fa-external-link" aria-hidden="true"></i></a>, and (optional) game logic is added with
@@ -1081,7 +1081,6 @@ Javascript says: {$Foo}
 
 You are in a maze of twisty little passages, all alike.
 </code></pre>
-                <p>Your story must contain one section called <code>{{Start}}</code> which is where the story begins.</p>
                 <p>You can create a link that takes the player to another section by creating a regular Markdown link and setting the URL to a macro that looks like this: <code>{@DestinationName}</code>:</p>
                 <pre><code>{{Start}}
 
@@ -1099,6 +1098,9 @@ You are in a maze of twisty little passages, all alike.
                 <pre><code>{{Start: Tag1, Tag2}}
 </code></pre>
                 <p>Everything after the <code>:</code> is a tag, and the list is comma-separated. In this example, the <code>Start</code> section is tagged with both <code>Tag1</code> and <code>Tag2</code>.</p>
+                <p>Every story must have one section tagged <code>Start</code> which is where the story begins:</p>
+                <pre><code>{{MyStory: Start}}
+</code></pre>
                 <p>In your scripts you can get the list of tags assigned to the current section:</p>
                 <pre><code>var tags = Core.GetCurrentSectionTags();
 for(var tag in tags) { ... }
