@@ -1281,7 +1281,7 @@ export namespace Compiler
 		console.log(`Usage:`);
 		console.log(`${clc.green("node lib/CLI.js compile")} ${clc.blue("<storyDirectory|configFilePath>")} ${clc.yellow("[options]")}`);
 		console.log(``);
-		console.log(`${clc.blue("storyDirectory:")} The folder path where the story source files are located. Looks for fractive.json in the root. Defaults to the current working directory.`);
+		console.log(`${clc.blue("storyDirectory:")} The folder path where the story source files are located. Looks for fractive.json in the root.`);
 		console.log(`${clc.blue("configFilePath:")} If you want to build with a different config, specify the config.json path directly.`);
 		console.log(``);
 		console.log(`${clc.yellow("--dry-run:")} Log what would've been done, but don't actually touch any files.`);

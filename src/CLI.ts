@@ -40,37 +40,38 @@ var isWindows = /^win/.test(process.platform);
  */
 function Compile(args : Array<string>)
 {
-    // If no arguments are given, try to compile the current directory
-    let buildPath = '.';
+	if(!args || args.length < 1)
+	{
+		Compiler.ShowUsage();
+		process.exit(1);
+	}
+	else
+	{
+		let buildPath = args[0];
 
-    // The first argument (if given) is the desired build path
-    if (args && args.length >= 1) {
-        buildPath = args[0];
-    }
+		// If we got a directory, assume we're looking for a fractive.json in its root
+		if(fs.lstatSync(buildPath).isDirectory()) { buildPath = path.join(buildPath, "fractive.json"); }
 
-    // If we got a directory, assume we're looking for a fractive.json in its root
-    if(fs.lstatSync(buildPath).isDirectory()) { buildPath = path.join(buildPath, "fractive.json"); }
-
-    if(fs.existsSync(buildPath))
-    {
-        let options : CompilerOptions = {};
-        for(let i = 1; i < args.length; i++)
-        {
-            switch(args[i])
-            {
-                case "--dry-run":	{ options.dryRun = true; break; }
-                case "--verbose":	{ options.verbose = true; break; }
-                case "--debug":		{ options.debug = true; break; }
-                default: { }
-            }
-        }
-        Compiler.Compile(buildPath, options);
-    }
-    else
-    {
-        console.error(clc.red(`Couldn't find project config "${buildPath}"`));
-        process.exit(1);
-    }
+		if(fs.existsSync(buildPath))
+		{
+			let options : CompilerOptions = {};
+			for(let i = 1; i < args.length; i++)
+			{
+				switch(args[i])
+				{
+					case "--dry-run":	{ options.dryRun = true; break; }
+					case "--verbose":	{ options.verbose = true; break; }
+					case "--debug":		{ options.debug = true; break; }
+				}
+			}
+			Compiler.Compile(buildPath, options);
+		}
+		else
+		{
+			console.error(clc.red(`Couldn't find project config "${buildPath}"`));
+			process.exit(1);
+		}
+	}
 }
 
 /**
