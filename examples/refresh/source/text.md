@@ -1,4 +1,4 @@
-{{Start}}
+{{Refresh: Start}}
 
 This is the beginning. Here's a random number: {#GetRandom}
 
@@ -10,4 +10,4 @@ This is the beginning. Here's a random number: {#GetRandom}
 This is somewhere else. Here's a random number: {#GetRandom}
 
 [Refresh this section]({#Refresh})
-[Go back to start]({@Start})
+[Go back to start]({@Refresh})

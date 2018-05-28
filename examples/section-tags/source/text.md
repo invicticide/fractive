@@ -1,4 +1,4 @@
-{{Start: Tutorial}}
+{{SectionTags: Start, Tutorial}}
 
 # The joy of tagging sections!
 

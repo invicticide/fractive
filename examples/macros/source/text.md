@@ -2,7 +2,7 @@
 
 Expanded section!
 
-{{Start}}
+{{Macros: Start}}
 
 # Text
 
