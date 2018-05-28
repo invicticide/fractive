@@ -51,10 +51,23 @@ function Compile(args : Array<string>)
         { name: 'debug', type: Boolean }
     ];
 
-    let options : CompilerOptions = commandLineArgs(optionDefinitions, { argv: args });
+    try {
+        let options : CompilerOptions = commandLineArgs(optionDefinitions, { argv: args });
+    }
+    catch (err) {
+        CompileUsage();
+    }
 
     if (options.help) {
-        let sections = [
+        CompileUsage();
+    }
+    else {
+        Compiler.Compile(options);
+    }
+}
+
+function CompileUsage() {
+    let sections = [
         {
             header: 'Compiling Fractive Stories',
             content: '$ fractive compile <options>'
@@ -70,13 +83,9 @@ function Compile(args : Array<string>)
             ]
         }
     ];
+
     let usage = commandLineUsage(sections);
     console.log(usage);
-
-    }
-    else {
-        Compiler.Compile(options);
-    }
 }
 
 
