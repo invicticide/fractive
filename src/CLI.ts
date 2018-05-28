@@ -29,6 +29,7 @@ import * as fs from "fs";
 import * as path from "path";
 import * as clc from "cli-color";
 import * as commandLineArgs from "command-line-args";
+import * as commandLineUsage from "command-line-usage";
 
 import { Compiler, CompilerOptions, ProjectDefaults } from "./Compiler";
 
@@ -51,6 +52,10 @@ function Compile(args : Array<string>)
     let options : CompilerOptions = commandLineArgs(optionDefinitions, { argv: args });
     Compiler.Compile(options);
 }
+
+/*function CompileUsage()*/
+/*{*/
+/*}*/
 
 /**
  * Scaffold a new Fractive project
@@ -97,7 +102,7 @@ function Create(args : Array<string>)
 	console.log(clc.green(`Project created at ${projectDir}`));
 }
 
-function Help() {
+function Docs() {
     let docPath : string = path.join(__dirname, "../doc/build/index.html");
     if(isWindows) { cp.execSync(`start "" "${docPath}"`); }
     else { cp.execSync(`open ${docPath}`); }
@@ -111,27 +116,38 @@ function Examples() {
     return;
 }
 
-let commands = {
-    'compile': Compile,
-    'create': Create,
-    'help': Help,
-    'examples': Examples
-};
-
 function ShowUsage()
 {
-	console.log(``);
-	console.log(`Usage:`);
-	console.log(`${clc.green("fractive")} ${clc.blue("<command>")} ${clc.yellow("[options]")}`);
-	console.log(``);
-	console.log(`${clc.blue("help")}        Launch the Fractive user guide`);
-	console.log(`${clc.blue("compile")}     Compile an existing Fractive project`);
-	console.log(`${clc.blue("create")}      Create a new Fractive project`);
-	console.log(`${clc.blue("examples")}    Browse Fractive example projects`);
-	console.log(``);
-	console.log(`Enter a command without ${clc.yellow("options")} to see usage instructions for that command`);
-	console.log(``);
+    // Generate a command-line usage guide using this module: https://github.com/75lb/command-line-usage
+    let sections = [
+        {
+            header: 'Fractive',
+            content: 'Fractive is a hypertext authoring tool, primarily intended for the creation of interactive fiction.'
+        },
+        {
+            header: 'Commands',
+            content: [
+                { name: 'help', summary: 'Show this command-line usage guide'},
+                { name: 'docs', summary: 'Launch the Fractive user guide (Web browser required)' },
+                { name: 'examples', summary: 'Browse Fractive example projects (Web browser required)' },
+                { name: 'create', summary: 'Create a new Fractive project' },
+                { name: 'compile', summary: 'Compile an existing Fractive project' }
+
+            ]
+        }
+    ];
+    let usage = commandLineUsage(sections);
+    console.log(usage);
 }
+
+
+let commands = {
+    'create': Create,
+    'compile': Compile,
+    'docs': Docs,
+    'help': ShowUsage,
+    'examples': Examples
+};
 
 if(process.argv.length < 3)
 {
