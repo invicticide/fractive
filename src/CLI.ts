@@ -58,21 +58,14 @@ function Compile(args : Array<string>)
  */
 function Create(args : Array<string>)
 {
-	if(!args || args.length < 1)
-	{
-		console.log(``);
-		console.log(`Usage:`);
-		console.log(`${clc.green("node lib/CLI.js create")} ${clc.blue("<storyDirectory>")}`);
-		console.log(``);
-		console.log(`${clc.blue("storyDirectory:")} The folder path where the new story project should be created.`);
-		console.log(``);
-		console.log(`${clc.green("node lib/CLI.js create /Users/Desktop/MyStory")}`);
-		console.log(``);
-		process.exit(1);
-	}
+    let optionDefinitions = [
+        { name: "storyDirectory", type: String, defaultOption: true }
+    ];
 
-	// Validate the project directory, or create it if it doesn't already exist
-	let projectDir : string = args[0];
+    let options = commandLineArgs(optionDefinitions, { argv: args});
+
+    // Validate the project directory, or create it if it doesn't already exist
+	let projectDir : string = options.storyDirectory;
 	if(fs.existsSync(projectDir))
 	{
 		let files : Array<string> = fs.readdirSync(projectDir, "utf8");
@@ -104,47 +97,26 @@ function Create(args : Array<string>)
 	console.log(clc.green(`Project created at ${projectDir}`));
 }
 
-function HandleArgs()
-{
-	for(let i = 2; i < process.argv.length; i++)
-	{
-		switch(process.argv[i])
-		{
-			// compile <storyDirectory|configFilePath> [options]
-			case "compile": { Compile(process.argv.slice(i + 1)); return; }
-	
-			// create <storyDirectory>
-			case "create": { Create(process.argv.slice(i + 1)); return; }
-
-			// doc [no options]
-			case "help":
-			{
-				let docPath : string = path.join(__dirname, "../doc/build/index.html");
-				if(isWindows) { cp.execSync(`start "" "${docPath}"`); }
-				else { cp.execSync(`open ${docPath}`); }
-				return;
-			}
-
-			// examples [no options]
-			case "examples":
-			{
-				let examplesPath : string = path.join(__dirname, "../examples");
-				if(isWindows) { cp.execSync(`start "" "${examplesPath}"`); }
-				else { cp.execSync(`open ${examplesPath}`); }
-				return;
-			}
-
-			// unknown
-			default:
-			{
-				let message : string = `Unrecognized argument '${process.argv[i]}'`;
-				console.log(`\n${clc.red(message)}`);
-				ShowUsage();
-				process.exit(1);
-			}
-		}
-	}
+function Help() {
+    let docPath : string = path.join(__dirname, "../doc/build/index.html");
+    if(isWindows) { cp.execSync(`start "" "${docPath}"`); }
+    else { cp.execSync(`open ${docPath}`); }
+    return;
 }
+
+function Examples() {
+    let examplesPath : string = path.join(__dirname, "../examples");
+    if(isWindows) { cp.execSync(`start "" "${examplesPath}"`); }
+    else { cp.execSync(`open ${examplesPath}`); }
+    return;
+}
+
+let commands = {
+    'compile': Compile, CompileUsage,
+    'create': Create,
+    'help': Help,
+    'examples': Examples
+};
 
 function ShowUsage()
 {
@@ -168,5 +140,16 @@ if(process.argv.length < 3)
 }
 else
 {
-	HandleArgs();
+    // The first argument following 'fractive' should be a valid command
+    if (process.argv[2] in commands)
+    {
+        commands[process.argv[2]](process.argv.slice(3));
+    }
+    else
+    {
+        let message : string = `'${process.argv[2]}' is not a valid fractive command.`;
+        console.log(`\n${clc.red(message)}`);
+        ShowUsage();
+        process.exit(1);
+    }
 }
