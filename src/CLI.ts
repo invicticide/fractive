@@ -35,6 +35,7 @@ import { Compiler, CompilerOptions, ProjectDefaults } from "./Compiler";
 
 // True on Windows, false on Mac/Linux, for platform-specific calls
 var isWindows = /^win/.test(process.platform);
+var isMac = /^darwin/.test(process.platform);
 
 /**
  * Invoke the compiler
@@ -127,14 +128,16 @@ function Create(args : Array<string>)
 function Docs() {
     let docPath : string = path.join(__dirname, "../doc/build/index.html");
     if(isWindows) { cp.execSync(`start "" "${docPath}"`); }
-    else { cp.execSync(`open ${docPath}`); }
+    else if (isMac) { cp.execSync(`open ${docPath}`); }
+    else { console.log(`To view the Fractive user guide, open ${docPath} in your web browser.`); }
     return;
 }
 
 function Examples() {
     let examplesPath : string = path.join(__dirname, "../examples");
     if(isWindows) { cp.execSync(`start "" "${examplesPath}"`); }
-    else { cp.execSync(`open ${examplesPath}`); }
+    else if (isMac) { cp.execSync(`open ${examplesPath}`); }
+    else { console.log(`To view the Fractive examples guide, navigate to ${examplesPath} in your file browser.`); }
     return;
 }
 
