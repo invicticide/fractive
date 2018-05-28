@@ -112,7 +112,7 @@ function Examples() {
 }
 
 let commands = {
-    'compile': Compile, CompileUsage,
+    'compile': Compile,
     'create': Create,
     'help': Help,
     'examples': Examples
