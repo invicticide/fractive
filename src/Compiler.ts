@@ -86,6 +86,11 @@ import * as clc from "cli-color";
 
 export interface CompilerOptions
 {
+    /** 
+     * Path to the project json file to compile.
+     */
+    buildPath : string;
+
 	/**
 	 * If true, log what would've been done but don't actually modify any files on disk
 	 */
@@ -235,12 +240,24 @@ export namespace Compiler
 
 	/**
 	 * Compile all source files described by the given project file into a single playable html file
-	 * @param buildPath Path to the fractive.json to build from
 	 * @param options Compiler options blob
 	 */
-	export function Compile(buildPath : string, options : CompilerOptions) : void
+	export function Compile(options : CompilerOptions) : void
 	{
-		projectPath = path.dirname(buildPath);
+        // First, determine where the fractive.json file is located.
+        let buildPath = options.buildPath;
+        // If buildPath is a directory, fractive.json should be a file inside
+        // of it
+        if(fs.lstatSync(buildPath).isDirectory()) { buildPath = path.join(buildPath, "fractive.json"); }
+
+        // Make sure the fractive.json file exists
+        if(!fs.existsSync(buildPath))
+        {
+            console.error(clc.red(`Couldn't find project config "${buildPath}"`));
+            process.exit(1);
+        }
+
+		let projectPath = path.dirname(buildPath);
 
 		// Load the target project file and overlay it onto the ProjectDefaults. This allows user-made project
 		// files to only specify those properties which they want to override.

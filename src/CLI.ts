@@ -19,7 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 /**
- * Invoke 'node lib/CLI.js <command> <args>' to execute command-line tools
+ * Invoke 'fractive <command> <args>' to execute command-line tools
  */
 
 require("source-map-support").install();
@@ -28,6 +28,7 @@ import * as cp from "child_process";
 import * as fs from "fs";
 import * as path from "path";
 import * as clc from "cli-color";
+import * as commandLineArgs from "command-line-args";
 
 import { Compiler, CompilerOptions, ProjectDefaults } from "./Compiler";
 
@@ -40,38 +41,15 @@ var isWindows = /^win/.test(process.platform);
  */
 function Compile(args : Array<string>)
 {
-	if(!args || args.length < 1)
-	{
-		Compiler.ShowUsage();
-		process.exit(1);
-	}
-	else
-	{
-		let buildPath = args[0];
+    let optionDefinitions = [
+        { name: 'buildPath', type: String, defaultOption: true, defaultValue: '.' },
+        { name: 'dry-run', type: Boolean },
+        { name: 'verbose', alias: 'v', type: Boolean },
+        { name: 'debug', type: Boolean }
+    ];
 
-		// If we got a directory, assume we're looking for a fractive.json in its root
-		if(fs.lstatSync(buildPath).isDirectory()) { buildPath = path.join(buildPath, "fractive.json"); }
-
-		if(fs.existsSync(buildPath))
-		{
-			let options : CompilerOptions = {};
-			for(let i = 1; i < args.length; i++)
-			{
-				switch(args[i])
-				{
-					case "--dry-run":	{ options.dryRun = true; break; }
-					case "--verbose":	{ options.verbose = true; break; }
-					case "--debug":		{ options.debug = true; break; }
-				}
-			}
-			Compiler.Compile(buildPath, options);
-		}
-		else
-		{
-			console.error(clc.red(`Couldn't find project config "${buildPath}"`));
-			process.exit(1);
-		}
-	}
+    let options : CompilerOptions = commandLineArgs(optionDefinitions, { argv: args });
+    Compiler.Compile(options);
 }
 
 /**
