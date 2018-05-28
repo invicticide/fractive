@@ -90,7 +90,10 @@ export interface CompilerOptions
      * Path to the project json file to compile.
      */
     buildPath : string;
-
+    /**
+     * Show usage guide for the Compiler. 
+     */
+    help?: boolean;
 	/**
 	 * If true, log what would've been done but don't actually modify any files on disk
 	 */
@@ -1287,26 +1290,6 @@ export namespace Compiler
 		node.unlink();
 
 		return true;
-	}
-
-	/**
-	 * Output the command-line usage and options of the compiler
-	 */
-	export function ShowUsage()
-	{
-		console.log(``);
-		console.log(`Usage:`);
-		console.log(`${clc.green("node lib/CLI.js compile")} ${clc.blue("<storyDirectory|configFilePath>")} ${clc.yellow("[options]")}`);
-		console.log(``);
-		console.log(`${clc.blue("storyDirectory:")} The folder path where the story source files are located. Looks for fractive.json in the root.`);
-		console.log(`${clc.blue("configFilePath:")} If you want to build with a different config, specify the config.json path directly.`);
-		console.log(``);
-		console.log(`${clc.yellow("--dry-run:")} Log what would've been done, but don't actually touch any files.`);
-		console.log(`${clc.yellow("--verbose:")} Log more detailed build information`);
-		console.log(`${clc.yellow("--debug:")} Log debugging information during the build`);
-		console.log(``);
-		console.log(`${clc.green("node lib/CLI.js compile /Users/Desktop/MyStory")} ${clc.yellow("--verbose")}`);
-		console.log(``);
 	}
 
 	/**

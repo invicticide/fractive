@@ -44,18 +44,40 @@ function Compile(args : Array<string>)
 {
     let optionDefinitions = [
         { name: 'buildPath', type: String, defaultOption: true, defaultValue: '.' },
+        { name: 'help', type: Boolean },
         { name: 'dry-run', type: Boolean },
         { name: 'verbose', alias: 'v', type: Boolean },
         { name: 'debug', type: Boolean }
     ];
 
     let options : CompilerOptions = commandLineArgs(optionDefinitions, { argv: args });
-    Compiler.Compile(options);
+
+    if (options.help) {
+        let sections = [
+        {
+            header: 'Compiling Fractive Stories',
+            content: '$ fractive compile <options>'
+        },
+        {
+            header: 'Options',
+            optionList: [
+                { name: 'buildPath (optional)', description: 'Either the root directory of a Fractive project, or the path to a valid Fractive project file.'},
+                { name: 'dry-run', description: "Log what would have been done, but do not actually change any files." },
+                { name: 'verbose', description: 'Log more detailed build information.' },
+                { name: 'debug', description: 'Log debugging information during the build.' },
+
+            ]
+        }
+    ];
+    let usage = commandLineUsage(sections);
+    console.log(usage);
+
+    }
+    else {
+        Compiler.Compile(options);
+    }
 }
 
-/*function CompileUsage()*/
-/*{*/
-/*}*/
 
 /**
  * Scaffold a new Fractive project
@@ -131,7 +153,7 @@ function ShowUsage()
                 { name: 'docs', summary: 'Launch the Fractive user guide (Web browser required)' },
                 { name: 'examples', summary: 'Browse Fractive example projects (Web browser required)' },
                 { name: 'create', summary: 'Create a new Fractive project' },
-                { name: 'compile', summary: 'Compile an existing Fractive project' }
+                { name: 'compile [--help]', summary: 'Compile an existing Fractive project' }
 
             ]
         }
