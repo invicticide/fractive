@@ -51,8 +51,10 @@ function Compile(args : Array<string>)
         { name: 'debug', type: Boolean }
     ];
 
+    let options : CompilerOptions = null;
+
     try {
-        let options : CompilerOptions = commandLineArgs(optionDefinitions, { argv: args });
+        options = commandLineArgs(optionDefinitions, { argv: args });
     }
     catch (err) {
         CompileUsage();
