@@ -573,3 +573,5 @@ export namespace Core
 		currentSectionObserver.observe(e, currentSectionObserverConfig);
 	}
 }
+
+window['Core'] = Core;

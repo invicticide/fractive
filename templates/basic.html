@@ -165,46 +165,7 @@
 			}
 		</style>
 		<!--{script}-->
-		<script>
-			function __Restart()
-			{
-				location.reload();
-			}
-			function __ToggleHistory()
-			{
-				var historyContainerDiv = document.getElementById("__historyContainer");
-				if(!historyContainerDiv) { return; }
-
-				var historyDiv = document.getElementById("__history");
-				if(!historyDiv) { return; }
-
-				var contentDiv = document.getElementById("__content");
-				if(!contentDiv) { return; }
-
-				// Toggle history visibility
-				historyContainerDiv.hidden = !historyContainerDiv.hidden;
-				historyDiv.hidden = historyContainerDiv.hidden;
-
-				// Scroll to bottom of history
-				historyContainerDiv.scrollTop = historyContainerDiv.scrollHeight;
-
-				// Adjust content position relative to history panel
-				var contentTop = 75 + (historyContainerDiv.hidden ? 0 : 425);
-				contentDiv.style.setProperty("top", contentTop);
-				contentDiv.style.setProperty("height", window.innerHeight - contentTop);
-			}
-			Core.AddEventListener("OnGotoSection", function(id, element, tags, reason)
-			{
-				// Scroll to bottom of history
-				var historyContainerDiv = document.getElementById("__historyContainer");
-				if(historyContainerDiv) { historyContainerDiv.scrollTop = historyContainerDiv.scrollHeight; }
-
-				// Scroll to top of new content
-				var contentDiv = document.getElementById("__content");
-				if(contentDiv) { contentDiv.scrollTop = 0; }
-			});
-		</script>
-	</head>
+			</head>
 	<body>
 		<div id="__content">
 			<!--{story}-->
