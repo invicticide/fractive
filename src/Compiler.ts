@@ -189,7 +189,7 @@ export namespace Compiler
 		template = InsertHtmlAtMark(project.title, template, 'title', false); // !required
 
 		// Auto-start at the "Start" section
-		template += "<script>Fractive.Core.ExportToGlobal();Core.BeginStory();</script>";
+		template += "<script>Core.BeginStory();</script>";
 
 		if(project.outputFormat === 'minify')
 		{
@@ -339,8 +339,10 @@ export namespace Compiler
         let browserifyFiles = [path.resolve(__dirname, "Core.js")];
         for (let i = 0; i < targets.javascriptFiles.length; i++)
         {
-            browserifyFiles[browserifyFiles.length] = path.resolve(projectPath, targets.javascriptFiles[i]); 
+            let scriptFile = path.resolve(projectPath, targets.javascriptFiles[i]);
+            browserifyFiles[i+1] = scriptFile;
         }
+        /*console.log(browserifyFiles);*/
 
         if (options.verbose || options.dryRun) {
             LogAction('javascript files', 'running browserify');
@@ -354,6 +356,7 @@ export namespace Compiler
             // Based on answer from here: https://stackoverflow.com/questions/18112204/get-all-directories-within-directory-nodejs
             let isDirectory = directory => fs.lstatSync(directory).isDirectory()
             storyModulePaths = (source => fs.readdirSync(source).map(name => path.join(source, name)).filter(isDirectory))(storyModuleDir);
+            /*console.log(storyModulePaths);*/
         }
 
         // Browserify all specified source files with Fractive Core, its

@@ -668,11 +668,7 @@
                             currentSection.parentElement.replaceChild(e, currentSection);
                             currentSectionObserver.observe(e, currentSectionObserverConfig);
                         }
-
-                        function ExportToGlobal() {
-                            window['Core'] = Core;
-                        }
-                        Core.ExportToGlobal = ExportToGlobal;
+                        window['Core'] = Core;
                     })(Core = exports.Core || (exports.Core = {}));
 
                 }, {}]
@@ -1440,6 +1436,5 @@ This is the beginning of my story, but I'm obstinate and don't want to use the n
 
 </html>
 <script>
-    Fractive.Core.ExportToGlobal();
     Core.BeginStory();
 </script>

@@ -648,11 +648,7 @@
                             currentSection.parentElement.replaceChild(e, currentSection);
                             currentSectionObserver.observe(e, currentSectionObserverConfig);
                         }
-
-                        function ExportToGlobal() {
-                            window['Core'] = Core;
-                        }
-                        Core.ExportToGlobal = ExportToGlobal;
+                        window['Core'] = Core;
                     })(Core = exports.Core || (exports.Core = {}));
 
                 }, {}]
@@ -718,6 +714,5 @@
 
 </html>
 <script>
-    Fractive.Core.ExportToGlobal();
     Core.BeginStory();
 </script>
