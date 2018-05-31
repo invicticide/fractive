@@ -652,12 +652,6 @@ and something different if they don't.";
 
                         function ExportToGlobal() {
                             window['Core'] = Core;
-                            var fractiveDefinitions = window['Fractive'];
-                            for (var property in fractiveDefinitions) {
-                                if (fractiveDefinitions.hasOwnProperty(property)) {
-                                    window[property] = fractiveDefinitions[property];
-                                }
-                            }
                         }
                         Core.ExportToGlobal = ExportToGlobal;
                     })(Core = exports.Core || (exports.Core = {}));

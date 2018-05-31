@@ -336,8 +336,6 @@ export namespace Compiler
 		if(!fs.existsSync(outputDir)) { CreateDirectoryRecursive(outputDir); }
 
 		// Bundle all the Javascript files with Browserify
-        console.log('heyyyyy');
-        console.log(path.resolve(__dirname, "Core.js"));
         let browserifyFiles = [path.resolve(__dirname, "Core.js")];
         for (let i = 0; i < targets.javascriptFiles.length; i++)
         {
@@ -351,16 +349,16 @@ export namespace Compiler
         // Get a list of module paths from the story itself
         let storyModulePaths = [];
         let storyModuleDir = path.resolve(projectPath, 'node_modules');
-        console.log(storyModuleDir);
+
         if (fs.existsSync(storyModuleDir)) {
-            console.log("Story has a modules directory");
             // Based on answer from here: https://stackoverflow.com/questions/18112204/get-all-directories-within-directory-nodejs
             let isDirectory = directory => fs.lstatSync(directory).isDirectory()
             storyModulePaths = (source => fs.readdirSync(source).map(name => path.join(source, name)).filter(isDirectory))(storyModuleDir);
         }
 
-        console.log(storyModulePaths);
-
+        // Browserify all specified source files with Fractive Core, its
+        // dependencies, and any modules the user has installed in their story
+        // directory
         browserify(browserifyFiles, {
             standalone: 'Fractive',
             paths: storyModulePaths

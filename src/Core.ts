@@ -580,12 +580,5 @@ export namespace Core
      */
     export function ExportToGlobal() {
         window['Core'] = Core;
-
-        let fractiveDefinitions = window['Fractive'];
-        for (var property in fractiveDefinitions) {
-            if (fractiveDefinitions.hasOwnProperty(property)) {
-                window[property] = fractiveDefinitions[property];
-            }
-        }
     }
 }
