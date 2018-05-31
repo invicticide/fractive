@@ -196,426 +196,458 @@
         }
     </style>
     <script type='text/javascript'>
-        (function() {
-            function r(e, n, t) {
-                function o(i, f) {
-                    if (!n[i]) {
-                        if (!e[i]) {
-                            var c = "function" == typeof require && require;
-                            if (!f && c) return c(i, !0);
-                            if (u) return u(i, !0);
-                            var a = new Error("Cannot find module '" + i + "'");
-                            throw a.code = "MODULE_NOT_FOUND", a
-                        }
-                        var p = n[i] = {
-                            exports: {}
-                        };
-                        e[i][0].call(p.exports, function(r) {
-                            var n = e[i][1][r];
-                            return o(n || r)
-                        }, p, p.exports, r, e, n, t)
-                    }
-                    return n[i].exports
+        (function(f) {
+            if (typeof exports === "object" && typeof module !== "undefined") {
+                module.exports = f()
+            } else if (typeof define === "function" && define.amd) {
+                define([], f)
+            } else {
+                var g;
+                if (typeof window !== "undefined") {
+                    g = window
+                } else if (typeof global !== "undefined") {
+                    g = global
+                } else if (typeof self !== "undefined") {
+                    g = self
+                } else {
+                    g = this
                 }
-                for (var u = "function" == typeof require && require, i = 0; i < t.length; i++) o(t[i]);
-                return o
+                g.Fractive = f()
             }
-            return r
-        })()({
-            1: [function(require, module, exports) {
-                function HideHistory() {
-                    Core.ShowHistory(false);
-                }
-
-                function FunctionLink() {
-                    alert("This link does something without changing the text.");
-                }
-
-                function InlineExpansionFunction() {
-                    return "Inline functions get the inline tag, too. Because the inline tag is meant to tell the player nothing major will change when the link is clicked, you should be careful not to do anything crazy in an inline function.";
-                }
-
-                var InlineExpansionVariable = "variable (a string which will replace the link)";
-                var TagVariable = "!";
-
-            }, {}],
-            2: [function(require, module, exports) {
-                "use strict";
-                Object.defineProperty(exports, "__esModule", {
-                    value: true
-                });
-                var Core;
-                (function(Core) {
-                    var EGotoSectionReason;
-                    (function(EGotoSectionReason) {
-                        EGotoSectionReason[EGotoSectionReason["Goto"] = 0] = "Goto";
-                        EGotoSectionReason[EGotoSectionReason["Back"] = 1] = "Back";
-                        EGotoSectionReason[EGotoSectionReason["Refresh"] = 2] = "Refresh";
-                    })(EGotoSectionReason = Core.EGotoSectionReason || (Core.EGotoSectionReason = {}));
-                    var OnBeginStory = [];
-                    var OnGotoSection = [];
-                    var currentSectionObserver = new MutationObserver(OnCurrentSectionModified);
-                    var currentSectionObserverConfig = {
-                        childList: true,
-                        attributes: true,
-                        characterData: true,
-                        subtree: true
-                    };
-
-                    function ActivateElement(element) {
-                        if (element.tagName && element.tagName.toLowerCase() == "a") {
-                            var _loop_1 = function(i) {
-                                switch (element.attributes[i].name) {
-                                    case "data-goto-section":
-                                        {
-                                            element.addEventListener("click", function() {
-                                                Core.GotoSection(element.attributes[i].value);
-                                            });
-                                            break;
-                                        }
-                                    case "data-call-function":
-                                        {
-                                            element.addEventListener("click", RetrieveFromWindow(element.attributes[i].value, 'function'));
-                                            break;
-                                        }
-                                    case "data-replace-with":
-                                        {
-                                            element.addEventListener("click", function() {
-                                                Core.ReplaceActiveElement(element.id, ExpandMacro(element.attributes[i].value));
-                                            });
-                                            break;
-                                        }
-                                }
+        })(function() {
+            var define, module, exports;
+            return (function() {
+                function r(e, n, t) {
+                    function o(i, f) {
+                        if (!n[i]) {
+                            if (!e[i]) {
+                                var c = "function" == typeof require && require;
+                                if (!f && c) return c(i, !0);
+                                if (u) return u(i, !0);
+                                var a = new Error("Cannot find module '" + i + "'");
+                                throw a.code = "MODULE_NOT_FOUND", a
+                            }
+                            var p = n[i] = {
+                                exports: {}
                             };
-                            for (var i = 0; i < element.attributes.length; i++) {
-                                _loop_1(i);
-                            }
+                            e[i][0].call(p.exports, function(r) {
+                                var n = e[i][1][r];
+                                return o(n || r)
+                            }, p, p.exports, r, e, n, t)
                         }
-                        if (element.id && element.id !== "__currentSection") {
-                            if (element.id[0] !== '!') {
-                                element.id = "!" + element.id;
-                            }
-                        }
-                        if (element.children) {
-                            for (var i = 0; i < element.children.length; i++) {
-                                ActivateElement(element.children[i]);
-                            }
-                        }
+                        return n[i].exports
                     }
-                    Core.ActivateElement = ActivateElement;
-
-                    function AddEventListener(eventName, handler) {
-                        switch (eventName) {
-                            case "OnBeginStory":
-                                {
-                                    OnBeginStory = OnBeginStory.concat(handler);
-                                    break;
-                                }
-                            case "OnGotoSection":
-                            case "OnGoToSection":
-                                {
-                                    OnGotoSection = OnGotoSection.concat(handler);
-                                    break;
-                                }
-                            default:
-                                {
-                                    console.error("Core.AddEventListener: \"" + eventName + "\" is not a valid event");
-                                    break;
-                                }
-                        }
+                    for (var u = "function" == typeof require && require, i = 0; i < t.length; i++) o(t[i]);
+                    return o
+                }
+                return r
+            })()({
+                1: [function(require, module, exports) {
+                    function HideHistory() {
+                        Core.ShowHistory(false);
                     }
-                    Core.AddEventListener = AddEventListener;
 
-                    function BeginStory() {
-                        for (var i = 0; i < OnBeginStory.length; i++) {
-                            OnBeginStory[i]();
-                        }
-                        var startSections = GetSectionsWithTag("Start");
-                        if (startSections.length == 0) {
-                            console.error("BeginStory(): no section is defined with the Start tag.");
-                        } else if (startSections.length > 1) {
-                            console.error("BeginStory(): multiple sections defined with the Start tag.");
-                        } else {
-                            GotoSection(startSections[0]);
-                        }
+                    function FunctionLink() {
+                        alert("This link does something without changing the text.");
                     }
-                    Core.BeginStory = BeginStory;
 
-                    function CanBeInline(html, context) {
-                        var root = document.createElement("span");
-                        if (context) {
-                            context.appendChild(root);
-                        } else {
-                            document.appendChild(root);
-                        }
-                        root.innerHTML = html;
-                        var scan = function(e) {
-                            if (getComputedStyle(e, "").display === "block") {
-                                return false;
+                    function InlineExpansionFunction() {
+                        return "Inline functions get the inline tag, too. Because the inline tag is meant to tell the player nothing major will change when the link is clicked, you should be careful not to do anything crazy in an inline function.";
+                    }
+
+                    var InlineExpansionVariable = "variable (a string which will replace the link)";
+                    var TagVariable = "!";
+
+                }, {}],
+                2: [function(require, module, exports) {
+                    "use strict";
+                    Object.defineProperty(exports, "__esModule", {
+                        value: true
+                    });
+                    var Core;
+                    (function(Core) {
+                        var EGotoSectionReason;
+                        (function(EGotoSectionReason) {
+                            EGotoSectionReason[EGotoSectionReason["Goto"] = 0] = "Goto";
+                            EGotoSectionReason[EGotoSectionReason["Back"] = 1] = "Back";
+                            EGotoSectionReason[EGotoSectionReason["Refresh"] = 2] = "Refresh";
+                        })(EGotoSectionReason = Core.EGotoSectionReason || (Core.EGotoSectionReason = {}));
+                        var OnBeginStory = [];
+                        var OnGotoSection = [];
+                        var currentSectionObserver = new MutationObserver(OnCurrentSectionModified);
+                        var currentSectionObserverConfig = {
+                            childList: true,
+                            attributes: true,
+                            characterData: true,
+                            subtree: true
+                        };
+
+                        function ActivateElement(element) {
+                            if (element.tagName && element.tagName.toLowerCase() == "a") {
+                                var _loop_1 = function(i) {
+                                    switch (element.attributes[i].name) {
+                                        case "data-goto-section":
+                                            {
+                                                element.addEventListener("click", function() {
+                                                    Core.GotoSection(element.attributes[i].value);
+                                                });
+                                                break;
+                                            }
+                                        case "data-call-function":
+                                            {
+                                                element.addEventListener("click", RetrieveFromWindow(element.attributes[i].value, 'function'));
+                                                break;
+                                            }
+                                        case "data-replace-with":
+                                            {
+                                                element.addEventListener("click", function() {
+                                                    Core.ReplaceActiveElement(element.id, ExpandMacro(element.attributes[i].value));
+                                                });
+                                                break;
+                                            }
+                                    }
+                                };
+                                for (var i = 0; i < element.attributes.length; i++) {
+                                    _loop_1(i);
+                                }
                             }
-                            for (var i = 0; i < e.children.length; i++) {
-                                if (scan(e.children[i]) === false) {
+                            if (element.id && element.id !== "__currentSection") {
+                                if (element.id[0] !== '!') {
+                                    element.id = "!" + element.id;
+                                }
+                            }
+                            if (element.children) {
+                                for (var i = 0; i < element.children.length; i++) {
+                                    ActivateElement(element.children[i]);
+                                }
+                            }
+                        }
+                        Core.ActivateElement = ActivateElement;
+
+                        function AddEventListener(eventName, handler) {
+                            switch (eventName) {
+                                case "OnBeginStory":
+                                    {
+                                        OnBeginStory = OnBeginStory.concat(handler);
+                                        break;
+                                    }
+                                case "OnGotoSection":
+                                case "OnGoToSection":
+                                    {
+                                        OnGotoSection = OnGotoSection.concat(handler);
+                                        break;
+                                    }
+                                default:
+                                    {
+                                        console.error("Core.AddEventListener: \"" + eventName + "\" is not a valid event");
+                                        break;
+                                    }
+                            }
+                        }
+                        Core.AddEventListener = AddEventListener;
+
+                        function BeginStory() {
+                            for (var i = 0; i < OnBeginStory.length; i++) {
+                                OnBeginStory[i]();
+                            }
+                            var startSections = GetSectionsWithTag("Start");
+                            if (startSections.length == 0) {
+                                console.error("BeginStory(): no section is defined with the Start tag.");
+                            } else if (startSections.length > 1) {
+                                console.error("BeginStory(): multiple sections defined with the Start tag.");
+                            } else {
+                                GotoSection(startSections[0]);
+                            }
+                        }
+                        Core.BeginStory = BeginStory;
+
+                        function CanBeInline(html, context) {
+                            var root = document.createElement("span");
+                            if (context) {
+                                context.appendChild(root);
+                            } else {
+                                document.appendChild(root);
+                            }
+                            root.innerHTML = html;
+                            var scan = function(e) {
+                                if (getComputedStyle(e, "").display === "block") {
                                     return false;
                                 }
+                                for (var i = 0; i < e.children.length; i++) {
+                                    if (scan(e.children[i]) === false) {
+                                        return false;
+                                    }
+                                }
+                                return true;
+                            };
+                            var result = scan(root);
+                            if (context) {
+                                context.removeChild(root);
+                            } else {
+                                document.removeChild(root);
                             }
-                            return true;
-                        };
-                        var result = scan(root);
-                        if (context) {
-                            context.removeChild(root);
-                        } else {
-                            document.removeChild(root);
+                            return result;
                         }
-                        return result;
-                    }
 
-                    function DisableLinks(section) {
-                        var links = section.getElementsByTagName("a");
-                        for (var i = 0; i < links.length; i++) {
-                            var linkTag = links[i].outerHTML.substring(0, links[i].outerHTML.indexOf(">") + 1);
-                            var contents = links[i].outerHTML.substring(links[i].outerHTML.indexOf(">") + 1, links[i].outerHTML.indexOf("</a>"));
-                            links[i].outerHTML = "<span class=\"__disabledLink\" data-link-tag='" + linkTag + "'>" + contents + "</span>";
+                        function DisableLinks(section) {
+                            var links = section.getElementsByTagName("a");
+                            for (var i = 0; i < links.length; i++) {
+                                var linkTag = links[i].outerHTML.substring(0, links[i].outerHTML.indexOf(">") + 1);
+                                var contents = links[i].outerHTML.substring(links[i].outerHTML.indexOf(">") + 1, links[i].outerHTML.indexOf("</a>"));
+                                links[i].outerHTML = "<span class=\"__disabledLink\" data-link-tag='" + linkTag + "'>" + contents + "</span>";
+                            }
                         }
-                    }
 
-                    function EnableLinks(section) {
-                        var links = section.getElementsByClassName("__disabledLink");
-                        for (var i = 0; i < links.length;) {
-                            var linkTag = links[i].getAttribute('data-link-tag');
-                            var contents = links[i].innerHTML;
-                            links[i].outerHTML = linkTag + contents + '</a>';
+                        function EnableLinks(section) {
+                            var links = section.getElementsByClassName("__disabledLink");
+                            for (var i = 0; i < links.length;) {
+                                var linkTag = links[i].getAttribute('data-link-tag');
+                                var contents = links[i].innerHTML;
+                                links[i].outerHTML = linkTag + contents + '</a>';
+                            }
                         }
-                    }
 
-                    function ExpandMacro(macro) {
-                        switch (macro[0]) {
-                            case '@':
-                                {
-                                    var sectionName = macro.substring(1);
-                                    if (!document.getElementById(sectionName)) {
-                                        return "{section \"" + sectionName + "\" is not declared}";
-                                    } else {
-                                        return ExpandSection(macro.substring(1)).innerHTML;
+                        function ExpandMacro(macro) {
+                            switch (macro[0]) {
+                                case '@':
+                                    {
+                                        var sectionName = macro.substring(1);
+                                        if (!document.getElementById(sectionName)) {
+                                            return "{section \"" + sectionName + "\" is not declared}";
+                                        } else {
+                                            return ExpandSection(macro.substring(1)).innerHTML;
+                                        }
                                     }
-                                }
-                            case '#':
-                                {
-                                    var functionName = macro.substring(1);
-                                    var targetFunction = RetrieveFromWindow(functionName, 'function');
-                                    if (targetFunction !== null && targetFunction !== undefined) {
-                                        var result = targetFunction();
-                                        return (result ? result.toString() : "");
-                                    } else {
-                                        return "{function \"" + functionName + "\" is not defined}";
+                                case '#':
+                                    {
+                                        var functionName = macro.substring(1);
+                                        var targetFunction = RetrieveFromWindow(functionName, 'function');
+                                        if (targetFunction !== null && targetFunction !== undefined) {
+                                            var result = targetFunction();
+                                            return (result ? result.toString() : "");
+                                        } else {
+                                            return "{function \"" + functionName + "\" is not defined}";
+                                        }
                                     }
-                                }
-                            case '$':
-                                {
-                                    var variableName = macro.substring(1);
-                                    var targetVariable = RetrieveFromWindow(variableName, 'variable');
-                                    if (targetVariable !== null && targetVariable !== undefined) {
-                                        return targetVariable.toString();
-                                    } else {
-                                        return "{variable \"" + variableName + "\" is not defined}";
+                                case '$':
+                                    {
+                                        var variableName = macro.substring(1);
+                                        var targetVariable = RetrieveFromWindow(variableName, 'variable');
+                                        if (targetVariable !== null && targetVariable !== undefined) {
+                                            return targetVariable.toString();
+                                        } else {
+                                            return "{variable \"" + variableName + "\" is not defined}";
+                                        }
                                     }
-                                }
-                            default:
-                                {
-                                    return "{unknown metacharacter in macro \"" + macro + "\"";
-                                }
+                                default:
+                                    {
+                                        return "{unknown metacharacter in macro \"" + macro + "\"";
+                                    }
+                            }
                         }
-                    }
-                    Core.ExpandMacro = ExpandMacro;
+                        Core.ExpandMacro = ExpandMacro;
 
-                    function ExpandSection(id) {
-                        var source = document.getElementById(id);
-                        if (source === null) {
-                            console.log("Section " + id + " doesn't exist");
-                            return null;
-                        }
-                        var sectionInstance = source.cloneNode(true);
-                        sectionInstance.removeAttribute("hidden");
-                        var scan = function(element) {
-                            for (var i = 0; i < element.attributes.length; i++) {
-                                var expanded = false;
-                                switch (element.attributes[i].name) {
-                                    case "data-expand-macro":
-                                        {
-                                            if (element.parentElement) {
-                                                var newElement = document.createElement("span");
-                                                newElement.innerHTML = ExpandMacro(element.attributes[i].value);
-                                                element.parentElement.replaceChild(newElement, element);
+                        function ExpandSection(id) {
+                            var source = document.getElementById(id);
+                            if (source === null) {
+                                console.log("Section " + id + " doesn't exist");
+                                return null;
+                            }
+                            var sectionInstance = source.cloneNode(true);
+                            sectionInstance.removeAttribute("hidden");
+                            var scan = function(element) {
+                                for (var i = 0; i < element.attributes.length; i++) {
+                                    var expanded = false;
+                                    switch (element.attributes[i].name) {
+                                        case "data-expand-macro":
+                                            {
+                                                if (element.parentElement) {
+                                                    var newElement = document.createElement("span");
+                                                    newElement.innerHTML = ExpandMacro(element.attributes[i].value);
+                                                    element.parentElement.replaceChild(newElement, element);
+                                                    expanded = true;
+                                                }
+                                                break;
+                                            }
+                                        case "data-image-source-macro":
+                                            {
+                                                element.setAttribute("src", ExpandMacro(element.attributes[i].value));
                                                 expanded = true;
                                             }
-                                            break;
-                                        }
-                                    case "data-image-source-macro":
-                                        {
-                                            element.setAttribute("src", ExpandMacro(element.attributes[i].value));
-                                            expanded = true;
-                                        }
+                                    }
+                                    if (expanded) {
+                                        break;
+                                    }
                                 }
-                                if (expanded) {
-                                    break;
+                                if (element.hasChildNodes) {
+                                    for (var i = 0; i < element.children.length; i++) {
+                                        scan(element.children[i]);
+                                    }
+                                }
+                            };
+                            scan(sectionInstance);
+                            return sectionInstance;
+                        }
+
+                        function GetCurrentSectionTags() {
+                            return GetSectionTags("__currentSection");
+                        }
+                        Core.GetCurrentSectionTags = GetCurrentSectionTags;
+
+                        function GetSection(id) {
+                            var clone = ExpandSection(id);
+                            clone.setAttribute('data-id', id);
+                            return clone;
+                        }
+                        Core.GetSection = GetSection;
+
+                        function GetSectionsWithTag(tag) {
+                            var matchingSections = [];
+                            var sections = document.getElementsByClassName("section");
+                            for (var i = 0; i < sections.length; ++i) {
+                                var sectionId = sections[i].getAttribute('id');
+                                var sectionTags = GetSectionTags(sectionId);
+                                if (sectionTags.indexOf(tag) !== -1) {
+                                    matchingSections.push(sectionId);
                                 }
                             }
-                            if (element.hasChildNodes) {
-                                for (var i = 0; i < element.children.length; i++) {
-                                    scan(element.children[i]);
+                            return matchingSections;
+                        }
+                        Core.GetSectionsWithTag = GetSectionsWithTag;
+
+                        function GetSectionTags(id) {
+                            var sectionDiv = document.getElementById(id);
+                            var tagDeclarations = sectionDiv.getAttribute("data-tags");
+                            return tagDeclarations.split(',');
+                        }
+                        Core.GetSectionTags = GetSectionTags;
+
+                        function GotoPreviousSection() {
+                            currentSectionObserver.disconnect();
+                            var history = document.getElementById("__history");
+                            if (history === null) {
+                                console.error("History is not supported in this template (the __history element is missing)");
+                                return;
+                            }
+                            var previousSections = history.getElementsByClassName('__previousSection');
+                            var previousSection = previousSections[previousSections.length - 1];
+                            if (!previousSection) {
+                                return;
+                            }
+                            var id = previousSection.getAttribute('data-id');
+                            var clone = previousSection.cloneNode(true);
+                            EnableLinks(clone);
+                            SetElementAsCurrentSection(clone);
+                            for (var i = 0; i < OnGotoSection.length; i++) {
+                                OnGotoSection[i](id, clone, GetSectionTags(id), EGotoSectionReason.Back);
+                            }
+                            history.removeChild(previousSection);
+                        }
+                        Core.GotoPreviousSection = GotoPreviousSection;
+
+                        function GoToPreviousSection() {
+                            GotoPreviousSection();
+                        }
+                        Core.GoToPreviousSection = GoToPreviousSection;
+
+                        function GotoSection(id) {
+                            currentSectionObserver.disconnect();
+                            var currentSection = document.getElementById("__currentSection");
+                            DisableLinks(currentSection);
+                            var history = document.getElementById("__history");
+                            var previousSectionId = currentSection.getAttribute('data-id');
+                            if (previousSectionId !== null && history !== null) {
+                                history.innerHTML += "<div class=\"__previousSection\" data-id=\"" + previousSectionId + "\">" + currentSection.innerHTML + "</div>";
+                                history.scrollTop = history.scrollHeight;
+                            }
+                            var clone = GetSection(id);
+                            SetElementAsCurrentSection(clone);
+                            for (var i = 0; i < OnGotoSection.length; i++) {
+                                OnGotoSection[i](id, clone, GetSectionTags(id), EGotoSectionReason.Goto);
+                            }
+                        }
+                        Core.GotoSection = GotoSection;
+
+                        function GoToSection(id) {
+                            GotoSection(id);
+                        }
+                        Core.GoToSection = GoToSection;
+
+                        function OnCurrentSectionModified(mutations) {
+                            for (var i = 0; i < mutations.length; i++) {
+                                for (var j = 0; j < mutations[i].addedNodes.length; j++) {
+                                    var e = mutations[i].addedNodes[j];
+                                    ActivateElement(e);
                                 }
                             }
-                        };
-                        scan(sectionInstance);
-                        return sectionInstance;
-                    }
+                        }
 
-                    function GetCurrentSectionTags() {
-                        return GetSectionTags("__currentSection");
-                    }
-                    Core.GetCurrentSectionTags = GetCurrentSectionTags;
-
-                    function GetSection(id) {
-                        var clone = ExpandSection(id);
-                        clone.setAttribute('data-id', id);
-                        return clone;
-                    }
-                    Core.GetSection = GetSection;
-
-                    function GetSectionsWithTag(tag) {
-                        var matchingSections = [];
-                        var sections = document.getElementsByClassName("section");
-                        for (var i = 0; i < sections.length; ++i) {
-                            var sectionId = sections[i].getAttribute('id');
-                            var sectionTags = GetSectionTags(sectionId);
-                            if (sectionTags.indexOf(tag) !== -1) {
-                                matchingSections.push(sectionId);
+                        function RefreshCurrentSection() {
+                            currentSectionObserver.disconnect();
+                            var currentSection = document.getElementById("__currentSection");
+                            var id = currentSection.getAttribute("data-id");
+                            var clone = GetSection(id);
+                            SetElementAsCurrentSection(clone);
+                            for (var i = 0; i < OnGotoSection.length; i++) {
+                                OnGotoSection[i](id, clone, GetSectionTags(id), EGotoSectionReason.Refresh);
                             }
                         }
-                        return matchingSections;
-                    }
-                    Core.GetSectionsWithTag = GetSectionsWithTag;
+                        Core.RefreshCurrentSection = RefreshCurrentSection;
 
-                    function GetSectionTags(id) {
-                        var sectionDiv = document.getElementById(id);
-                        var tagDeclarations = sectionDiv.getAttribute("data-tags");
-                        return tagDeclarations.split(',');
-                    }
-                    Core.GetSectionTags = GetSectionTags;
-
-                    function GotoPreviousSection() {
-                        currentSectionObserver.disconnect();
-                        var history = document.getElementById("__history");
-                        if (history === null) {
-                            console.error("History is not supported in this template (the __history element is missing)");
-                            return;
+                        function RetrieveFromWindow(name, type) {
+                            var targetObject = null;
+                            var tokens = name.split('.');
+                            for (var i = 0; i < tokens.length; i++) {
+                                if (i === 0) {
+                                    targetObject = window[tokens[0]];
+                                } else {
+                                    targetObject = targetObject[tokens[i]];
+                                }
+                            }
+                            if (targetObject === undefined) {
+                                console.log("{" + type + " \"" + name + "\" is not declared}");
+                                return undefined;
+                            }
+                            return targetObject;
                         }
-                        var previousSections = history.getElementsByClassName('__previousSection');
-                        var previousSection = previousSections[previousSections.length - 1];
-                        if (!previousSection) {
-                            return;
-                        }
-                        var id = previousSection.getAttribute('data-id');
-                        var clone = previousSection.cloneNode(true);
-                        EnableLinks(clone);
-                        SetElementAsCurrentSection(clone);
-                        for (var i = 0; i < OnGotoSection.length; i++) {
-                            OnGotoSection[i](id, clone, GetSectionTags(id), EGotoSectionReason.Back);
-                        }
-                        history.removeChild(previousSection);
-                    }
-                    Core.GotoPreviousSection = GotoPreviousSection;
 
-                    function GoToPreviousSection() {
-                        GotoPreviousSection();
-                    }
-                    Core.GoToPreviousSection = GoToPreviousSection;
-
-                    function GotoSection(id) {
-                        currentSectionObserver.disconnect();
-                        var currentSection = document.getElementById("__currentSection");
-                        DisableLinks(currentSection);
-                        var history = document.getElementById("__history");
-                        var previousSectionId = currentSection.getAttribute('data-id');
-                        if (previousSectionId !== null && history !== null) {
-                            history.innerHTML += "<div class=\"__previousSection\" data-id=\"" + previousSectionId + "\">" + currentSection.innerHTML + "</div>";
-                            history.scrollTop = history.scrollHeight;
+                        function ReplaceActiveElement(id, html) {
+                            var element = document.getElementById(id[0] === '!' ? id : "!" + id);
+                            if (!element) {
+                                return;
+                            }
+                            var replacement = document.createElement(CanBeInline(html, element.parentElement) ? "span" : "div");
+                            replacement.className = "__inlineMacro";
+                            replacement.innerHTML = html;
+                            ActivateElement(replacement);
+                            element.parentNode.replaceChild(replacement, element);
                         }
-                        var clone = GetSection(id);
-                        SetElementAsCurrentSection(clone);
-                        for (var i = 0; i < OnGotoSection.length; i++) {
-                            OnGotoSection[i](id, clone, GetSectionTags(id), EGotoSectionReason.Goto);
+                        Core.ReplaceActiveElement = ReplaceActiveElement;
+
+                        function SetElementAsCurrentSection(e) {
+                            var currentSection = document.getElementById("__currentSection");
+                            e.scrollTop = 0;
+                            e.id = "__currentSection";
+                            ActivateElement(e);
+                            currentSection.parentElement.replaceChild(e, currentSection);
+                            currentSectionObserver.observe(e, currentSectionObserverConfig);
                         }
-                    }
-                    Core.GotoSection = GotoSection;
 
-                    function GoToSection(id) {
-                        GotoSection(id);
-                    }
-                    Core.GoToSection = GoToSection;
-
-                    function OnCurrentSectionModified(mutations) {
-                        for (var i = 0; i < mutations.length; i++) {
-                            for (var j = 0; j < mutations[i].addedNodes.length; j++) {
-                                var e = mutations[i].addedNodes[j];
-                                ActivateElement(e);
+                        function ExportToGlobal() {
+                            window['Core'] = Core;
+                            var fractiveDefinitions = window['Fractive'];
+                            for (var property in fractiveDefinitions) {
+                                if (fractiveDefinitions.hasOwnProperty(property)) {
+                                    window[property] = fractiveDefinitions[property];
+                                }
                             }
                         }
-                    }
+                        Core.ExportToGlobal = ExportToGlobal;
+                    })(Core = exports.Core || (exports.Core = {}));
 
-                    function RefreshCurrentSection() {
-                        currentSectionObserver.disconnect();
-                        var currentSection = document.getElementById("__currentSection");
-                        var id = currentSection.getAttribute("data-id");
-                        var clone = GetSection(id);
-                        SetElementAsCurrentSection(clone);
-                        for (var i = 0; i < OnGotoSection.length; i++) {
-                            OnGotoSection[i](id, clone, GetSectionTags(id), EGotoSectionReason.Refresh);
-                        }
-                    }
-                    Core.RefreshCurrentSection = RefreshCurrentSection;
-
-                    function RetrieveFromWindow(name, type) {
-                        var targetObject = null;
-                        var tokens = name.split('.');
-                        for (var i = 0; i < tokens.length; i++) {
-                            if (i === 0) {
-                                targetObject = window[tokens[0]];
-                            } else {
-                                targetObject = targetObject[tokens[i]];
-                            }
-                        }
-                        if (targetObject === undefined) {
-                            return "{" + type + " \"" + name + "\" is not declared}";
-                        }
-                        return targetObject;
-                    }
-
-                    function ReplaceActiveElement(id, html) {
-                        var element = document.getElementById(id[0] === '!' ? id : "!" + id);
-                        if (!element) {
-                            return;
-                        }
-                        var replacement = document.createElement(CanBeInline(html, element.parentElement) ? "span" : "div");
-                        replacement.className = "__inlineMacro";
-                        replacement.innerHTML = html;
-                        ActivateElement(replacement);
-                        element.parentNode.replaceChild(replacement, element);
-                    }
-                    Core.ReplaceActiveElement = ReplaceActiveElement;
-
-                    function SetElementAsCurrentSection(e) {
-                        var currentSection = document.getElementById("__currentSection");
-                        e.scrollTop = 0;
-                        e.id = "__currentSection";
-                        ActivateElement(e);
-                        currentSection.parentElement.replaceChild(e, currentSection);
-                        currentSectionObserver.observe(e, currentSectionObserverConfig);
-                    }
-                })(Core = exports.Core || (exports.Core = {}));
-                window['Core'] = Core;
-
-            }, {}]
-        }, {}, [2, 1]);
+                }, {}]
+            }, {}, [2, 1])(2)
+        });
     </script>
 </head>
 
@@ -691,5 +723,6 @@
 
 </html>
 <script>
+    Fractive.Core.ExportToGlobal();
     Core.BeginStory();
 </script>

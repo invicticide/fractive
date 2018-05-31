@@ -3,7 +3,7 @@ function HideHistory()
 	Core.ShowHistory(false);
 }
 
-function FunctionLink()
+ FunctionLink = function()
 {
 	alert("It might look like this, if your function was programmed to raise a browser alert (as this one was). Other functions could do complex logic to choose different sections to go to based on things like player state (do you have a certain item in your inventory?) or even a random roll of the dice!");
 }
