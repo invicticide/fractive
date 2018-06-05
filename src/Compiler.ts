@@ -22,6 +22,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 require("source-map-support").install();
 
+// Browserify
+import * as browserify from "browserify";
+
 // File system stuff
 import * as fs from "fs";
 import * as path from "path";
@@ -30,7 +33,7 @@ import * as util from "util";
 // XRegExp
 import * as XRegExp from "xregexp";
 
-// Set up the Markdown parser and renderer
+// CommonMark for Markdown parsing
 import * as commonmark from "commonmark";
 
 // Source formatting
@@ -41,6 +44,8 @@ import * as minifier from "html-minifier";
 import * as ajv from "ajv";
 import * as overrideJSON from "json-override";
 import { FractiveProject } from "./ProjectSchema";
+
+// Default configuration for new Fractive stories 
 export let ProjectDefaults : FractiveProject = {
 	title: "Untitled",
 	author: "Anonymous",
@@ -124,7 +129,7 @@ export namespace Compiler
 	 * @param javascript The javascript story scripts to insert into the template
 	 * @return The complete resulting html file contents
 	 */
-	function ApplyTemplate(basePath : string, html : string, javascript : string) : string
+	function ApplyTemplate(basePath : string, html : string, javascript: string) : string
 	{
 		let templatePath : string = "";
 
@@ -156,15 +161,7 @@ export namespace Compiler
 		let template : string = fs.readFileSync(templatePath, "utf8");
 
 		// Imported scripts
-		let scriptSection : string = "<script>";
-		scriptSection += "var exports = {};";	// This object holds all the TypeScript exports which are callable by story scripts
-
-		// Prettify the JavaScript if configured to do so
-		if(project.outputFormat === 'prettify') { javascript = beautifier.js_beautify(javascript); }
-
-		// Insert all bundled scripts, including Core.js
-		scriptSection += `${javascript}`;
-		scriptSection += "</script>";
+        let scriptSection : string = `<script type='text/javascript'>${javascript}</script>`;
 		template = InsertHtmlAtMark(scriptSection, template, 'script');
 
 		// Insert html-formatted story text
@@ -334,41 +331,76 @@ export namespace Compiler
 		}
 		if(errorCount > 0) { process.exit(1); }
 
-		// Import all the Javascript files
-		let javascript = ImportFile(path.resolve(__dirname, "Core.js"));
-		for(let i = 0; i < targets.javascriptFiles.length; i++)
-		{
-			if(options.verbose || options.dryRun) { LogAction(targets.javascriptFiles[i], "import"); }
-			javascript += `// ${targets.javascriptFiles[i]}\n${ImportFile(path.resolve(projectPath, targets.javascriptFiles[i]))}\n`;
-		}
-
-		// Wrap our compiled html with a page template
-		html = ApplyTemplate(projectPath, html, javascript);
-
 		// Create output directory
 		let outputDir = path.resolve(projectPath, project.output);
 		if(!fs.existsSync(outputDir)) { CreateDirectoryRecursive(outputDir); }
 
-		// Copy all our assets
-		for(let i = 0; i < targets.assetFiles.length; i++)
-		{
-			if(options.verbose || options.dryRun) { LogAction(targets.assetFiles[i], "copy"); }
-			if(!options.dryRun)
-			{
-				let sourcePath = path.resolve(projectPath, targets.assetFiles[i]);
-				let destPath = path.resolve(outputDir, targets.assetFiles[i]);
-				let destDir = path.dirname(destPath);
-				if(!fs.existsSync(destDir)) { CreateDirectoryRecursive(destDir); }
-				fs.copyFileSync(sourcePath, destPath);
-			}
-		}
+		// Bundle all the Javascript files with Browserify
+        let browserifyFiles = [path.resolve(__dirname, "Core.js")];
+        for (let i = 0; i < targets.javascriptFiles.length; i++)
+        {
+            let scriptFile = path.resolve(projectPath, targets.javascriptFiles[i]);
+            browserifyFiles[i+1] = scriptFile;
+        }
+        /*console.log(browserifyFiles);*/
 
-		// Write the final index.html. We report this after copying assets, even though we actually prepared it before,
-		// because it feels more natural to have the last reported output file be the file that actually runs our game.
-		let indexPath : string = path.resolve(outputDir, "index.html");
-		if(options.verbose || options.dryRun) { LogAction(indexPath.split(path.resolve(projectPath)).join(""), "output"); }
-		if(!options.dryRun) { fs.writeFileSync(indexPath, html, "utf8"); }
-	}
+        if (options.verbose || options.dryRun) {
+            LogAction('javascript files', 'running browserify');
+        }
+
+        // Get a list of module paths from the story itself
+        let storyModulePaths = [];
+        let storyModuleDir = path.resolve(projectPath, 'node_modules');
+
+        if (fs.existsSync(storyModuleDir)) {
+            // Based on answer from here: https://stackoverflow.com/questions/18112204/get-all-directories-within-directory-nodejs
+            let isDirectory = directory => fs.lstatSync(directory).isDirectory()
+            storyModulePaths = (source => fs.readdirSync(source).map(name => path.join(source, name)).filter(isDirectory))(storyModuleDir);
+            /*console.log(storyModulePaths);*/
+        }
+
+        // Browserify all specified source files with Fractive Core, its
+        // dependencies, and any modules the user has installed in their story
+        // directory
+        browserify(browserifyFiles, {
+            standalone: 'Fractive',
+            paths: storyModulePaths
+        }).bundle(function(error, buffer) {
+            if (error)
+            {
+                LogError(error);
+            }
+            else
+            {
+                let javascript = buffer;
+
+                // Wrap our compiled html with a page template
+                html = ApplyTemplate(projectPath, html, javascript);
+
+                // Copy all our assets
+                for(let i = 0; i < targets.assetFiles.length; i++)
+                {
+                    if(options.verbose || options.dryRun) { LogAction(targets.assetFiles[i], "copy"); }
+                    if(!options.dryRun)
+                    {
+                        let sourcePath = path.resolve(projectPath, targets.assetFiles[i]);
+                        let destPath = path.resolve(outputDir, targets.assetFiles[i]);
+                        let destDir = path.dirname(destPath);
+                        if(!fs.existsSync(destDir)) { CreateDirectoryRecursive(destDir); }
+                        fs.copyFileSync(sourcePath, destPath);
+                    }
+                }
+
+                // Write the final index.html. We report this after copying assets, even though we actually prepared it before,
+                // because it feels more natural to have the last reported output file be the file that actually runs our game.
+                let indexPath : string = path.resolve(outputDir, "index.html");
+                if(options.verbose || options.dryRun) { LogAction(indexPath.split(path.resolve(projectPath)).join(""), "output"); }
+                if(!options.dryRun) { fs.writeFileSync(indexPath, html, "utf8"); }
+
+            }
+        });
+
+    }
 
 	/**
 	 * Creates the target directory and all necessary parent directories. Equivalent to *nix 'mkdir -p'.
@@ -414,26 +446,6 @@ export namespace Compiler
 			}
 		}
 		return html;
-	}
-
-	/**
-	 * Reads and returns the raw contents of a file
-	 * @param filepath The path and filename of the file to import
-	 * @return The text contents of the file, or null on error
-	 */
-	function ImportFile(filepath : string) : string
-	{
-		if(!fs.existsSync(filepath))
-		{
-			console.log(`File not found: "${filepath}"`);
-			process.exit(1);
-		}
-		if(!fs.lstatSync(filepath).isFile())
-		{
-			console.log(`"${filepath} is not a file`);
-			process.exit(1);
-		}
-		return fs.readFileSync(filepath, "utf8");
 	}
 
 	/**

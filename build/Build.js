@@ -27,9 +27,6 @@ var clc = require("cli-color");
 const { performance } = require("perf_hooks");
 let startTime = performance.now();
 
-// True on Windows, false on Mac/Linux, for platform-specific calls
-var isWindows = /^win/.test(process.platform);
-
 /**
  * Compiles the user documentation. The engine should've been built before this.
  */
@@ -57,7 +54,9 @@ function BuildEngine()
 {
 	console.log("Building engine...");
 	
-	let result = cp.spawnSync(isWindows ? "node_modules\\.bin\\tsc.cmd" : "node_modules/.bin/tsc", [], { env : process.env });
+  // Compile all Typescript -- npx ensures the proper local typescript module
+  // is used independent of operating system
+	let result = cp.spawnSync('npx', ['tsc'], { env : process.env });
 	
 	// If result.error is set, then node failed launching the process or the process timed out. This isn't a tsc error.
 	if(result.error)

@@ -1,23 +1,23 @@
-var TestVariable = "Expanded variable!";
+window.TestVariable = "Expanded variable!";
 
-function TestFunction()
+window.TestFunction = function()
 {
 	return "Expanded function!";
 }
 
-function LinkedFunction()
+window.LinkedFunction = function()
 {
 	alert("Linked function!");
 }
 
-var ImageVariable = "assets/avatar.png";
+window.ImageVariable = "assets/avatar.png";
 
-function ImageFunction()
+window.ImageFunction = function()
 {
 	return ImageVariable;
 }
 
-var Nestor = {
+window.Nestor = {
 	NestedFunction : function() { return "Nested function!"; },
 	NestedVariable : "Nested variable!"
 };
