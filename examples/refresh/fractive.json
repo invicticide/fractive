@@ -2,7 +2,6 @@
     "title": "Refresh Example",
     "author": "Anonymous",
     "description": "An interactive story written in Fractive",
-    "website": "fractive.io",
     "markdown": [
         "source/**/*.md"
     ],

@@ -2,7 +2,6 @@
     "title": "Fractive User Guide",
     "author": "@invicticide",
     "description": "Fractive is a Markdown-based hypertext authoring tool for writing interactive fiction. This interactive user guide explains how to set it up, use it to write stories, build and distribute those stories, and extend Fractive in new and creative ways.",
-    "website": "http://fractive.io",
     "twitter": "@invicticide",
     "markdown": [
         "source/**/*.md"

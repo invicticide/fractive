@@ -1,7 +1,5 @@
 # Fractive
 
-**Check out the live demo at [fractive.io](http://fractive.io).**
-
 Fractive is built on [Node.js](https://nodejs.org), so you'll need to install that if you don't already have it. (Fractive currently targets version 8.9.0 LTS.)
 
 Once Node.js is installed, open a command line and install Fractive:
