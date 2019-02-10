@@ -25,25 +25,25 @@
   "main": "lib/Main.js",
   "types": "lib/Main.d.ts",
   "devDependencies": {
-    "@types/node": "^8.10.18",
+    "@types/node": "^8.10.40",
     "npm-merge-driver": "^2.3.5",
-    "typescript": "^2.9.1"
+    "typescript": "^2.9.2"
   },
   "dependencies": {
     "ajv": "^5.5.2",
-    "browserify": "^16.2.2",
+    "browserify": "^16.2.3",
     "cached-path-relative": ">=1.0.2",
-    "cli-color": "^1.2.0",
+    "cli-color": "^1.4.0",
     "command-line-args": "^5.0.2",
     "command-line-usage": "^5.0.5",
     "commonmark": "^0.28.1",
     "globby": "^7.1.1",
-    "html-minifier": "^3.5.16",
-    "js-beautify": "^1.7.5",
+    "html-minifier": "^3.5.21",
+    "js-beautify": "^1.8.9",
     "json-override": "^0.2.0",
-    "json-schema-to-typescript": "^5.5.0",
-    "source-map-support": "^0.5.6",
-    "xregexp": "^4.1.1"
+    "json-schema-to-typescript": "^5.7.0",
+    "source-map-support": "^0.5.10",
+    "xregexp": "^4.2.4"
   },
   "scripts": {
     "build": "node build/Build.js",
